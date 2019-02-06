@@ -1,5 +1,5 @@
 [package]
-name = "sfcgal-rs"
+name = "sfcgal"
 version = "0.1.0"
 authors = ["Matthieu Viry <matthieu.viry@univ-grenoble-alpes.fr>"]
 edition = "2018"
