@@ -12,3 +12,8 @@ geo-types = "0.3"
 enum-primitive-derive = "^0.1"
 num-traits = "^0.1"
 approx = "0.3"
+
+[dev-dependencies]
+geojson = "0.14"
+azul = { git = "https://github.com/maps4print/azul" }
+svg = "*"

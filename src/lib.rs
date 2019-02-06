@@ -32,6 +32,7 @@ mod geo;
 mod errors;
 mod utils;
 pub use errors::Result;
+pub use geo::TryInto;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Debug, Primitive)]
