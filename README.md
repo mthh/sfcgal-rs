@@ -1,5 +1,5 @@
 # sfcgal-rs
-## *(WIP)*
+__*(WIP)*__
 
 Rust bindings to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) C API.  
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
@@ -15,6 +15,10 @@ Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-
 ```rust
 extern crate geo_types;
 extern crate sfcgal;
+
+use geo_types::{LineString, Polygon};
+use sfcgal::ToSfcgal;
+
 
 // create a geo_types Polygon:
 let polygon = Polygon::new(
