@@ -7,9 +7,9 @@ use sfcgal_sys::{
     sfcgal_polygon_num_interior_rings, sfcgal_polygon_exterior_ring, sfcgal_polygon_interior_ring_n,
     sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create,
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
-    sfcgal_geometry_collection_geometry_n,
+    sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
 };
-use crate::{Result, SFCGeometry, GeomType, ToSfcgal, errors};
+use crate::{Result, SFCGeometry, GeomType, ToSfcgal, utils::check_null_geom};
 
 // define our own TryInto while the std trait is not stable
 pub trait TryInto<T> {
@@ -58,14 +58,6 @@ impl<'a> TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 let mut lines = Vec::with_capacity(ngeoms);
                 for i in 0..ngeoms {
                     let geom = unsafe { sfcgal_geometry_collection_geometry_n(self.0.as_ref(), i) };
-                    // let n_points = unsafe { sfcgal_linestring_num_points(geom) };
-                    // let mut v_points = Vec::with_capacity(n_points);
-                    // for i in 0..n_points {
-                    //     let pt_sfcgal = unsafe { sfcgal_linestring_point_n(geom, i) };
-                    //     check_null_geom(pt_sfcgal)?;
-                    //     let pt_geom = geo_point_from_sfcgal(pt_sfcgal);
-                    //     v_points.push(pt_geom);
-                    // }
                     lines.push(geo_line_from_sfcgal(geom)?);
                 }
                 Ok(
@@ -89,6 +81,32 @@ impl<'a> TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 Ok(
                     geo_types::Geometry::Polygon(
                         geo_types::Polygon::new(exterior_geo, interiors_geo)
+                    )
+                )
+            }
+            GeomType::Multipolygon => {
+                let ngeoms = unsafe {
+                    sfcgal_geometry_collection_num_geometries(self.0.as_ref())
+                };
+                let mut vec_polygons = Vec::with_capacity(ngeoms);
+                for i in 0..ngeoms {
+                    let _polyg = unsafe { sfcgal_geometry_collection_geometry_n(self.0.as_ref(), i) };
+                    let nrings = unsafe { sfcgal_polygon_num_interior_rings(_polyg) };
+                    let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(_polyg) };
+                    let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
+                    let mut interiors_geo = Vec::with_capacity(nrings);
+                    for j in 0..nrings {
+                        let line_sfcgal = unsafe {
+                            sfcgal_polygon_interior_ring_n(_polyg, j)
+                        };
+                        interiors_geo.push(geo_line_from_sfcgal(line_sfcgal)?);
+                    }
+                    vec_polygons.push(geo_types::Polygon::new(exterior_geo, interiors_geo));
+                }
+
+                Ok(
+                    geo_types::Geometry::MultiPolygon(
+                        geo_types::MultiPolygon(vec_polygons)
                     )
                 )
             }
@@ -165,48 +183,16 @@ impl ToSfcgal for geo_types::LineString<f64> {
     }
 }
 
-fn linestring_geo_to_sfcgal(geom: &geo_types::LineString<f64>) -> Result<*mut sfcgal_geometry_t> {
-    let out_linestring = unsafe { sfcgal_linestring_create() };
-    check_null_geom(out_linestring)?;
-    let &geo_types::LineString(ref point_list) = geom;
-    for coords in point_list.iter() {
-        let geom = unsafe {
-            sfcgal_point_create_from_xy(coords.x, coords.y)
-        };
-        check_null_geom(geom)?;
-        unsafe {
-            sfcgal_linestring_add_point(out_linestring, geom)
-        };
-    }
-    Ok(out_linestring)
-}
-
 impl ToSfcgal for geo_types::MultiLineString<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_multilinestring = unsafe { sfcgal_multi_linestring_create() };
         check_null_geom(out_multilinestring)?;
         let &geo_types::MultiLineString(ref linestring_list) = self;
         for _linestring in linestring_list.into_iter() {
-            // let out_sfcgal_line = unsafe { sfcgal_linestring_create() };
-            // check_null_geom(out_sfcgal_line)?;
-            // let &geo_types::LineString(ref coords_pts) = _linestring;
-            // for coords in coords_pts {
-            //     let geom = unsafe {
-            //         sfcgal_point_create_from_xy(coords.x, coords.y)
-            //     };
-            //     check_null_geom(geom)?;
-            //     unsafe {
-            //         sfcgal_linestring_add_point(out_sfcgal_line, geom)
-            //     };
-            // }
             let out_sfcgal_line = linestring_geo_to_sfcgal(_linestring)?;
             unsafe {
                 sfcgal_geometry_collection_add_geometry(out_multilinestring, out_sfcgal_line)
             };
-            // let sfcgal_line = linestring.to_sfcgal()?;
-            // unsafe {
-            //     sfcgal_geometry_collection_add_geometry(out_multilinestring, sfcgal_line.0.as_ptr())
-            // };
         }
         unsafe { SFCGeometry::new_from_raw(out_multilinestring) }
     }
@@ -230,6 +216,45 @@ impl ToSfcgal for geo_types::Polygon<f64> {
     }
 }
 
+impl ToSfcgal for geo_types::MultiPolygon<f64> {
+    fn to_sfcgal(&self) -> Result<SFCGeometry> {
+        let out_multipolygon = unsafe { sfcgal_multi_polygon_create() };
+        let &geo_types::MultiPolygon(ref list_polygons) = self;
+        for polygon in list_polygons {
+            let &geo_types::Polygon{ref exterior, ref interiors} = polygon;
+            let out_polygon = unsafe {
+                sfcgal_polygon_create_from_exterior_ring(linestring_geo_to_sfcgal(exterior)?)
+            };
+            check_null_geom(out_polygon)?;
+
+            for ring in interiors {
+                unsafe {
+                    sfcgal_polygon_add_interior_ring(out_polygon, linestring_geo_to_sfcgal(ring)?)
+                };
+            }
+            unsafe {
+                sfcgal_geometry_collection_add_geometry(out_multipolygon, out_polygon)
+            };
+        }
+        unsafe { SFCGeometry::new_from_raw(out_multipolygon) }
+    }
+}
+
+impl ToSfcgal for geo_types::GeometryCollection<f64> {
+    fn to_sfcgal(&self) -> Result<SFCGeometry> {
+        let out_geom_collection = unsafe { sfcgal_geometry_collection_create() };
+        let &geo_types::GeometryCollection(ref list_geoms) = self;
+        for g_geom in list_geoms {
+            let sfcgal_geom = g_geom.to_sfcgal()?;
+            unsafe {
+                sfcgal_geometry_collection_add_geometry(out_geom_collection, sfcgal_geom.0.as_ptr())
+            };
+        }
+        unsafe { SFCGeometry::new_from_raw(out_geom_collection) }
+    }
+}
+
+
 impl ToSfcgal for geo_types::Geometry<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         match *self {
@@ -239,21 +264,26 @@ impl ToSfcgal for geo_types::Geometry<f64> {
             geo_types::Geometry::Polygon(ref c) => c.to_sfcgal(),
             geo_types::Geometry::MultiPoint(ref c) => c.to_sfcgal(),
             geo_types::Geometry::MultiLineString(ref c) => c.to_sfcgal(),
-            // geo_types::Geometry::MultiPolygon(ref c) => c.to_sfcgal(),
-            // geo_types::Geometry::GeometryCollection(ref c) => c.to_sfcgal(),
-            _ => unimplemented!()
+            geo_types::Geometry::MultiPolygon(ref c) => c.to_sfcgal(),
+            geo_types::Geometry::GeometryCollection(ref c) => c.to_sfcgal()
         }
     }
 }
 
-fn check_null_geom(g: *const sfcgal_geometry_t) -> Result<()> {
-    if g.is_null() {
-        return Err(format_err!(
-             "Reading WKT failed with the following error: {}",
-             errors::get_last_error()
-        ));
+fn linestring_geo_to_sfcgal(geom: &geo_types::LineString<f64>) -> Result<*mut sfcgal_geometry_t> {
+    let out_linestring = unsafe { sfcgal_linestring_create() };
+    check_null_geom(out_linestring)?;
+    let &geo_types::LineString(ref point_list) = geom;
+    for coords in point_list.iter() {
+        let geom = unsafe {
+            sfcgal_point_create_from_xy(coords.x, coords.y)
+        };
+        check_null_geom(geom)?;
+        unsafe {
+            sfcgal_linestring_add_point(out_linestring, geom)
+        };
     }
-    Ok(())
+    Ok(out_linestring)
 }
 
 
@@ -325,20 +355,41 @@ mod test {
     #[test]
     fn polygon_geo_to_sfcgal_to_geo() {
         let polygon = Polygon::new(
-            LineString::from(vec![(0., 0.), (1., 1.), (1., 0.), (0., 0.)]),
+            LineString::from(vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)]),
             vec![LineString::from(
-                vec![(0.1, 0.1), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)])]);
+                vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)])]);
         let poly_sfcgal = polygon.to_sfcgal().unwrap();
         let polyg: Polygon<f64> = poly_sfcgal.try_into().unwrap().as_polygon().unwrap();
 
         assert_eq!(
             polyg.exterior,
-            LineString::from(vec![(0., 0.), (1., 1.), (1., 0.), (0., 0.)]));
+            LineString::from(vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)]));
         assert_eq!(polyg.interiors[0].0[0].x, 0.1);
         assert_eq!(polyg.interiors[0].0[0].y, 0.1);
         assert_eq!(polyg.interiors[0].0[2].x, 0.9);
-        assert_eq!(polyg.interiors[0].0[2].y, 0.1);
-        assert_eq!(polyg.interiors[0].0[3].x, 0.1);
+        assert_eq!(polyg.interiors[0].0[2].y, 0.9);
+        assert_eq!(polyg.interiors[0].0[3].x, 0.9);
         assert_eq!(polyg.interiors[0].0[3].y, 0.1);
+    }
+
+    #[test]
+    fn multipolygon_geo_to_sfcgal_to_geo() {
+        let multipolygon = MultiPolygon(vec![
+            Polygon::new(
+                LineString::from(vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)]),
+                vec![LineString::from(
+                    vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)])]
+            ),
+        ]);
+        let mutlipolygon_sfcgal = multipolygon.to_sfcgal().unwrap();
+        let mpg: MultiPolygon<f64> = mutlipolygon_sfcgal.try_into().unwrap().as_multipolygon().unwrap();
+
+        assert_eq!(
+            mpg.0[0].exterior,
+            LineString::from(vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)]));
+        assert_eq!(
+            mpg.0[0].interiors[0],
+            LineString::from(
+                vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)]));
     }
 }

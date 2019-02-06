@@ -31,7 +31,7 @@ use num_traits::FromPrimitive;
 mod geo;
 mod errors;
 mod utils;
-use errors::Result;
+pub use errors::Result;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Debug, Primitive)]

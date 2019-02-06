@@ -12,18 +12,18 @@ Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-
 - [ ] Nice documentation  
 
 ## Usage
-```
+```rust
 extern crate geo_types;
 extern crate sfcgal;
 
 // create a geo_types Polygon:
 let polygon = Polygon::new(
-    LineString::from(vec![(0., 0.), (1., 1.), (1., 0.), (0., 0.)]),
+    LineString::from(vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)]),
     vec![LineString::from(
-        vec![(0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.1)])]);
+        vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)])]);
 
 // create a geo_types LineString:
-let line = LineString::from(vec![(-0.5, -0.5), (1., 1.), (1.1, 1.9)]);
+let line = LineString::from(vec![(-0.5, -0.5), (1.3, 1.), (1.1, 1.9)]);
 
 // convert them to sfcgal geometries:
 let polyg_sfc = polygon.to_sfcgal().unwrap();
@@ -31,7 +31,6 @@ let line_sfc = line.to_sfcgal().unwrap();
 
 // Use SFCGAL operations:
 assert!(polyg_sfc.intersects(&line_sfc).unwrap(), true);
-
 ```
 
 ## License
