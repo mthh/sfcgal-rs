@@ -7,9 +7,10 @@ Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-
 ## Features / TODO
 
 - [x] `sfcgal_geometry_*`  
-- [x] Conversion from / to [geo-types](https://github.com/georust/geo)
+- [x] Conversion from / to [geo-types](https://github.com/georust/geo) with working examples
 - [ ] `sfcgal_prepared_geometry_*`  
-- [ ] Nice documentation  
+- [ ] Nice documentation
+- [ ] Warning messages
 
 ## Usage
 ```rust
@@ -36,6 +37,12 @@ let line_sfc = line.to_sfcgal().unwrap();
 // Use SFCGAL operations:
 assert!(polyg_sfc.intersects(&line_sfc).unwrap(), true);
 ```
+
+### Examples
+
+See `examples/skeleton_geojson.rs` for an example of working with some other crates from Rust geo ecosystem.  
+See `examples/render_skeleton.rs` for an example of computing a straight skeleton from some GeoJSON file and rendering the result with [web_view](https://github.com/Boscop/web-view/) after converting it in SVG.  
+
 
 ## License
 

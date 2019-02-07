@@ -3,11 +3,15 @@ name = "sfcgal"
 version = "0.1.0"
 authors = ["Matthieu Viry <matthieu.viry@univ-grenoble-alpes.fr>"]
 edition = "2018"
+description = """
+Bindings to SFCGAL.
+"""
+
 
 [dependencies]
 sfcgal-sys = { git = "https://github.com/mthh/sfcgal-sys" }
-failure = "*"
-libc = "*"
+failure = "^0.1"
+libc = "0.2.48"
 geo-types = "0.3"
 enum-primitive-derive = "^0.1"
 num-traits = "^0.1"
@@ -15,5 +19,5 @@ approx = "0.3"
 
 [dev-dependencies]
 geojson = "0.14"
-azul = { git = "https://github.com/maps4print/azul" }
+web-view = { git = "https://github.com/Boscop/web-view" }
 svg = "*"

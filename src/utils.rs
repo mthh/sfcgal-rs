@@ -1,6 +1,7 @@
 use std::ffi::CStr;
 use libc::c_char;
 use sfcgal_sys::sfcgal_geometry_t;
+use approx::AbsDiff;
 
 use crate::Result;
 use crate::errors::get_last_error;
@@ -18,4 +19,19 @@ pub(crate) fn check_null_geom(g: *const sfcgal_geometry_t) -> Result<()> {
         ));
     }
     Ok(())
+}
+
+pub(crate) fn check_predicate(val: i32) -> Result<bool> {
+    match val {
+        1 => Ok(true),
+        0 => Ok(false),
+        _ => Err(format_err!("SFCGAL error: {}", get_last_error()))
+    }
+}
+
+pub(crate) fn check_computed_value(val: f64) -> Result<f64> {
+    match AbsDiff::default().eq(&val, &-1.0) {
+        true => Err(format_err!("SFCGAL error: {}", get_last_error())),
+        false => Ok(val)
+    }
 }

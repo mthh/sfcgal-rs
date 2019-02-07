@@ -1,4 +1,5 @@
 use failure::Error;
+#[allow(unused_imports)]
 use sfcgal_sys::{
     sfcgal_geometry_t,
     sfcgal_point_create_from_xy, sfcgal_point_x, sfcgal_point_y, sfcgal_point_z,
@@ -25,17 +26,17 @@ impl<'a> TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             GeomType::Point => {
                 Ok(
                     geo_types::Geometry::Point(
-                        unsafe { geo_point_from_sfcgal(self.0.as_ref()) }
+                        unsafe { geo_point_from_sfcgal(self.c_geom.as_ref()) }
                     )
                 )
             },
             GeomType::Multipoint => {
                 let ngeoms = unsafe {
-                    sfcgal_geometry_collection_num_geometries(self.0.as_ref())
+                    sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref())
                 };
                 let mut pts = Vec::with_capacity(ngeoms);
                 for i in 0..ngeoms {
-                    let geom = unsafe { sfcgal_geometry_collection_geometry_n(self.0.as_ref(), i) };
+                    let geom = unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
                     pts.push(geo_point_from_sfcgal(geom));
                 }
                 Ok(
@@ -47,17 +48,17 @@ impl<'a> TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             GeomType::Linestring => {
                 Ok(
                     geo_types::Geometry::LineString(
-                        geo_line_from_sfcgal(unsafe { self.0.as_ref() })?
+                        geo_line_from_sfcgal(unsafe { self.c_geom.as_ref() })?
                     )
                 )
             },
             GeomType::Multilinestring => {
                 let ngeoms = unsafe {
-                    sfcgal_geometry_collection_num_geometries(self.0.as_ref())
+                    sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref())
                 };
                 let mut lines = Vec::with_capacity(ngeoms);
                 for i in 0..ngeoms {
-                    let geom = unsafe { sfcgal_geometry_collection_geometry_n(self.0.as_ref(), i) };
+                    let geom = unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
                     lines.push(geo_line_from_sfcgal(geom)?);
                 }
                 Ok(
@@ -67,13 +68,13 @@ impl<'a> TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 )
             },
             GeomType::Polygon => {
-                let nrings = unsafe { sfcgal_polygon_num_interior_rings(self.0.as_ref()) };
-                let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(self.0.as_ref()) };
+                let nrings = unsafe { sfcgal_polygon_num_interior_rings(self.c_geom.as_ref()) };
+                let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(self.c_geom.as_ref()) };
                 let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
                 let mut interiors_geo = Vec::with_capacity(nrings);
                 for i in 0..nrings {
                     let line_sfcgal = unsafe {
-                        sfcgal_polygon_interior_ring_n(self.0.as_ref(), i)
+                        sfcgal_polygon_interior_ring_n(self.c_geom.as_ref(), i)
                     };
                     interiors_geo.push(geo_line_from_sfcgal(line_sfcgal)?);
                 }
@@ -86,11 +87,11 @@ impl<'a> TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             }
             GeomType::Multipolygon => {
                 let ngeoms = unsafe {
-                    sfcgal_geometry_collection_num_geometries(self.0.as_ref())
+                    sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref())
                 };
                 let mut vec_polygons = Vec::with_capacity(ngeoms);
                 for i in 0..ngeoms {
-                    let _polyg = unsafe { sfcgal_geometry_collection_geometry_n(self.0.as_ref(), i) };
+                    let _polyg = unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
                     let nrings = unsafe { sfcgal_polygon_num_interior_rings(_polyg) };
                     let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(_polyg) };
                     let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
@@ -135,7 +136,7 @@ fn geo_point_from_sfcgal(geom: *const sfcgal_geometry_t) -> geo_types::Point<f64
 impl ToSfcgal for geo_types::Point<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let geom = unsafe { sfcgal_point_create_from_xy(self.x(), self.y()) };
-        unsafe { SFCGeometry::new_from_raw(geom) }
+        unsafe { SFCGeometry::new_from_raw(geom, true) }
     }
 }
 
@@ -153,7 +154,7 @@ impl ToSfcgal for geo_types::MultiPoint<f64> {
                 sfcgal_geometry_collection_add_geometry(out_geom, geom)
             };
         }
-        unsafe { SFCGeometry::new_from_raw(out_geom) }
+        unsafe { SFCGeometry::new_from_raw(out_geom, true) }
     }
 }
 
@@ -172,14 +173,14 @@ impl ToSfcgal for geo_types::Line<f64> {
         unsafe {
             sfcgal_linestring_add_point(out_linestring, start);
             sfcgal_linestring_add_point(out_linestring, end);
-            SFCGeometry::new_from_raw(out_linestring)
+            SFCGeometry::new_from_raw(out_linestring, true)
         }
     }
 }
 
 impl ToSfcgal for geo_types::LineString<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
-        unsafe { SFCGeometry::new_from_raw(linestring_geo_to_sfcgal(self)?) }
+        unsafe { SFCGeometry::new_from_raw(linestring_geo_to_sfcgal(self)?, true) }
     }
 }
 
@@ -194,7 +195,7 @@ impl ToSfcgal for geo_types::MultiLineString<f64> {
                 sfcgal_geometry_collection_add_geometry(out_multilinestring, out_sfcgal_line)
             };
         }
-        unsafe { SFCGeometry::new_from_raw(out_multilinestring) }
+        unsafe { SFCGeometry::new_from_raw(out_multilinestring, true) }
     }
 }
 
@@ -212,7 +213,7 @@ impl ToSfcgal for geo_types::Polygon<f64> {
                 sfcgal_polygon_add_interior_ring(out_polygon, linestring_geo_to_sfcgal(ring)?)
             };
         }
-        unsafe { SFCGeometry::new_from_raw(out_polygon) }
+        unsafe { SFCGeometry::new_from_raw(out_polygon, true) }
     }
 }
 
@@ -236,7 +237,7 @@ impl ToSfcgal for geo_types::MultiPolygon<f64> {
                 sfcgal_geometry_collection_add_geometry(out_multipolygon, out_polygon)
             };
         }
-        unsafe { SFCGeometry::new_from_raw(out_multipolygon) }
+        unsafe { SFCGeometry::new_from_raw(out_multipolygon, true) }
     }
 }
 
@@ -247,10 +248,10 @@ impl ToSfcgal for geo_types::GeometryCollection<f64> {
         for g_geom in list_geoms {
             let sfcgal_geom = g_geom.to_sfcgal()?;
             unsafe {
-                sfcgal_geometry_collection_add_geometry(out_geom_collection, sfcgal_geom.0.as_ptr())
+                sfcgal_geometry_collection_add_geometry(out_geom_collection, sfcgal_geom.c_geom.as_ptr())
             };
         }
-        unsafe { SFCGeometry::new_from_raw(out_geom_collection) }
+        unsafe { SFCGeometry::new_from_raw(out_geom_collection, true) }
     }
 }
 
@@ -289,7 +290,7 @@ fn linestring_geo_to_sfcgal(geom: &geo_types::LineString<f64>) -> Result<*mut sf
 
 #[cfg(test)]
 mod test {
-    use geo_types::{Geometry, Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon};
+    use geo_types::{Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon};
     use crate::{SFCGeometry, ToSfcgal};
     use super::TryInto;
 
