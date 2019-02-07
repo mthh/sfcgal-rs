@@ -1,6 +1,8 @@
 # sfcgal-rs
 __*(WIP)*__
 
+[![Build Status Travis](https://travis-ci.org/mthh/sfcgal-rs.svg?branch=master)](https://travis-ci.org/mthh/sfcgal-rs)
+
 Rust bindings to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) C API.  
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
 
