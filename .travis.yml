@@ -9,7 +9,7 @@ rust:
   - nightly
 before_install:
   - sudo apt-get update
-  - sudo apt-get install --force-yes clang-3.9 libclang-3.9-dev libboost-chrono1.58-dev libboost-program-options1.58-dev libboost-filesystem1.58-dev libboost-timer1.58-dev libboost-test1.58-dev libboost-thread1.58-dev libboost-system1.58-dev libboost-serialization1.58-dev libmpfr-dev libgmp-dev cmake sudo apt install libwebkit2gtk-4.0-dev
+  - sudo apt-get install --force-yes clang-3.9 libclang-3.9-dev libboost-chrono1.58-dev libboost-program-options1.58-dev libboost-filesystem1.58-dev libboost-timer1.58-dev libboost-test1.58-dev libboost-thread1.58-dev libboost-system1.58-dev libboost-serialization1.58-dev libmpfr-dev libgmp-dev cmake libwebkit2gtk-4.0-dev
   - wget https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.13/CGAL-4.13.tar.xz
   - tar xJf CGAL-4.13.tar.xz
   - cd CGAL-4.13 && mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$HOME/CGAL-4.13 .. && make && sudo make install && cd ../..
