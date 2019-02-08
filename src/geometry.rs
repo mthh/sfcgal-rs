@@ -20,6 +20,7 @@ use std::ffi::{CStr, CString};
 use std::ptr::NonNull;
 use num_traits::FromPrimitive;
 use crate::Result;
+use crate::coords::{CoordSeq, FromSfcgalGeom};
 use crate::errors::get_last_error;
 use crate::utils::{check_predicate, check_computed_value};
 
@@ -79,6 +80,13 @@ impl Clone for SFCGeometry {
     }
 }
 
+impl std::fmt::Debug for SFCGeometry {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.to_wkt_decim(8).unwrap())
+    }
+}
+
+
 impl SFCGeometry {
     /// Create a geometry by parsing a [WKT](https://en.wikipedia.org/wiki/Well-known_text) string.
     pub fn new(wkt: &str) -> Result<SFCGeometry> {
@@ -105,6 +113,10 @@ impl SFCGeometry {
                 owned: owned,
             }
         )
+    }
+
+    pub fn new_from_coords<T>(coords: &CoordSeq<T>) -> Result<()> where T: FromSfcgalGeom {
+        Ok(())
     }
 
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL exact integer fractions as coordinate values.
