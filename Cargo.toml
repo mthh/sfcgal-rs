@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Matthieu Viry <matthieu.viry@univ-grenoble-alpes.fr>"]
 edition = "2018"
 description = """
-Bindings to SFCGAL.
+High-level bindings to SFCGAL and conversion from/to other geometry libraries.
 """
 
 

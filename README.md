@@ -3,8 +3,15 @@ __*(WIP)*__
 
 [![Build Status Travis](https://travis-ci.org/mthh/sfcgal-rs.svg?branch=master)](https://travis-ci.org/mthh/sfcgal-rs)
 
-Rust bindings to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) C API.  
+Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
+
+Some of the key features of the library:
+- Supports ISO 19107:2013 and [OGC Simple Features Access 1.2](http://www.opengeospatial.org/standards/sfa) for 3D operations.
+- Reads and writes WKT with exact rational number representation for coordinates for 2D and 3D geometries.
+- Intersection, difference and union.
+- Straight skeleton, tesselation, Minkovski sum and convex hull.
+
 
 ## Features / TODO
 

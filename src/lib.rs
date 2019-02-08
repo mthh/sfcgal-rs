@@ -11,13 +11,14 @@ extern crate approx;
 
 use sfcgal_sys::sfcgal_version;
 
-mod geo;
+mod conversion;
 mod errors;
 mod utils;
 mod geometry;
 pub use errors::Result;
 pub use geometry::{SFCGeometry, GeomType};
-pub use geo::TryInto;
+pub use conversion::TryInto;
+
 
 /// Convert object to a SFCGAL geometry.
 pub trait ToSfcgal {
@@ -32,7 +33,7 @@ pub fn version() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::version;
     #[test]
     fn display_version() {
         assert!(version().contains("1.3."));
