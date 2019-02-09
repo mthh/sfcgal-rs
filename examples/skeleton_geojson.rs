@@ -4,7 +4,7 @@ extern crate sfcgal;
 
 use geojson::{GeoJson, Geometry, Feature, FeatureCollection, Value, conversion::TryInto as TryIntoGeoType};
 use geo_types::{MultiLineString, Polygon};
-use sfcgal::{ToSfcgal, TryInto};
+use sfcgal::{ToSFCGAL, TryInto};
 use std::{fs::File, io::Read};
 
 fn main() {

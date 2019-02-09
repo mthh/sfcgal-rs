@@ -8,7 +8,7 @@ extern crate svg;
 
 use web_view::*;
 use geojson::{GeoJson, Geometry, Feature, FeatureCollection, Value, conversion::TryInto as TryIntoGeoType};
-use sfcgal::{ToSfcgal, TryInto};
+use sfcgal::{ToSFCGAL, TryInto};
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Read;

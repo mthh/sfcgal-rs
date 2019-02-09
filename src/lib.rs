@@ -19,21 +19,23 @@ mod coords;
 pub use errors::Result;
 pub use geometry::{SFCGeometry, GeomType};
 pub use conversion::TryInto;
-pub use coords::{CoordSeq};
+pub use coords::CoordSeq;
 
 
-/// Convert object to a SFCGAL geometry.
-pub trait ToSfcgal {
+/// Convert object to a [`SFCGeometry`] (implemented on [`CoordSeq`] and [geo-types](https://docs.rs/geo-types/) geometries)
+///
+/// [`SFCGeometry`]: struct.SFCGeometry.html
+/// [`CoordSeq`]: enum.CoordSeq.html
+pub trait ToSFCGAL {
     fn to_sfcgal(&self) -> Result<SFCGeometry>;
 }
 
-/// Convert object to a `CoordSeq` :
-/// the (nested) list(s) of coordinates (using tuples of 2 or 3 members)
-/// for this geometry.
+/// Convert object to a [`CoordSeq`] holding coordinates and informations about geometry type.
+///
+/// [`CoordSeq`]: enum.CoordSeq.html
 pub trait ToCoordinates<T> {
     fn to_coordinates(&self) -> Result<CoordSeq<T>>;
 }
-
 
 /// Display SFCGAL version information.
 pub fn version() -> String {

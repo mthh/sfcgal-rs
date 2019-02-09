@@ -11,9 +11,11 @@ use sfcgal_sys::{
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
     sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
 };
-use crate::{Result, SFCGeometry, GeomType, ToSfcgal, utils::check_null_geom};
+use crate::{Result, SFCGeometry, GeomType, ToSFCGAL, utils::check_null_geom};
 
-// define our own TryInto while the std trait is not stable
+/// Conversion from [`SFCGeometry`] (implement on [geo-types](https://docs.rs/geo-types/) geometries)
+///
+/// [`SFCGeometry`]: struct.SFCGeometry.html
 pub trait TryInto<T> {
     type Err;
     fn try_into(self) -> Result<T>;
@@ -68,17 +70,6 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                     )
                 )
             },
-            // GeomType::Triangle => {
-            //     let p0 = geo_point_from_sfcgal(unsafe { sfcgal_triangle_vertex(self.c_geom.as_ref(), 0) });
-            //     let p1 = geo_point_from_sfcgal(unsafe { sfcgal_triangle_vertex(self.c_geom.as_ref(), 1) });
-            //     let p2 = geo_point_from_sfcgal(unsafe { sfcgal_triangle_vertex(self.c_geom.as_ref(), 2) });
-            //
-            //     Ok(
-            //         geo_types::Geometry::Triangle(
-            //             geo_types::Triangle(p0, p1, p2)
-            //         )
-            //     )
-            // },
             GeomType::Polygon => {
                 let nrings = unsafe { sfcgal_polygon_num_interior_rings(self.c_geom.as_ref()) };
                 let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(self.c_geom.as_ref()) };
@@ -146,14 +137,16 @@ fn geo_point_from_sfcgal(geom: *const sfcgal_geometry_t) -> geo_types::Point<f64
     geo_types::Point::new(x, y)
 }
 
-impl ToSfcgal for geo_types::Point<f64> {
+/// Create a `SFCGeometry` from a geo-types Point
+impl ToSFCGAL for geo_types::Point<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let geom = unsafe { sfcgal_point_create_from_xy(self.x(), self.y()) };
         unsafe { SFCGeometry::new_from_raw(geom, true) }
     }
 }
 
-impl ToSfcgal for geo_types::MultiPoint<f64> {
+/// Create a `SFCGeometry` from a geo-types MultiPoint
+impl ToSFCGAL for geo_types::MultiPoint<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_geom = unsafe { sfcgal_multi_point_create() };
         check_null_geom(out_geom)?;
@@ -171,7 +164,8 @@ impl ToSfcgal for geo_types::MultiPoint<f64> {
     }
 }
 
-impl ToSfcgal for geo_types::Line<f64> {
+/// Create a `SFCGeometry` from a geo-types Line
+impl ToSFCGAL for geo_types::Line<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_linestring = unsafe { sfcgal_linestring_create() };
         check_null_geom(out_linestring)?;
@@ -190,14 +184,15 @@ impl ToSfcgal for geo_types::Line<f64> {
         }
     }
 }
-
-impl ToSfcgal for geo_types::LineString<f64> {
+/// Create a `SFCGeometry` from a geo-types LineString
+impl ToSFCGAL for geo_types::LineString<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         unsafe { SFCGeometry::new_from_raw(linestring_geo_to_sfcgal(self)?, true) }
     }
 }
 
-impl ToSfcgal for geo_types::MultiLineString<f64> {
+/// Create a `SFCGeometry` from a geo-types MultiLineString
+impl ToSFCGAL for geo_types::MultiLineString<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_multilinestring = unsafe { sfcgal_multi_linestring_create() };
         check_null_geom(out_multilinestring)?;
@@ -212,7 +207,8 @@ impl ToSfcgal for geo_types::MultiLineString<f64> {
     }
 }
 
-impl ToSfcgal for geo_types::Triangle<f64> {
+/// Create a `SFCGeometry` from a geo-types Triangle
+impl ToSFCGAL for geo_types::Triangle<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_triangle = unsafe { sfcgal_triangle_create() };
         check_null_geom(out_triangle)?;
@@ -226,7 +222,8 @@ impl ToSfcgal for geo_types::Triangle<f64> {
     }
 }
 
-impl ToSfcgal for geo_types::Polygon<f64> {
+/// Create a `SFCGeometry` from a geo-types Polygon
+impl ToSFCGAL for geo_types::Polygon<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let &geo_types::Polygon{ref exterior, ref interiors} = self;
 
@@ -244,7 +241,8 @@ impl ToSfcgal for geo_types::Polygon<f64> {
     }
 }
 
-impl ToSfcgal for geo_types::MultiPolygon<f64> {
+/// Create a `SFCGeometry` from a geo-types MultiPolygon
+impl ToSFCGAL for geo_types::MultiPolygon<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_multipolygon = unsafe { sfcgal_multi_polygon_create() };
         let &geo_types::MultiPolygon(ref list_polygons) = self;
@@ -268,7 +266,8 @@ impl ToSfcgal for geo_types::MultiPolygon<f64> {
     }
 }
 
-impl ToSfcgal for geo_types::GeometryCollection<f64> {
+/// Create a `SFCGeometry` from a geo-types GeometryCollection
+impl ToSFCGAL for geo_types::GeometryCollection<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         let out_geom_collection = unsafe { sfcgal_geometry_collection_create() };
         let &geo_types::GeometryCollection(ref list_geoms) = self;
@@ -282,8 +281,8 @@ impl ToSfcgal for geo_types::GeometryCollection<f64> {
     }
 }
 
-
-impl ToSfcgal for geo_types::Geometry<f64> {
+/// Create a `SFCGeometry` from any geo-type Geometry
+impl ToSFCGAL for geo_types::Geometry<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         match *self {
             geo_types::Geometry::Point(ref c) => c.to_sfcgal(),
@@ -321,7 +320,7 @@ mod tests {
         Coordinate, Point, MultiPoint,
         LineString, MultiLineString, Polygon, MultiPolygon, Triangle
     };
-    use crate::{SFCGeometry, ToSfcgal, GeomType};
+    use crate::{SFCGeometry, ToSFCGAL, GeomType};
     use super::TryInto;
 
     #[test]

@@ -19,8 +19,8 @@ use sfcgal_sys::{
 use std::ffi::{CStr, CString};
 use std::ptr::NonNull;
 use num_traits::FromPrimitive;
-use crate::Result;
-use crate::coords::{CoordSeq, FromSfcgalGeom};
+use crate::{CoordSeq, Result, ToSFCGAL};
+use crate::coords::ToSFCGALGeom;
 use crate::errors::get_last_error;
 use crate::utils::{check_predicate, check_computed_value};
 
@@ -102,7 +102,7 @@ impl SFCGeometry {
         if g.is_null() {
             return Err(
                 format_err!(
-                 "Reading WKT failed with the following error: {}",
+                 "Obtained null pointer when creating geometry: {}",
                  get_last_error()
                 )
             );
@@ -115,8 +115,8 @@ impl SFCGeometry {
         )
     }
 
-    pub fn new_from_coords<T>(coords: &CoordSeq<T>) -> Result<()> where T: FromSfcgalGeom {
-        Ok(())
+    pub fn new_from_coords<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom {
+        coords.to_sfcgal()
     }
 
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL exact integer fractions as coordinate values.
@@ -404,7 +404,7 @@ mod tests {
         assert!(geom.is_err());
         assert_eq!(
             geom.err().unwrap().to_string(),
-            "Reading WKT failed with the following error: WKT parse error, Coordinate dimension < 2 (, 1))",
+            "Obtained null pointer when creating geometry: WKT parse error, Coordinate dimension < 2 (, 1))",
         )
     }
 
