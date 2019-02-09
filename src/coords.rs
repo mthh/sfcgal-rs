@@ -71,7 +71,6 @@ impl ToSFCGALGeom for Point3d {
     }
 }
 
-
 /// Coordinates corresponding to the shapes described by SFCGAL Geometry types.
 #[derive(Debug, Clone, Hash)]
 pub enum CoordSeq<T> {

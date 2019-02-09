@@ -13,7 +13,7 @@ use sfcgal_sys::{
 };
 use crate::{Result, SFCGeometry, GeomType, ToSFCGAL, utils::check_null_geom};
 
-/// Conversion from [`SFCGeometry`] (implement on [geo-types](https://docs.rs/geo-types/) geometries)
+/// Conversion from [`SFCGeometry`] (implemented on [geo-types](https://docs.rs/geo-types/) geometries)
 ///
 /// [`SFCGeometry`]: struct.SFCGeometry.html
 pub trait TryInto<T> {
