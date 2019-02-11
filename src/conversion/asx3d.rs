@@ -114,7 +114,7 @@ impl AsX3d for CoordSeq<Point3d> {
                         }
                         j += np;
                     })
-                    .collect::<Vec<_>>();
+                    .for_each(drop);
                 s.push_str("'><Coordinate point='");
                 s.push_str(&(&polygons.iter()
                     .map(|rings_patch|{

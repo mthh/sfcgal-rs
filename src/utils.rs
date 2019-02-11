@@ -35,3 +35,14 @@ pub(crate) fn check_computed_value(val: f64) -> Result<f64> {
         false => Ok(val)
     }
 }
+
+// Use the size returned by the C API to build the string
+// (as it seems to not always end with a null byte)
+// from the pointer to uninitialized memory with give
+// to it earlier.
+pub(crate) fn _c_string_with_size(raw_ptr: *mut i8, size: usize) -> String {
+    let slice: &[u8] = unsafe {
+        std::mem::transmute(std::slice::from_raw_parts(raw_ptr, size))
+    };
+    std::str::from_utf8(slice).unwrap().to_string()
+}

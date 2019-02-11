@@ -16,13 +16,14 @@ use sfcgal_sys::{
     sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_offset_polygon,
     sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
 };
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::ptr::NonNull;
 use num_traits::FromPrimitive;
 use crate::{CoordSeq, Result, ToSFCGAL};
 use crate::coords::ToSFCGALGeom;
+use crate::coords::CoordType;
 use crate::errors::get_last_error;
-use crate::utils::{check_predicate, check_computed_value};
+use crate::utils::{check_predicate, check_computed_value, _string, _c_string_with_size};
 
 
 /// SFCGAL Geometry types.
@@ -115,7 +116,7 @@ impl SFCGeometry {
         )
     }
 
-    pub fn new_from_coords<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom {
+    pub fn new_from_coords<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom + CoordType {
         coords.to_sfcgal()
     }
 
@@ -125,8 +126,8 @@ impl SFCGeometry {
         let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
         let mut length: usize = 0;
         unsafe { sfcgal_geometry_as_text(self.c_geom.as_ref(), &mut ptr, &mut length) };
-        let c_str = unsafe { CStr::from_ptr(ptr) };
-        Ok(c_str.to_str()?.to_string())
+        // let c_str = unsafe { CStr::from_ptr(ptr) };
+        Ok(_c_string_with_size(ptr, length))
     }
 
     /// Returns a WKT representation of the given `SFCGeometry` using floating point coordinate values with
@@ -136,8 +137,8 @@ impl SFCGeometry {
         let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
         let mut length: usize = 0;
         unsafe { sfcgal_geometry_as_text_decim(self.c_geom.as_ref(), nb_decim, &mut ptr, &mut length) };
-        let c_str = unsafe { CStr::from_ptr(ptr) };
-        Ok(c_str.to_str()?.to_string())
+        // let c_str = unsafe { CStr::from_ptr(ptr) };
+        Ok(_c_string_with_size(ptr, length))
     }
 
     /// Test if the given `SFCGeometry` is empty or not.
@@ -165,8 +166,7 @@ impl SFCGeometry {
         match rv {
             1 => Ok(None),
             0 => {
-                let c_str = unsafe { CStr::from_ptr(ptr) };
-                Ok(Some(c_str.to_str()?.to_string()))
+                Ok(Some(_string(ptr)))
             },
             _ => Err(format_err!("SFCGAL error: {}", get_last_error()))
         }

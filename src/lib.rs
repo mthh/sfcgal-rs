@@ -33,8 +33,9 @@ pub trait ToSFCGAL {
 /// Convert object to a [`CoordSeq`] holding coordinates and informations about geometry type.
 ///
 /// [`CoordSeq`]: enum.CoordSeq.html
-pub trait ToCoordinates<T> {
-    fn to_coordinates(&self) -> Result<CoordSeq<T>>;
+pub trait ToCoordinates {
+    // type Item;
+    fn to_coordinates<T>(&self) -> Result<CoordSeq<T>> where T: coords::FromSFCGALGeom;
 }
 
 /// Display SFCGAL version information.
