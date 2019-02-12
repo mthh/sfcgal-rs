@@ -106,7 +106,7 @@ impl AsX3d for CoordSeq<Point3d> {
                     .map(|(i, rings_patch)|{
                         let np: usize = rings_patch.iter().map(|g| g.len()).sum::<usize>() - 1usize;
                         for k in 0..np {
-                            if (k > 0) { s.push_str(" "); }
+                            if k > 0 { s.push_str(" "); }
                             s.push_str(&format!("{}", (j+ k)));
                         }
                         if i < n_geoms -1 {
@@ -135,7 +135,7 @@ impl AsX3d for CoordSeq<Point3d> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{SFCGeometry, ToCoordinates, CoordSeq, ToSFCGAL, GeomType};
+    use crate::{SFCGeometry, ToCoordinates};
     use super::*;
 
     #[test]

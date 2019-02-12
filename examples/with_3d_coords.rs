@@ -30,7 +30,7 @@ fn fun() -> Result<(), failure::Error> {
     let intersects = line_3d.intersects_3d(&polygon_3d)?;
     assert!(!intersects);
     let intersection = line_3d.intersection_3d(&polygon_3d)?;
-    let coords_intersection: CoordSeq<(f64, f64, f64)> = intersection.to_coordinates()?;
+    let _coords_intersection: CoordSeq<(f64, f64, f64)> = intersection.to_coordinates()?;
     println!("{:?} and {:?} intersects at {:?}", line_3d, polygon_3d, intersection);
 
     Ok(())

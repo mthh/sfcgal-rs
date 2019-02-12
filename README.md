@@ -6,24 +6,15 @@ __*(WIP)*__
 Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
 
-Some of the key features of the library:
+Some of the key features of the underlying library:
 - Supports ISO 19107:2013 and [OGC Simple Features Access 1.2](http://www.opengeospatial.org/standards/sfa) for 3D operations.
 - Reads and writes WKT with exact rational number representation for coordinates for 2D and 3D geometries.
 - Intersection, difference and union.
 - Straight skeleton, tesselation, Minkovski sum and convex hull.
 
-
-## Features / TODO
-
-- [x] `sfcgal_geometry_*`  
-- [x] Conversion from / to [geo-types](https://github.com/georust/geo) with working examples
-- [ ] `sfcgal_prepared_geometry_*`  
-- [ ] Nice documentation
-- [ ] Warning messages
-
 ## Usage
 
-__Example with [geo-types]()__:
+__Example with [geo-types](https://github.com/georust/geo)__:
 ```rust
 extern crate geo_types;
 extern crate sfcgal;
@@ -54,15 +45,18 @@ __Example with 3-member tuples for 3d coordinates__:
 extern crate sfcgal;
 use sfcgal::{CoordSeq, ToCoordinates, ToSFCGAL};
 
-
+// create a linestring and a polygon as Vec of tuples:
 let coords_linestring = vec![(-0.5, -0.5, 2.5), (0., 0., 4.0)];
 let coords_polygon = vec![
     vec![(-1., -1., 3.0), (1., -1., 3.0), (1., 1., 3.0), (-1., 1., 3.0), (-1., -1., 3.0)], // Exterior ring
     vec![(0.1, 0.1, 3.0), (0.1, 0.9, 3.0), (0.9, 0.9, 3.0), (0.9, 0.1, 3.0), (0.1, 0.1, 3.0)], // 1 interior ring
 ];
 
+// Use the CoordSeq enum variants to match the wanted SFCGAL geometry type:
 let line_3d = CoordSeq::Linestring(coords_linestring).to_sfcgal()?;
 let polygon_3d = CoordSeq::Polygon(coords_polygon).to_sfcgal()?;
+
+// ...
 let intersects = line_3d.intersects_3d(&polygon_3d)?;
 assert!(intersects);
 let intersection = line_3d.intersection_3d(&polygon_3d)?;
