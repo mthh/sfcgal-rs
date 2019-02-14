@@ -10,7 +10,8 @@ use sfcgal_sys::{
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
     sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
     sfcgal_solid_shell_n, sfcgal_solid_num_shells, sfcgal_solid_create,
-    sfcgal_solid_add_interior_shell, sfcgal_solid_create_from_exterior_shell,
+    // sfcgal_solid_add_shell,
+    sfcgal_solid_create_from_exterior_shell,
     sfcgal_triangulated_surface_create, sfcgal_triangulated_surface_num_triangles,
     sfcgal_triangulated_surface_triangle_n, sfcgal_triangulated_surface_add_triangle,
     sfcgal_polyhedral_surface_create, sfcgal_polyhedral_surface_num_polygons, sfcgal_polyhedral_surface_polygon_n,
@@ -266,12 +267,12 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                     let out_solid = if let Some(shell) = it.next() {
                         let exterior = coords_polyhedralsurface_to_sfcgal(shell)?;
                         let out_solid = sfcgal_solid_create_from_exterior_shell(exterior);
-                        it.map(|poly| {
-                            sfcgal_solid_add_interior_shell(
-                                out_solid,
-                                coords_polyhedralsurface_to_sfcgal(poly)?);
-                            Ok(())
-                        }).collect::<Result<Vec<_>>>()?;
+                        for poly in it {
+                            return Err(format_err!("Creation of solids interiors shells from coordinates isn't supported yet"));
+                            // sfcgal_solid_add_shell(
+                            //     out_solid,
+                            //     coords_polyhedralsurface_to_sfcgal(poly)?);
+                        }
                         out_solid
                     } else {
                         sfcgal_solid_create()
