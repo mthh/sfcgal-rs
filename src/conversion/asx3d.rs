@@ -12,7 +12,7 @@ pub struct X3dString(String);
 /// ['CoordSeq`]: struct.CoordSeq.html
 /// [`SFCGeometry`]: struct.SFCGeometry.html
 pub trait AsX3d {
-    fn as_x3d(self, precision: usize, flip: bool, id: Option<String>) -> Result<X3dString>;
+    fn as_x3d<S>(self, precision: usize, flip: bool, id: S) -> Result<X3dString> where S: Into<Option<String>>;
 }
 
 macro_rules! point_string {
@@ -50,10 +50,12 @@ fn poly_string(rings: &[Vec<Point3d>], precision: usize, flip: bool) -> String {
 
 
 impl AsX3d for CoordSeq<Point3d> {
-    fn as_x3d(self, precision: usize, flip: bool, id: Option<String>) -> Result<X3dString> {
-        let id_obj = match id {
+    fn as_x3d<S>(self, precision: usize, flip: bool, id: S) -> Result<X3dString>
+        where S: Into<Option<String>>
+    {
+        let id_obj = match id.into() {
             None => String::default(),
-            Some(_id) => format!("id='{}'", _id)
+            Some(_id) => format!(" id='{}'", _id)
         };
         match self {
             // CoordSeq::Point(ref pt) => {
@@ -65,7 +67,7 @@ impl AsX3d for CoordSeq<Point3d> {
             CoordSeq::Linestring(ref pts) => {
                 let n_pts = pts.len();
                 let s = format!(
-                    "<LineSet {} vertexCount='{}'><Coordinate point='{}' /></LineSet>",
+                    "<LineSet{} vertexCount='{}'><Coordinate point='{}' /></LineSet>",
                     id_obj,
                     n_pts,
                     array_point_string(&pts, precision, flip, false),
@@ -75,7 +77,7 @@ impl AsX3d for CoordSeq<Point3d> {
             },
             CoordSeq::Triangulatedsurface(ref triangles) => {
                 let n_triangles = triangles.len();
-                let mut s = String::from(format!("<IndexedTriangleSet {} index='", id_obj));
+                let mut s = String::from(format!("<IndexedTriangleSet{} index='", id_obj));
                 let mut k = 0;
                 for i in 0..n_triangles {
                     s.push_str(&format!("{} {} {}", k, k+1, k+2));
@@ -98,7 +100,7 @@ impl AsX3d for CoordSeq<Point3d> {
             },
             CoordSeq::Polyhedralsurface(ref polygons) => {
                 let n_geoms = polygons.len();
-                let mut s = String::from(format!("<IndexedFaceSet {} coordIndex='", id_obj));
+                let mut s = String::from(format!("<IndexedFaceSet{} coordIndex='", id_obj));
                 let mut j = 0;
                 polygons
                     .iter()
@@ -144,7 +146,7 @@ mod tests {
             .unwrap()
             .to_coordinates()
             .unwrap();
-        let res = triangle.as_x3d(0, false, Some("tin1".to_string()));
+        let res = triangle.as_x3d(0, false, "tin1".to_string());
         assert_eq!(res.unwrap(), X3dString("<IndexedTriangleSet id='tin1' index='0 1 2 3 4 5'><Coordinate point='0 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1 1 0'/></IndexedTriangleSet>".to_string()));
     }
 
@@ -160,8 +162,8 @@ mod tests {
             .unwrap()
             .to_coordinates()
             .unwrap();
-        let res = surface.as_x3d(0, false, Some("foo".to_string()));
-        assert_eq!(res.unwrap(), X3dString("<IndexedFaceSet id='foo' coordIndex='0 1 2 3 -1 4 5 6 7 -1 8 9 10 11 -1 12 13 14 15 -1 16 17 18 19 -1 20 21 22 23'>\
+        let res = surface.as_x3d(0, false, None);
+        assert_eq!(res.unwrap(), X3dString("<IndexedFaceSet coordIndex='0 1 2 3 -1 4 5 6 7 -1 8 9 10 11 -1 12 13 14 15 -1 16 17 18 19 -1 20 21 22 23'>\
 <Coordinate point='0 0 0 0 0 1 0 1 1 0 1 0 0 0 0 0 1 0 1 1 0 1 0 0 0 0 0 1 0 0 1 0 1 0 0 1 1 1 0 1 1 1 1 0 1 1 0 0 0 1 0 0 1 1 1 1 1 1 1 0 0 0 1 1 0 1 1 1 1 0 1 1' />\
 </IndexedFaceSet>".to_string()));
     }

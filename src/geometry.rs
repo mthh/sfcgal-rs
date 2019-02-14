@@ -15,6 +15,7 @@ use sfcgal_sys::{
     sfcgal_geometry_straight_skeleton, sfcgal_geometry_straight_skeleton_distance_in_m,
     sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_offset_polygon,
     sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
+    sfcgal_geometry_extrude,
 };
 use std::ffi::CString;
 use std::ptr::NonNull;
@@ -56,6 +57,13 @@ pub enum Orientation {
 }
 
 /// Object representing a SFCGAL Geometry.
+///
+/// Most of the operations allowed by SFCGAL C API are wrapped,
+/// except those modifying the geometry in-place (such as adding a new
+/// point to a linestring for example) and those retrieving a specific part
+/// of a geometry (such as getting the 2nd interior ring of some polygon as a linestring).
+/// However, this can easily be done by yourself by converting them from/to coordinates
+/// with the `new_from_coordinates` and `to_coordinates` methods.
 ///
 /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gadd6d3ea5a71a957581248791624fad58))
 #[repr(C)]
@@ -116,7 +124,7 @@ impl SFCGeometry {
         )
     }
 
-    pub fn new_from_coords<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom + CoordType {
+    pub fn new_from_coordinates<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom + CoordType {
         coords.to_sfcgal()
     }
 
@@ -323,6 +331,15 @@ impl SFCGeometry {
         }
     }
 
+    /// Returns the extrusion of the given `SFCGeometry` (not supported on Solid and Multisolid).
+    /// ([C API reference]()
+    pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_extrude(self.c_geom.as_ptr(), ex, ey, ez) };
+        unsafe {
+            SFCGeometry::new_from_raw(result, false)
+        }
+    }
+
     /// Returns a tesselation of the given `SFCGeometry`.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
     pub fn tesselate(&self) -> Result<SFCGeometry> {
@@ -428,6 +445,12 @@ mod tests {
     fn area() {
         let polygon = SFCGeometry::new("POLYGON((1 1, 3 1, 4 4, 1 3, 1 1))").unwrap();
         assert_eq!(polygon.area().unwrap(), 6.0);
+    }
+
+    #[test]
+    fn area_3d() {
+        let polygon = SFCGeometry::new("POLYGON((1 1 1, 3 1 1, 4 4 1, 1 3 1, 1 1 1))").unwrap();
+        assert_ulps_eq!(polygon.area_3d().unwrap(), 6.0);
     }
 
     #[test]
@@ -550,7 +573,23 @@ mod tests {
             output_wkt,
             "TIN(((0.0 1.0,1.0 0.0,1.0 1.0,0.0 1.0)),((0.0 1.0,0.0 0.0,1.0 0.0,0.0 1.0)))",
         );
+    }
 
+    #[test]
+    fn offset_polygon() {
+        let geom = SFCGeometry::new("POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
+        let buff = geom.offset_polygon(1.).unwrap();
+        assert!(buff.is_valid().unwrap());
+        assert!(!buff.is_empty().unwrap());
+    }
+
+    #[test]
+    fn extrude_polygon() {
+        let geom = SFCGeometry::new("POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
+        let extr = geom.extrude(0., 0., 1.).unwrap();
+        assert!(extr.is_valid().unwrap());
+        assert!(!extr.is_empty().unwrap());
+        assert_eq!(extr._type().unwrap(), GeomType::Solid);
     }
 
     #[test]

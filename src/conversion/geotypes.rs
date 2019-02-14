@@ -1,11 +1,10 @@
 use failure::Error;
-#[allow(unused_imports)]
 use sfcgal_sys::{
     sfcgal_geometry_t,
-    sfcgal_point_create_from_xy, sfcgal_point_x, sfcgal_point_y, sfcgal_point_z,
+    sfcgal_point_create_from_xy, sfcgal_point_x, sfcgal_point_y,
     sfcgal_linestring_create, sfcgal_linestring_add_point, sfcgal_linestring_point_n, sfcgal_linestring_num_points,
-    sfcgal_triangle_create, sfcgal_triangle_set_vertex_from_xy, sfcgal_triangle_vertex,
-    sfcgal_polygon_create, sfcgal_polygon_create_from_exterior_ring, sfcgal_polygon_add_interior_ring,
+    sfcgal_triangle_create, sfcgal_triangle_set_vertex_from_xy,
+    sfcgal_polygon_create_from_exterior_ring, sfcgal_polygon_add_interior_ring,
     sfcgal_polygon_num_interior_rings, sfcgal_polygon_exterior_ring, sfcgal_polygon_interior_ring_n,
     sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create,
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
@@ -50,51 +49,59 @@ impl ToSFCGALGeom for geo_types::Coordinate<f64> {
 }
 
 /// Implements conversion from CoordSeq to geo_types::Geometry
-/// (better use TryInto on SFCGeometry if the intend
+/// (better use TryInto<geo_types::Geometry> for SFCGeometry if the intend
 /// is to convert SFCGAL Geometries to geo_types ones)
-impl Into<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
-    fn into(self) -> geo_types::Geometry<f64> {
+impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
+    type Err = Error;
+
+    fn try_into(self) -> Result<geo_types::Geometry<f64>> {
             match self {
-                CoordSeq::Point(pt) => geo_types::Point(pt.into()).into(),
-                CoordSeq::Multipoint(pts) => geo_types::MultiPoint::from_iter(pts.into_iter()).into(),
-                CoordSeq::Linestring(pts) => geo_types::LineString::from_iter(pts.into_iter()).into(),
+                CoordSeq::Point(pt) => Ok(geo_types::Point(pt.into()).into()),
+                CoordSeq::Multipoint(pts) => Ok(geo_types::MultiPoint::from_iter(pts.into_iter()).into()),
+                CoordSeq::Linestring(pts) => Ok(geo_types::LineString::from_iter(pts.into_iter()).into()),
                 CoordSeq::Multilinestring(lines) => {
-                    geo_types::MultiLineString(
+                    Ok(geo_types::MultiLineString(
                         lines.into_iter()
                             .map(|line| geo_types::LineString::from(line))
                             .collect()
-                    ).into()
+                    ).into())
                 },
                 CoordSeq::Polygon(rings) => {
                     let mut it = rings.into_iter();
                     let exterior = geo_types::LineString::from(it.next().unwrap());
                     let interiors = it.map(|l| geo_types::LineString::from(l)).collect::<Vec<geo_types::LineString<f64>>>();
-                    geo_types::Polygon::new(exterior, interiors).into()
+                    Ok(geo_types::Polygon::new(exterior, interiors).into())
                 },
                 CoordSeq::Multipolygon(polygons) => {
                     let polys = polygons.into_iter().map(|p| {
-                        let a: geo_types::Geometry<f64> = CoordSeq::Polygon(p).into();
-                        a.as_polygon().unwrap()
-                    }).collect::<Vec<geo_types::Polygon<f64>>>();
-                    geo_types::MultiPolygon(polys).into()
+                        let a: geo_types::Geometry<f64> = CoordSeq::Polygon(p).try_into()?;
+                        if let Some(poly) = a.as_polygon() {
+                            Ok(poly)
+                        } else {
+                            Err(format_err!("Error while building geo_types::MultiPolygon"))
+                        }
+                    }).collect::<Result<Vec<geo_types::Polygon<f64>>>>()?;
+                    Ok(geo_types::MultiPolygon(polys).into())
                 },
                 CoordSeq::Geometrycollection(collection) => {
-                    geo_types::Geometry::GeometryCollection(
+                    Ok(geo_types::Geometry::GeometryCollection(
                         geo_types::GeometryCollection(collection
                             .into_iter()
-                            .map(|g| g.into())
-                            .collect::<Vec<geo_types::Geometry<f64>>>()
+                            .map(|g| g.try_into())
+                            .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?
                         )
-                    )
+                    ))
                 },
-                _ => unimplemented!()
+                _ => Err(
+                    format_err!(
+                        "Conversion from CoordSeq variants `Solid`, `Multisolid`, `Triangulatedsurface` and `Polyhedralsurface` are not yet implemented!"))
             }
     }
 }
 
 /// Implements faillible conversion from SFCGeometry to geo_types::Geometry.
 ///
-/// This is notably faillible because some types like GeoTypes::Polyhedralsurface
+/// This is notably faillible because some types of [`SFCGeometry`] like GeoTypes::Polyhedralsurface
 /// don't have equivalents in geo_types::Geometry.
 /// Please note that geo_types Coordinate and Point primitives are 2d only, so
 /// every information about z coordinate (if any) won't be taken into account.
@@ -187,13 +194,17 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 let c  = self.to_coordinates::<Point2d>()?;
                 let p = match c {
                     CoordSeq::Geometrycollection(g) => {
-                        g.into_iter().map(|g| g.into()).collect::<Vec<geo_types::Geometry<f64>>>()
+                        g.into_iter()
+                            .map(|g| g.try_into())
+                            .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?
                     },
-                    _ => unimplemented!(),
+                    _ => unimplemented!()
                 };
                 Ok(geo_types::Geometry::GeometryCollection(geo_types::GeometryCollection(p)))
             },
-            _ => unimplemented!()
+            _ => Err(
+                format_err!(
+                    "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, `Triangulatedsurface` and `Polyhedralsurface` to geo_types::Geometry are not yet implemented!"))
         }
     }
 }
@@ -210,6 +221,7 @@ fn geo_line_from_sfcgal(sfcgal_geom: *const sfcgal_geometry_t) -> Result<geo_typ
     }
     Ok(geo_types::LineString::from(v_points))
 }
+
 fn geo_point_from_sfcgal(geom: *const sfcgal_geometry_t) -> geo_types::Point<f64> {
     let x = unsafe { sfcgal_point_x(geom) };
     let y = unsafe { sfcgal_point_y(geom) };
@@ -326,25 +338,6 @@ impl ToSFCGAL for geo_types::MultiPolygon<f64> {
                     geo_polygon_to_sfcgal(&exterior.0, &interiors)
                 }).collect::<Result<Vec<_>>>()?
         )
-        // let out_multipolygon = unsafe { sfcgal_multi_polygon_create() };
-        // let &geo_types::MultiPolygon(ref list_polygons) = self;
-        // for polygon in list_polygons {
-        //     let &geo_types::Polygon{ref exterior, ref interiors} = polygon;
-        //     let out_polygon = unsafe {
-        //         sfcgal_polygon_create_from_exterior_ring(linestring_geo_to_sfcgal(exterior)?)
-        //     };
-        //     check_null_geom(out_polygon)?;
-        //
-        //     for ring in interiors {
-        //         unsafe {
-        //             sfcgal_polygon_add_interior_ring(out_polygon, linestring_geo_to_sfcgal(ring)?)
-        //         };
-        //     }
-        //     unsafe {
-        //         sfcgal_geometry_collection_add_geometry(out_multipolygon, out_polygon)
-        //     };
-        // }
-        // unsafe { SFCGeometry::new_from_raw(out_multipolygon, true) }
     }
 }
 
@@ -353,17 +346,12 @@ impl ToSFCGAL for geo_types::GeometryCollection<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         make_sfcgal_multi_geom!(
             sfcgal_geometry_collection_create(),
-            self.0.iter().map(|geom| Ok(geom.to_sfcgal()?.c_geom.as_ptr())).collect::<Result<Vec<_>>>()?
+            self.0.iter().map(|geom|{
+                let mut _g = geom.to_sfcgal()?;
+                _g.owned = false;
+                Ok(_g.c_geom.as_ptr())
+            }).collect::<Result<Vec<_>>>()?
         )
-        // let out_geom_collection = unsafe { sfcgal_geometry_collection_create() };
-        // let &geo_types::GeometryCollection(ref list_geoms) = self;
-        // for g_geom in list_geoms {
-        //     let sfcgal_geom = g_geom.to_sfcgal()?;
-        //     unsafe {
-        //         sfcgal_geometry_collection_add_geometry(out_geom_collection, sfcgal_geom.c_geom.as_ptr())
-        //     };
-        // }
-        // unsafe { SFCGeometry::new_from_raw(out_geom_collection, true) }
     }
 }
 
@@ -388,7 +376,7 @@ impl ToSFCGAL for geo_types::Geometry<f64> {
 mod tests {
     use geo_types::{
         Coordinate, Point, MultiPoint,
-        LineString, MultiLineString, Polygon, MultiPolygon, Triangle
+        LineString, MultiLineString, Polygon, MultiPolygon, Triangle,
     };
     use crate::{SFCGeometry, ToSFCGAL, GeomType};
     use super::TryInto;
@@ -457,7 +445,7 @@ mod tests {
     }
 
     #[test]
-    fn triangle_geo_to_sfcgal() {
+    fn triangle_geo_to_sfcgal_to_geo() {
         let tri = Triangle(
             Coordinate::from((0., 0.)),
             Coordinate::from((1., 0.)),
@@ -466,6 +454,12 @@ mod tests {
         let tri_sfcgal = tri.to_sfcgal().unwrap();
         assert!(tri_sfcgal.is_valid().unwrap());
         assert_eq!(tri_sfcgal._type().unwrap(), GeomType::Triangle);
+        let coords: Result<geo_types::Geometry<f64>, _> = tri_sfcgal.try_into();
+        assert_eq!(
+            coords.err().unwrap().to_string(),
+            "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, \
+            `Triangulatedsurface` and `Polyhedralsurface` to geo_types::Geometry are not yet implemented!",
+        )
     }
 
 
@@ -508,5 +502,26 @@ mod tests {
             mpg.0[0].interiors[0],
             LineString::from(
                 vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)]));
+    }
+
+    #[test]
+    fn geometrycollection_sfcgal_to_geo_to_sfcgal() {
+        let input_wkt = "GEOMETRYCOLLECTION(POINT(4.0 6.0),LINESTRING(4.0 6.0,7.0 10.0))";
+        let gc_sfcgal = SFCGeometry::new(input_wkt).unwrap();
+        let gc: geo_types::Geometry<f64> = gc_sfcgal.try_into().unwrap();
+        if let geo_types::Geometry::GeometryCollection(_gc) = &gc {
+            assert_eq!(
+                Point::new(4., 6.),
+                _gc.0[0].clone().as_point().unwrap(),
+            );
+            assert_eq!(
+                LineString::from(vec![(4., 6.), (7., 10.)]),
+                _gc.0[1].clone().as_linestring().unwrap(),
+            );
+            let gc_sfcgal = _gc.to_sfcgal().unwrap();
+            assert_eq!(input_wkt, gc_sfcgal.to_wkt_decim(1).unwrap());
+        } else {
+            panic!("Error while deconstructing geometrycollection");
+        }
     }
 }
