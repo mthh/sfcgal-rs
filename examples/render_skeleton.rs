@@ -56,7 +56,7 @@ fn make_skeleton(raw_json: String) -> (GeoJson, GeoJson) {
             let geogeom: geo_types::MultiLineString<f64> = res_sfc_geom
                 .try_into()
                 .unwrap()
-                .as_multilinestring()
+                .into_multi_line_string()
                 .unwrap();
             Feature {
                 bbox: None,

@@ -20,9 +20,8 @@ use sfcgal_sys::{
 use std::ffi::CString;
 use std::ptr::NonNull;
 use num_traits::FromPrimitive;
-use crate::{CoordSeq, Result, ToSFCGAL};
-use crate::coords::ToSFCGALGeom;
-use crate::coords::CoordType;
+use crate::{Result, ToSFCGAL};
+use crate::conversion::{ToSFCGALGeom, CoordSeq, CoordType};
 use crate::errors::get_last_error;
 use crate::utils::{check_predicate, check_computed_value, _string, _c_string_with_size};
 
@@ -332,7 +331,7 @@ impl SFCGeometry {
     }
 
     /// Returns the extrusion of the given `SFCGeometry` (not supported on Solid and Multisolid).
-    /// ([C API reference]()
+    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga277d01bd9978e13644baa1755f1cd3e0)
     pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_extrude(self.c_geom.as_ptr(), ex, ey, ez) };
         unsafe {
@@ -358,8 +357,8 @@ impl SFCGeometry {
         }
     }
 
-    /// Returns a triangulation of the given `SFCGeometry`.
-    /// ([C API reference]())
+    /// Returns the convex hull of the given `SFCGeometry`.
+    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9027b5654cbacf6c2106d70b129d3a23))
     pub fn convexhull(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull(self.c_geom.as_ptr()) };
         unsafe {
@@ -367,8 +366,8 @@ impl SFCGeometry {
         }
     }
 
-    /// Returns a triangulation of the given `SFCGeometry`.
-    /// ([C API reference]())
+    /// Returns the 3d convex hull of the given `SFCGeometry`.
+    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gacf01a9097f2059afaad871658b4b5a6f))
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull_3d(self.c_geom.as_ptr()) };
         unsafe {

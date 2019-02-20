@@ -2,10 +2,11 @@ extern crate geojson;
 extern crate geo_types;
 extern crate sfcgal;
 
-use geojson::{GeoJson, Geometry, Feature, FeatureCollection, Value, conversion::TryInto as TryIntoGeoType};
-use geo_types::{MultiLineString, Polygon};
-use sfcgal::{ToSFCGAL, TryInto};
+use geojson::{GeoJson, Geometry, Feature, FeatureCollection, Value};
+use sfcgal::{SFCGeometry, FromGeoJSON, ToGeoJSON};
 use std::{fs::File, io::Read};
+
+type Pt3d = (f64, f64, f64);
 
 fn main() {
     let path = "examples/abc.geojson";
@@ -24,22 +25,14 @@ fn main() {
         .iter()
         .filter_map(|ref feature| {
             if let Some(geom) = &feature.geometry {
-                if let Value::Polygon(ref pos) = geom.value {
-                    let geo_polygon: Polygon<f64> = Value::Polygon(pos.to_vec()).try_into().unwrap();
-                    let skeleton = geo_polygon
-                        .to_sfcgal()
-                        .unwrap()
-                        .straight_skeleton()
-                        .unwrap();
-                    let geogeom: MultiLineString<f64> = skeleton
-                        .try_into()
-                        .unwrap()
-                        .as_multilinestring()
-                        .unwrap();
+                if let Value::Polygon(..) = geom.value {
+                    let polygon_sfc = SFCGeometry::from_geojson::<Pt3d>(&geom.value).unwrap();
+                    let skeleton = polygon_sfc.straight_skeleton().unwrap();
+                    let geojson_geom: Value = skeleton.to_geojson::<Pt3d>().unwrap();
                     return Some(Feature {
                         bbox: None,
                         geometry: Some(Geometry {
-                            value: Value::from(&geogeom),
+                            value: geojson_geom,
                             bbox: None,
                             foreign_members: None,
                         }),

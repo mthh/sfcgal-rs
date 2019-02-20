@@ -10,7 +10,7 @@ use sfcgal_sys::{
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
     sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
     sfcgal_solid_shell_n, sfcgal_solid_num_shells, sfcgal_solid_create,
-    // sfcgal_solid_add_shell,
+    sfcgal_solid_add_interior_shell,
     sfcgal_solid_create_from_exterior_shell,
     sfcgal_triangulated_surface_create, sfcgal_triangulated_surface_num_triangles,
     sfcgal_triangulated_surface_triangle_n, sfcgal_triangulated_surface_add_triangle,
@@ -38,12 +38,6 @@ pub trait FromSFCGALGeom {
 pub trait ToSFCGALGeom {
     fn to_sfcgeometry(&self) -> Result<*mut sfcgal_geometry_t>;
 }
-
-// /// Convert object to a `SFCGeometry` (implemented on `CoordSeq` to convert
-// /// coordinates (tuple of 2 or 3 members) to `SFCGeometry` matching one of it's enum variants)
-// pub trait IntoGeometry {
-//     fn into_geom(&self) -> Result<SFCGeometry>;
-// }
 
 impl FromSFCGALGeom for Point2d {
     fn from_sfcgeometry(c_geom: *const sfcgal_geometry_t) -> Point2d {
@@ -82,7 +76,6 @@ impl ToSFCGALGeom for Point3d {
     }
 }
 
-// Convert
 impl<T> ToSFCGALGeom for Vec<T> where T: ToSFCGALGeom + CoordType {
     fn to_sfcgeometry(&self) -> Result<*mut sfcgal_geometry_t> {
         let out_linestring = unsafe { sfcgal_linestring_create() };
@@ -100,44 +93,42 @@ impl<T> ToSFCGALGeom for Vec<T> where T: ToSFCGALGeom + CoordType {
 /// Coordinates corresponding to the shapes described by SFCGAL Geometry types.
 #[derive(Debug, Clone, Hash)]
 pub enum CoordSeq<T> {
+    /// A Point is described by a tuple of 2 or 3 coordinates.
     Point(T),
+    /// A Linestring is described by Vec of Point.
     Linestring(Vec<T>),
+    /// A Polygon is described by a Vec of closed Linestring : the first one
+    /// is the exterior ring and the others are interior rings.
     Polygon(Vec<Vec<T>>),
+    /// A Multipoint is described by a Vec of Points.
     Multipoint(Vec<T>),
+    /// A Multilinestring is described by a Vec of Linestrings.
     Multilinestring(Vec<Vec<T>>),
+    /// A Multipolygon is described by a Vec of Polygons.
     Multipolygon(Vec<Vec<Vec<T>>>),
+    /// A Geometrycollection is described by a Vec of any of these CoordSeq geometries.
     Geometrycollection(Vec<CoordSeq<T>>),
+    /// A Polyhedralsurface is described by a Vec of Polygons.
     Polyhedralsurface(Vec<Vec<Vec<T>>>),
+    /// A Triangulatedsurface is described by a Vec of Triangles.
     Triangulatedsurface(Vec<Vec<T>>),
+    /// A Triangle is described by a Vec of 3 Points.
     Triangle(Vec<T>),
+    /// A Solid is described by a Vec of Polyhedralsurfaces : the first one
+    /// is the exterior shell and the others are interior shells.
     Solid(Vec<Vec<Vec<Vec<T>>>>),
+    /// A Multisolid is described by a Vec of Solids.
     Multisolid(Vec<Vec<Vec<Vec<Vec<T>>>>>),
-}
-
-#[macro_export]
-macro_rules! make_sfcgal_multi_geom {
-    ($c_geom: expr, $iter: expr) => ({
-        let out_multi = unsafe { $c_geom };
-        check_null_geom(out_multi)?;
-        for single_sfcgal_geom in $iter {
-            unsafe {
-                sfcgal_geometry_collection_add_geometry(out_multi, single_sfcgal_geom as *mut sfcgal_geometry_t)
-            };
-        }
-        unsafe { SFCGeometry::new_from_raw(out_multi, true) }
-    });
 }
 
 fn coords_polygon_to_sfcgal<T>(rings: &[Vec<T>]) -> Result<*mut sfcgal_geometry_t>
     where T: ToSFCGALGeom + CoordType
 {
-    // let exterior_ring = coords_linestring_to_sfcgal(rings[0])?;
     let out_polygon = unsafe {
         sfcgal_polygon_create_from_exterior_ring(rings[0].to_sfcgeometry()?)
     };
     check_null_geom(out_polygon)?;
     for ring in rings.iter().skip(1) {
-        // let ring = coords_linestring_to_sfcgal(&rings[ix])?;
         unsafe {
             sfcgal_polygon_add_interior_ring(out_polygon, ring.to_sfcgeometry()?)
         };
@@ -267,9 +258,9 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                     let out_solid = if let Some(shell) = it.next() {
                         let exterior = coords_polyhedralsurface_to_sfcgal(shell)?;
                         let out_solid = sfcgal_solid_create_from_exterior_shell(exterior);
-                        for poly in it {
+                        for _poly in it {
                             return Err(format_err!("Creation of solids interiors shells from coordinates isn't supported yet"));
-                            // sfcgal_solid_add_shell(
+                            // sfcgal_solid_add_interior_shell(
                             //     out_solid,
                             //     coords_polyhedralsurface_to_sfcgal(poly)?);
                         }
@@ -372,7 +363,7 @@ fn get_geom_at_index(geom: *const sfcgal_geometry_t, ix: usize) -> *const sfcgal
 /// [`GeomType`]: enum.GeomType.html
 /// [`CoordSeq`]: enum.CoordSeq.html
 impl ToCoordinates for SFCGeometry {
-    fn to_coordinates<T>(&self) ->  Result<CoordSeq<T>> where T: FromSFCGALGeom {
+    fn to_coordinates<T>(&self) ->  Result<CoordSeq<T>> where T: FromSFCGALGeom + CoordType {
         match self._type()? {
             GeomType::Point => {
                 Ok(
@@ -683,6 +674,40 @@ mod tests {
         let cube_sfcgal = coords.to_sfcgal().unwrap();
         assert_eq!(input_wkt, cube_sfcgal.to_wkt_decim(0).unwrap());
     }
+
+    // #[test]
+    // fn solid_with_interior_shell_3d_sfcgal_to_coordinates() {
+    //     let input_wkt = "SOLID((\
+    //     ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+    //     ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+    //     ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)),\
+    //     ((0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0,0.0 0.0 1.0)),\
+    //     ((1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0,1.0 0.0 1.0)),\
+    //     ((1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0,1.0 0.0 0.0))\
+    //     ),(\
+    //     ((0.0 0.0 0.0,0.0 0.5 0.0,0.5 0.5 0.0,0.5 0.0 0.0,0.0 0.0 0.0)),\
+    //     ((0.5 0.0 0.0,0.5 0.5 0.0,0.5 0.5 0.5,0.5 0.0 0.5,0.5 0.0 0.0)),\
+    //     ((0.0 0.5 0.0,0.0 0.5 0.5,0.5 0.5 0.5,0.5 0.5 0.0,0.0 0.5 0.0)),\
+    //     ((0.0 0.0 0.5,0.0 0.5 0.5,0.0 0.5 0.0,0.0 0.0 0.0,0.0 0.0 0.5)),\
+    //     ((0.5 0.0 0.5,0.5 0.5 0.5,0.0 0.5 0.5,0.0 0.0 0.5,0.5 0.0 0.5)),\
+    //     ((0.5 0.0 0.0,0.5 0.0 0.5,0.0 0.0 0.5,0.0 0.0 0.0,0.5 0.0 0.0))\
+    //     ))";
+    //     let cube = SFCGeometry::new(input_wkt).unwrap();
+    //     let coords: CoordSeq<Point3d> = cube.to_coordinates().unwrap();
+    //     if let CoordSeq::Solid(ref polys) = coords {
+    //         let num_shell = polys.len();
+    //         assert_eq!(num_shell, 2usize);
+    //         let coords_1st_face_polygon = &polys[0][0];
+    //         assert_eq!(
+    //             format!("{:?}", coords_1st_face_polygon),
+    //             "[[(0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 0.0)]]");
+    //         assert_eq!(polys[0].len(), 6usize);
+    //     } else {
+    //         panic!("Unexpected coordinates when converting from SFCGAL to coordinates as tuples.")
+    //     }
+    //     let cube_sfcgal = coords.to_sfcgal().unwrap();
+    //     assert_eq!(input_wkt, cube_sfcgal.to_wkt_decim(1).unwrap());
+    // }
 
     #[test]
     fn geometrycollection_3d_sfcgal_to_coordinates() {

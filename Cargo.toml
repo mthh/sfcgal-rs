@@ -12,12 +12,12 @@ High-level bindings to SFCGAL and conversion from/to other geometry libraries.
 sfcgal-sys = { git = "https://github.com/mthh/sfcgal-sys" }
 failure = "^0.1"
 libc = "0.2.48"
-geo-types = "0.3"
+geo-types = "0.4"
 enum-primitive-derive = "^0.1"
 num-traits = "^0.1"
 approx = "0.3"
+geojson = "0.15"
 
 [dev-dependencies]
-geojson = "0.14"
 web-view = { git = "https://github.com/Boscop/web-view" }
 svg = "*"

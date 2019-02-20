@@ -8,6 +8,7 @@ extern crate num_traits;
 extern crate geo_types;
 #[macro_use]
 extern crate approx;
+extern crate geojson;
 
 use sfcgal_sys::sfcgal_version;
 
@@ -15,11 +16,9 @@ mod conversion;
 mod errors;
 mod utils;
 mod geometry;
-mod coords;
 pub use errors::Result;
 pub use geometry::{SFCGeometry, GeomType};
-pub use conversion::TryInto;
-pub use coords::CoordSeq;
+pub use conversion::{CoordSeq, TryInto, AsX3d, ToGeoJSON, FromGeoJSON};
 
 
 /// Convert object to a [`SFCGeometry`] (implemented on [`CoordSeq`] and [geo-types](https://docs.rs/geo-types/) geometries)
@@ -34,8 +33,7 @@ pub trait ToSFCGAL {
 ///
 /// [`CoordSeq`]: enum.CoordSeq.html
 pub trait ToCoordinates {
-    // type Item;
-    fn to_coordinates<T>(&self) -> Result<CoordSeq<T>> where T: coords::FromSFCGALGeom;
+    fn to_coordinates<T>(&self) -> Result<CoordSeq<T>> where T: conversion::CoordType + conversion::FromSFCGALGeom;
 }
 
 /// Display SFCGAL version information.
