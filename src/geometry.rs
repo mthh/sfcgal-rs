@@ -133,7 +133,6 @@ impl SFCGeometry {
         let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
         let mut length: usize = 0;
         unsafe { sfcgal_geometry_as_text(self.c_geom.as_ref(), &mut ptr, &mut length) };
-        // let c_str = unsafe { CStr::from_ptr(ptr) };
         Ok(_c_string_with_size(ptr, length))
     }
 
@@ -144,7 +143,6 @@ impl SFCGeometry {
         let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
         let mut length: usize = 0;
         unsafe { sfcgal_geometry_as_text_decim(self.c_geom.as_ref(), nb_decim, &mut ptr, &mut length) };
-        // let c_str = unsafe { CStr::from_ptr(ptr) };
         Ok(_c_string_with_size(ptr, length))
     }
 
@@ -251,7 +249,7 @@ impl SFCGeometry {
     pub fn intersection(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_intersection(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -259,7 +257,7 @@ impl SFCGeometry {
     pub fn intersection_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_intersection_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -267,7 +265,7 @@ impl SFCGeometry {
     pub fn difference(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_difference(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -275,7 +273,7 @@ impl SFCGeometry {
     pub fn difference_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_difference_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -283,7 +281,7 @@ impl SFCGeometry {
     pub fn union(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_union(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -291,7 +289,7 @@ impl SFCGeometry {
     pub fn union_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_union_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -300,7 +298,7 @@ impl SFCGeometry {
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_straight_skeleton(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
     /// Returns the straight skeleton of the given `SFCGeometry` with the distance to the border as M coordinate.
@@ -308,7 +306,7 @@ impl SFCGeometry {
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_straight_skeleton_distance_in_m(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -317,7 +315,7 @@ impl SFCGeometry {
     pub fn approximate_medial_axis(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_approximate_medial_axis(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -326,7 +324,7 @@ impl SFCGeometry {
     pub fn offset_polygon(&self, radius: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_offset_polygon(self.c_geom.as_ptr(), radius) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -335,7 +333,7 @@ impl SFCGeometry {
     pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_extrude(self.c_geom.as_ptr(), ex, ey, ez) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -344,7 +342,7 @@ impl SFCGeometry {
     pub fn tesselate(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_tesselate(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -353,7 +351,7 @@ impl SFCGeometry {
     pub fn triangulate_2dz(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_triangulate_2dz(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -362,7 +360,7 @@ impl SFCGeometry {
     pub fn convexhull(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 
@@ -371,7 +369,7 @@ impl SFCGeometry {
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull_3d(self.c_geom.as_ptr()) };
         unsafe {
-            SFCGeometry::new_from_raw(result, false)
+            SFCGeometry::new_from_raw(result, true)
         }
     }
 }

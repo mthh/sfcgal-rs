@@ -44,5 +44,7 @@ pub(crate) fn _c_string_with_size(raw_ptr: *mut i8, size: usize) -> String {
     let slice: &[u8] = unsafe {
         std::mem::transmute(std::slice::from_raw_parts(raw_ptr, size))
     };
-    std::str::from_utf8(slice).unwrap().to_string()
+    let res = std::str::from_utf8(slice).unwrap().to_string();
+    unsafe { libc::free(raw_ptr as *mut libc::c_void) };
+    res
 }
