@@ -11,9 +11,9 @@ use sfcgal_sys::{
     sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
 };
 use crate::{
-    Result, SFCGeometry, GeomType,
-    ToCoordinates, ToSFCGAL, utils::check_null_geom};
-use crate::conversion::coords::{ToSFCGALGeom, CoordSeq, CoordType, Point2d};
+    Result, SFCGeometry, GeomType, Point2d, ToCoordinates, ToSFCGAL, utils::check_null_geom,
+};
+use crate::conversion::coords::{ToSFCGALGeom, CoordSeq, CoordType};
 use std::convert::Into;
 use std::iter::FromIterator;
 

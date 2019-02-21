@@ -10,20 +10,13 @@ use sfcgal_sys::{
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
     sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
     sfcgal_solid_shell_n, sfcgal_solid_num_shells, sfcgal_solid_create,
-    sfcgal_solid_add_interior_shell,
     sfcgal_solid_create_from_exterior_shell,
     sfcgal_triangulated_surface_create, sfcgal_triangulated_surface_num_triangles,
     sfcgal_triangulated_surface_triangle_n, sfcgal_triangulated_surface_add_triangle,
     sfcgal_polyhedral_surface_create, sfcgal_polyhedral_surface_num_polygons, sfcgal_polyhedral_surface_polygon_n,
     sfcgal_polyhedral_surface_add_polygon,
 };
-use crate::{SFCGeometry, GeomType, Result, ToSFCGAL, ToCoordinates, utils::check_null_geom};
-
-/// Type for manipulating 2d coordinates, reprensented as (x, y).
-pub type Point2d = (f64, f64);
-
-/// Type for manipulating 3d coordinates, reprensented as (x, y, z).
-pub type Point3d = (f64, f64, f64);
+use crate::{SFCGeometry, GeomType, Result, ToSFCGAL, ToCoordinates, utils::check_null_geom, Point2d, Point3d};
 
 pub trait CoordType {}
 impl CoordType for Point2d {}

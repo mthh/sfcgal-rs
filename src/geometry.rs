@@ -641,5 +641,4 @@ mod tests {
         assert_eq!(diff.is_valid().unwrap(), true);
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);
     }
-
 }

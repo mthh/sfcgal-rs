@@ -1,7 +1,7 @@
-use crate::{CoordSeq, Result};
-use crate::conversion::coords::Point3d;
+use crate::{CoordSeq, Result, Point3d};
 
-/// Formatted node element of a geometry in X3D xml
+/// Contains the formatted node element of a geometry in X3D xml
+/// and its min / max coordinates in each 3 dimensions.
 #[derive(Debug)]
 pub struct X3dString {
     pub geometry: String,
@@ -9,15 +9,17 @@ pub struct X3dString {
 }
 
 
-/// Representation as [`X3dString`] (implemented on some ['CoordSeq`] variants
-/// allowing to use it on some [`SFCGeometry`])
+/// Representation as [`X3dString`] (implemented on some [`CoordSeq`] variants
+/// allowing to use it on some [`SFCGeometry`]).
 ///
-/// ['CoordSeq`]: struct.CoordSeq.html
+/// [`X3dString`]: struct.X3dString.html
+/// [`CoordSeq`]: struct.CoordSeq.html
 /// [`SFCGeometry`]: struct.SFCGeometry.html
 pub trait AsX3d {
     fn as_x3d<S>(self, precision: usize, flip: bool, id: S) -> Result<X3dString> where S: Into<Option<String>>;
 }
 
+/// Container for the minimum and maximum values in x, y and z dimensions.
 #[derive(Debug)]
 pub struct Bbox {
     xmin: f64,
@@ -93,7 +95,12 @@ fn poly_string(rings: &[Vec<Point3d>], precision: usize, flip: bool, bbox: &mut 
         .join(" ")
 }
 
-
+/// Representation as [`X3dString`] on [`CoordSeq`] coordinates
+/// (as returned by `SFCGeometry.to_coordinates()`). Only implemented for 3d coordinates
+/// on : Linestring, Triangulatedsurface and Polyhedralsurface.
+///
+/// [`X3dString`]: struct.X3dString.html
+/// [`CoordSeq`]: struct.CoordSeq.html
 impl AsX3d for CoordSeq<Point3d> {
     fn as_x3d<S>(self, precision: usize, flip: bool, id: S) -> Result<X3dString>
         where S: Into<Option<String>>
