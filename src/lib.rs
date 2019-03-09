@@ -1,9 +1,9 @@
 //! Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/)
 //! library and conversion to / from other geometry crates from Rust ecosystem.
-//! Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
+//! Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-sys) crate exposing low-level bindings.
 //!
 //! Allows notably reading from / writing to WKT as well as interoperability
-//! with [geojson]() and [geo-types]() crates.
+//! with [geojson](https://crates.io/crates/geojson) and [geo-types](https://crates.io/crates/geo) crates.
 //! It also offers an API
 //! to manipulate SFCGAL geometries from/to coordinates (represented as tuples of 2 or 3 positions).
 //!

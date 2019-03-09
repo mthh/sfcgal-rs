@@ -175,33 +175,27 @@ impl FromGeoJSON for SFCGeometry {
         coords.to_sfcgal()
     }
 }
-// impl ToGeoJSON for SFCGeometry {
-//     type Err = Error;
-//     fn to_geojson(&self, type: ) -> Result<GeometryValue> {
-//         let cs: CoordSeq<Self::Item> = self.to_coordinates()?;
-//         match cs {
-//             CoordSeq::Point(pt) => Ok(GeometryValue::Point(vec![pt.0, pt.1, pt.2])),
-//             CoordSeq::Multipoint(pts) => Ok(GeometryValue::MultiPoint(pts.iter().map(|p| vec![p.0, p.1, p.2]).collect())),
-//             CoordSeq::Multilinestring(lines) => Ok(GeometryValue::MultiLineString(lines.iter().map(|pts| pts.iter().map(|p| vec![p.0, p.1, p.2]).collect()).collect())),
-//             CoordSeq::Linestring(pts) => Ok(GeometryValue::LineString(pts.iter().map(|p| vec![p.0, p.1, p.2]).collect())),
-//             _ => unimplemented!(),
-//         }
-//     }
-// }
 
 
 #[cfg(test)]
 mod tests {
     use crate::*;
     use super::{Point2d, Point3d, ToGeoJSON};
-    use geojson;
 
     #[test]
-    fn point_3d_sfcgal_to_coordinates_to_sfcgal() {
+    fn point_2d_sfcgal_to_geojson_to_sfcgal() {
+        let input_wkt = "POINT(0.1 0.9)";
+        let pt_sfcgal = SFCGeometry::new(input_wkt).unwrap();
+        let pt_geojson = pt_sfcgal.to_geojson::<Point2d>().unwrap();
+        let pt_sfcgal_new = SFCGeometry::from_geojson::<Point2d>(&pt_geojson).unwrap();
+        assert_eq!(pt_sfcgal.to_wkt_decim(1).unwrap(), pt_sfcgal_new.to_wkt_decim(1).unwrap());
+    }
+
+    #[test]
+    fn point_3d_sfcgal_to_geojson_to_sfcgal() {
         let input_wkt = "POINT(0.1 0.9 1.0)";
         let pt_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let pt_geojson = pt_sfcgal.to_geojson::<Point3d>().unwrap();
-        // assert_eq!(pt_geojson, geojson::Value::Point(vec![0.1, 0.9, 1.0]));
         let pt_sfcgal_new = SFCGeometry::from_geojson::<Point3d>(&pt_geojson).unwrap();
         assert_eq!(pt_sfcgal.to_wkt_decim(1).unwrap(), pt_sfcgal_new.to_wkt_decim(1).unwrap());
     }

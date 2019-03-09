@@ -84,7 +84,23 @@ impl<T> ToSFCGALGeom for Vec<T> where T: ToSFCGALGeom + CoordType {
 }
 
 /// Coordinates corresponding to the shapes described by SFCGAL Geometry types.
-#[derive(Debug, Clone, Hash)]
+///
+/// Used to construct SFCGeometry from coordinates or to retrieve coordinates from SFCGeometry.
+/// ``` rust
+/// use sfcgal::{CoordSeq, ToSFCGAL};
+///
+/// let coordinates = CoordSeq::Linestring(vec![(-0.5, -0.5, 2.5), (0., 0., 4.0)]);
+/// let line_3d = coordinates.to_sfcgal().unwrap();
+/// assert!(line_3d.is_valid().unwrap());
+/// ```
+/// ``` rust
+/// use sfcgal::{SFCGeometry, CoordSeq, Point3d, ToCoordinates};
+///
+/// let line_3d = SFCGeometry::new("LINESTRING(3.5 5.6 1.0,4.8 10.5 1.0)").unwrap();
+/// let coordinates = line_3d.to_coordinates::<Point3d>().unwrap();
+/// // assert_eq!(coordinates, CoordSeq::Linestring(vec![(3.5, 5.6, 1.0), (4.8, 10.5, 1.0)]));
+/// ```
+#[derive(Debug, Clone, Hash, PartialEq)]
 pub enum CoordSeq<T> {
     /// A Point is described by a tuple of 2 or 3 coordinates.
     Point(T),
