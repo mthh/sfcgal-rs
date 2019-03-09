@@ -58,7 +58,7 @@ mod utils;
 mod geometry;
 pub use errors::Result;
 pub use geometry::{SFCGeometry, GeomType};
-pub use conversion::{CoordSeq, TryInto, AsX3d, X3dString, ToGeoJSON, FromGeoJSON};
+pub use conversion::{CoordSeq, TryInto, ToGeoJSON, FromGeoJSON};
 
 /// Type alias for manipulating 2d coordinates, reprensented as (x, y).
 pub type Point2d = (f64, f64);
