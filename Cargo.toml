@@ -11,7 +11,7 @@ readme = "README.md"
 homepage = "https://github.com/mthh/sfcgal-rs"
 repository = "https://github.com/mthh/sfcgal-rs"
 keywords = ["geometry", "geospatial", "gis", "sfcgal"]
-categories = ["external-ffi-bindings", "algorithms"]
+categories = ["algorithms", "api-bindings"]
 
 
 [dependencies]

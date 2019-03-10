@@ -256,23 +256,18 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                 unsafe { SFCGeometry::new_from_raw(out_surface, true) }
             }
             CoordSeq::Solid(ref polyhedres) => {
-                unsafe {
-                    let mut it = polyhedres.iter();
-                    let out_solid = if let Some(shell) = it.next() {
-                        let exterior = coords_polyhedralsurface_to_sfcgal(shell)?;
-                        let out_solid = sfcgal_solid_create_from_exterior_shell(exterior);
-                        for _poly in it {
-                            return Err(format_err!("Creation of solids interiors shells from coordinates isn't supported yet"));
-                            // sfcgal_solid_add_interior_shell(
-                            //     out_solid,
-                            //     coords_polyhedralsurface_to_sfcgal(poly)?);
-                        }
-                        out_solid
-                    } else {
-                        sfcgal_solid_create()
-                    };
-                    SFCGeometry::new_from_raw(out_solid, true)
-                }
+                let n_part = polyhedres.len();
+                let out_solid = if n_part == 0 {
+                    unsafe { sfcgal_solid_create() }
+                } else if n_part == 1 {
+                    let exterior = coords_polyhedralsurface_to_sfcgal(&polyhedres[0])?;
+                    unsafe { sfcgal_solid_create_from_exterior_shell(exterior) }
+                } else {
+                    return Err(format_err!(
+                        "Creation of solids interiors shells from coordinates isn't supported yet"
+                    ));
+                };
+                unsafe { SFCGeometry::new_from_raw(out_solid, true) }
             }
             _ => unimplemented!(),
         }

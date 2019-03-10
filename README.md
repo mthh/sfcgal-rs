@@ -23,8 +23,20 @@ let line_3d = SFCGeometry::new("LINESTRING(-0.5 -0.5 2.5, 0.0 0.0 4.0)")?;
 
 // create a polygon as Vec of 3-member tuples...
 let coords_polygon = vec![
-    vec![(-1., -1., 3.0), (1., -1., 3.0), (1., 1., 3.0), (-1., 1., 3.0), (-1., -1., 3.0)], // Exterior ring
-    vec![(0.1, 0.1, 3.0), (0.1, 0.9, 3.0), (0.9, 0.9, 3.0), (0.9, 0.1, 3.0), (0.1, 0.1, 3.0)], // 1 interior ring
+    vec![ // Exterior ring
+        (-1., -1., 3.0),
+        (1., -1., 3.0),
+        (1., 1., 3.0),
+        (-1., 1., 3.0),
+        (-1., -1., 3.0),
+    ],
+    vec![ // 1 interior ring
+        (0.1, 0.1, 3.0),
+        (0.1, 0.9, 3.0),
+        (0.9, 0.9, 3.0),
+        (0.9, 0.1, 3.0),
+        (0.1, 0.1, 3.0),
+    ],
 ];
 // ...by using the CoordSeq enum variants to match the wanted SFCGAL geometry type
 // (returns a SFCGeometry)

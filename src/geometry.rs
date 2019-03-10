@@ -67,7 +67,7 @@ pub struct SFCGeometry {
 
 impl Drop for SFCGeometry {
     fn drop(&mut self) {
-        if self.owned == true {
+        if self.owned {
             unsafe { sfcgal_geometry_delete(self.c_geom.as_mut()) }
         }
     }
@@ -102,11 +102,13 @@ impl SFCGeometry {
         owned: bool,
     ) -> Result<SFCGeometry> {
         Ok(SFCGeometry {
-            owned: owned,
-            c_geom: NonNull::new(g).ok_or(format_err!(
-                "Obtained null pointer when creating geometry: {}",
-                get_last_error()
-            ))?,
+            owned,
+            c_geom: NonNull::new(g).ok_or_else(|| {
+                format_err!(
+                    "Obtained null pointer when creating geometry: {}",
+                    get_last_error()
+                )
+            })?,
         })
     }
 
@@ -183,7 +185,7 @@ impl SFCGeometry {
     pub fn _type(&self) -> Result<GeomType> {
         let type_geom = unsafe { sfcgal_geometry_type_id(self.c_geom.as_ptr()) };
         GeomType::from_u32(type_geom)
-            .ok_or(format_err!("Unknown geometry type (val={})", type_geom))
+            .ok_or_else(|| format_err!("Unknown geometry type (val={})", type_geom))
     }
 
     /// Computes the distance to an other `SFCGeometry`.
@@ -221,10 +223,8 @@ impl SFCGeometry {
     /// Computes the orientation of the given `SFCGeometry` (must be a Polygon)
     pub fn orientation(&self) -> Result<Orientation> {
         let orientation = unsafe { sfcgal_geometry_orientation(self.c_geom.as_ptr()) };
-        Orientation::from_i32(orientation).ok_or(format_err!(
-            "Error while retrieving orientation (val={})",
-            orientation
-        ))
+        Orientation::from_i32(orientation)
+            .ok_or_else(|| format_err!("Error while retrieving orientation (val={})", orientation))
     }
 
     /// Test the intersection with an other `SFCGeometry`.

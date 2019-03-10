@@ -84,7 +84,7 @@ fn bench_sfcgal_2d_to_coordinates(b: &mut Bencher) {
 fn bench_sfcgal_2d_to_geojson(b: &mut Bencher) {
     let geom = make_sfgal_geom();
     b.iter(|| {
-        let coords = geom.to_geojson::<Point2d>().unwrap();
+        let _coords = geom.to_geojson::<Point2d>().unwrap();
     });
 }
 
@@ -92,7 +92,7 @@ fn bench_sfcgal_2d_to_geojson(b: &mut Bencher) {
 fn bench_sfcgal_2d_to_geotype_geometry(b: &mut Bencher) {
     let geom = make_sfgal_geom();
     b.iter(|| {
-        let polyg: geo_types::Geometry<f64> = geom.clone().try_into().unwrap();
+        let _polyg: geo_types::Geometry<f64> = geom.clone().try_into().unwrap();
     });
 }
 
@@ -100,7 +100,7 @@ fn bench_sfcgal_2d_to_geotype_geometry(b: &mut Bencher) {
 fn bench_sfcgal_2d_to_geotype_concrete_type(b: &mut Bencher) {
     let geom = make_sfgal_geom();
     b.iter(|| {
-        let polyg: geo_types::Polygon<f64> =
+        let _polyg: geo_types::Polygon<f64> =
             geom.clone().try_into().unwrap().into_polygon().unwrap();
     });
 }

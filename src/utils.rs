@@ -30,9 +30,10 @@ pub(crate) fn check_predicate(val: i32) -> Result<bool> {
 }
 
 pub(crate) fn check_computed_value(val: f64) -> Result<f64> {
-    match AbsDiff::default().eq(&val, &-1.0) {
-        true => Err(format_err!("SFCGAL error: {}", get_last_error())),
-        false => Ok(val),
+    if AbsDiff::default().eq(&val, &-1.0) {
+        Err(format_err!("SFCGAL error: {}", get_last_error()))
+    } else {
+        Ok(val)
     }
 }
 
@@ -41,7 +42,8 @@ pub(crate) fn check_computed_value(val: f64) -> Result<f64> {
 // from the pointer to uninitialized memory with give
 // to it earlier.
 pub(crate) fn _c_string_with_size(raw_ptr: *mut i8, size: usize) -> String {
-    let slice: &[u8] = unsafe { std::mem::transmute(std::slice::from_raw_parts(raw_ptr, size)) };
+    let slice: &[u8] =
+        unsafe { &*(std::slice::from_raw_parts(raw_ptr, size) as *const [i8] as *const [u8]) };
     let res = std::str::from_utf8(slice).unwrap().to_string();
     unsafe { libc::free(raw_ptr as *mut libc::c_void) };
     res

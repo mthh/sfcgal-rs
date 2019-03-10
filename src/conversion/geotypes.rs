@@ -58,14 +58,14 @@ impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
                 CoordSeq::Multilinestring(lines) => {
                     Ok(geo_types::MultiLineString(
                         lines.into_iter()
-                            .map(|line| geo_types::LineString::from(line))
+                            .map(geo_types::LineString::from)
                             .collect()
                     ).into())
                 },
                 CoordSeq::Polygon(rings) => {
                     let mut it = rings.into_iter();
                     let exterior = geo_types::LineString::from(it.next().unwrap());
-                    let interiors = it.map(|l| geo_types::LineString::from(l)).collect::<Vec<geo_types::LineString<f64>>>();
+                    let interiors = it.map(geo_types::LineString::from).collect::<Vec<geo_types::LineString<f64>>>();
                     Ok(geo_types::Polygon::new(exterior, interiors).into())
                 },
                 CoordSeq::Multipolygon(polygons) => {
