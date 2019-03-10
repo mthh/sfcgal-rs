@@ -107,20 +107,11 @@ impl SFCGeometry {
     }
 
     pub(crate) unsafe fn new_from_raw(g: *mut sfcgal_geometry_t, owned: bool) -> Result<SFCGeometry> {
-        if g.is_null() {
-            return Err(
-                format_err!(
-                 "Obtained null pointer when creating geometry: {}",
-                 get_last_error()
-                )
-            );
-        }
-        Ok(
-            SFCGeometry {
-                c_geom: NonNull::new(g).ok_or(format_err!("Impossible to build the geometry from a Null pointer"))?,
-                owned: owned,
-            }
-        )
+        Ok(SFCGeometry {
+            owned: owned,
+            c_geom: NonNull::new(g)
+                .ok_or(format_err!("Obtained null pointer when creating geometry: {}", get_last_error()))?,
+        })
     }
 
     pub fn new_from_coordinates<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom + CoordType {
@@ -170,9 +161,7 @@ impl SFCGeometry {
         };
         match rv {
             1 => Ok(None),
-            0 => {
-                Ok(Some(_string(ptr)))
-            },
+            0 => Ok(Some(_string(ptr))),
             _ => Err(format_err!("SFCGAL error: {}", get_last_error()))
         }
     }
