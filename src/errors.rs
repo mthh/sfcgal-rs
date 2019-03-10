@@ -1,6 +1,6 @@
-use sfcgal_sys::{w_sfcgal_get_last_error};
 use crate::utils::_string;
 use failure::Error;
+use sfcgal_sys::w_sfcgal_get_last_error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 

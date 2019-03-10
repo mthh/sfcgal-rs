@@ -1,9 +1,9 @@
-extern crate geojson;
 extern crate geo_types;
+extern crate geojson;
 extern crate sfcgal;
 
-use geojson::{GeoJson, Geometry, Feature, FeatureCollection, Value};
-use sfcgal::{SFCGeometry, FromGeoJSON, ToGeoJSON};
+use geojson::{Feature, FeatureCollection, GeoJson, Geometry, Value};
+use sfcgal::{FromGeoJSON, SFCGeometry, ToGeoJSON};
 use std::{fs::File, io::Read};
 
 type Pt3d = (f64, f64, f64);
@@ -43,13 +43,13 @@ fn main() {
                 }
             }
             return None;
-        }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
 
-    let _result_geojson = GeoJson::FeatureCollection(
-        FeatureCollection {
-            foreign_members: None,
-            bbox: None,
-            features: new_features,
-        }
-    ).to_string();
+    let _result_geojson = GeoJson::FeatureCollection(FeatureCollection {
+        foreign_members: None,
+        bbox: None,
+        features: new_features,
+    })
+    .to_string();
 }

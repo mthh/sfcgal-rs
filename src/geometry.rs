@@ -1,30 +1,24 @@
+use crate::conversion::{CoordSeq, CoordType, ToSFCGALGeom};
+use crate::errors::get_last_error;
+use crate::utils::{_c_string_with_size, _string, check_computed_value, check_predicate};
+use crate::{Result, ToSFCGAL};
+use num_traits::FromPrimitive;
 use sfcgal_sys::{
-    initialize,
-    sfcgal_io_read_wkt, sfcgal_geometry_as_text, sfcgal_geometry_as_text_decim,
-    sfcgal_geometry_t, sfcgal_geometry_clone, sfcgal_geometry_delete, sfcgal_geometry_type_id,
-    sfcgal_geometry_is_empty, sfcgal_geometry_is_3d, sfcgal_geometry_is_planar,
-    sfcgal_geometry_is_valid, sfcgal_geometry_is_valid_detail,
-    sfcgal_geometry_orientation,
-    sfcgal_geometry_area, sfcgal_geometry_area_3d, sfcgal_geometry_volume,
-    sfcgal_geometry_distance, sfcgal_geometry_distance_3d,
-    sfcgal_geometry_intersects, sfcgal_geometry_intersects_3d,
-    sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d,
-    sfcgal_geometry_difference, sfcgal_geometry_difference_3d,
-    sfcgal_geometry_union, sfcgal_geometry_union_3d,
-    sfcgal_geometry_convexhull, sfcgal_geometry_convexhull_3d,
-    sfcgal_geometry_straight_skeleton, sfcgal_geometry_straight_skeleton_distance_in_m,
-    sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_offset_polygon,
-    sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
-    sfcgal_geometry_extrude,
+    initialize, sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_area,
+    sfcgal_geometry_area_3d, sfcgal_geometry_as_text, sfcgal_geometry_as_text_decim,
+    sfcgal_geometry_clone, sfcgal_geometry_convexhull, sfcgal_geometry_convexhull_3d,
+    sfcgal_geometry_delete, sfcgal_geometry_difference, sfcgal_geometry_difference_3d,
+    sfcgal_geometry_distance, sfcgal_geometry_distance_3d, sfcgal_geometry_extrude,
+    sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d, sfcgal_geometry_intersects,
+    sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d, sfcgal_geometry_is_empty,
+    sfcgal_geometry_is_planar, sfcgal_geometry_is_valid, sfcgal_geometry_is_valid_detail,
+    sfcgal_geometry_offset_polygon, sfcgal_geometry_orientation, sfcgal_geometry_straight_skeleton,
+    sfcgal_geometry_straight_skeleton_distance_in_m, sfcgal_geometry_t, sfcgal_geometry_tesselate,
+    sfcgal_geometry_triangulate_2dz, sfcgal_geometry_type_id, sfcgal_geometry_union,
+    sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
 };
 use std::ffi::CString;
 use std::ptr::NonNull;
-use num_traits::FromPrimitive;
-use crate::{Result, ToSFCGAL};
-use crate::conversion::{ToSFCGALGeom, CoordSeq, CoordType};
-use crate::errors::get_last_error;
-use crate::utils::{check_predicate, check_computed_value, _string, _c_string_with_size};
-
 
 /// SFCGAL Geometry types.
 ///
@@ -33,26 +27,26 @@ use crate::utils::{check_predicate, check_computed_value, _string, _c_string_wit
 #[repr(C)]
 #[derive(PartialEq, Eq, Debug, Primitive)]
 pub enum GeomType {
-  Point = 1,
-  Linestring = 2,
-  Polygon = 3,
-  Multipoint = 4,
-  Multilinestring = 5,
-  Multipolygon = 6,
-  Geometrycollection = 7,
-  Polyhedralsurface = 15,
-  Triangulatedsurface = 16,
-  Triangle = 100,
-  Solid = 101,
-  Multisolid = 102
+    Point = 1,
+    Linestring = 2,
+    Polygon = 3,
+    Multipoint = 4,
+    Multilinestring = 5,
+    Multipolygon = 6,
+    Geometrycollection = 7,
+    Polyhedralsurface = 15,
+    Triangulatedsurface = 16,
+    Triangle = 100,
+    Solid = 101,
+    Multisolid = 102,
 }
 
 /// Represents the orientation of a `SFCGeometry`.
 #[derive(PartialEq, Eq, Debug, Primitive)]
 pub enum Orientation {
-  CounterClockWise = -1isize,
-  ClockWise = 1isize,
-  Undetermined = 0isize,
+    CounterClockWise = -1isize,
+    ClockWise = 1isize,
+    Undetermined = 0isize,
 }
 
 /// Object representing a SFCGAL Geometry.
@@ -94,27 +88,32 @@ impl std::fmt::Debug for SFCGeometry {
     }
 }
 
-
 impl SFCGeometry {
     /// Create a geometry by parsing a [WKT](https://en.wikipedia.org/wiki/Well-known_text) string.
     pub fn new(wkt: &str) -> Result<SFCGeometry> {
         initialize();
         let c_str = CString::new(wkt)?;
         let obj = unsafe { sfcgal_io_read_wkt(c_str.as_ptr(), wkt.len()) };
-        unsafe {
-            SFCGeometry::new_from_raw(obj, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(obj, true) }
     }
 
-    pub(crate) unsafe fn new_from_raw(g: *mut sfcgal_geometry_t, owned: bool) -> Result<SFCGeometry> {
+    pub(crate) unsafe fn new_from_raw(
+        g: *mut sfcgal_geometry_t,
+        owned: bool,
+    ) -> Result<SFCGeometry> {
         Ok(SFCGeometry {
             owned: owned,
-            c_geom: NonNull::new(g)
-                .ok_or(format_err!("Obtained null pointer when creating geometry: {}", get_last_error()))?,
+            c_geom: NonNull::new(g).ok_or(format_err!(
+                "Obtained null pointer when creating geometry: {}",
+                get_last_error()
+            ))?,
         })
     }
 
-    pub fn new_from_coordinates<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry> where T: ToSFCGALGeom + CoordType {
+    pub fn new_from_coordinates<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry>
+    where
+        T: ToSFCGALGeom + CoordType,
+    {
         coords.to_sfcgal()
     }
 
@@ -133,7 +132,9 @@ impl SFCGeometry {
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
         let mut length: usize = 0;
-        unsafe { sfcgal_geometry_as_text_decim(self.c_geom.as_ref(), nb_decim, &mut ptr, &mut length) };
+        unsafe {
+            sfcgal_geometry_as_text_decim(self.c_geom.as_ref(), nb_decim, &mut ptr, &mut length)
+        };
         Ok(_c_string_with_size(ptr, length))
     }
 
@@ -162,7 +163,7 @@ impl SFCGeometry {
         match rv {
             1 => Ok(None),
             0 => Ok(Some(_string(ptr))),
-            _ => Err(format_err!("SFCGAL error: {}", get_last_error()))
+            _ => Err(format_err!("SFCGAL error: {}", get_last_error())),
         }
     }
 
@@ -183,17 +184,19 @@ impl SFCGeometry {
         let type_geom = unsafe { sfcgal_geometry_type_id(self.c_geom.as_ptr()) };
         GeomType::from_u32(type_geom)
             .ok_or(format_err!("Unknown geometry type (val={})", type_geom))
-   }
+    }
 
-   /// Computes the distance to an other `SFCGeometry`.
+    /// Computes the distance to an other `SFCGeometry`.
     pub fn distance(&self, other: &SFCGeometry) -> Result<f64> {
-        let distance = unsafe { sfcgal_geometry_distance(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        let distance =
+            unsafe { sfcgal_geometry_distance(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         check_computed_value(distance)
     }
 
     /// Computes the 3d distance to an other `SFCGeometry`.
     pub fn distance_3d(&self, other: &SFCGeometry) -> Result<f64> {
-        let distance = unsafe { sfcgal_geometry_distance_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        let distance =
+            unsafe { sfcgal_geometry_distance_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         check_computed_value(distance)
     }
 
@@ -218,8 +221,10 @@ impl SFCGeometry {
     /// Computes the orientation of the given `SFCGeometry` (must be a Polygon)
     pub fn orientation(&self) -> Result<Orientation> {
         let orientation = unsafe { sfcgal_geometry_orientation(self.c_geom.as_ptr()) };
-        Orientation::from_i32(orientation)
-            .ok_or(format_err!("Error while retrieving orientation (val={})", orientation))
+        Orientation::from_i32(orientation).ok_or(format_err!(
+            "Error while retrieving orientation (val={})",
+            orientation
+        ))
     }
 
     /// Test the intersection with an other `SFCGeometry`.
@@ -230,136 +235,113 @@ impl SFCGeometry {
 
     /// Test the 3d intersection with an other `SFCGeometry`.
     pub fn intersects_3d(&self, other: &SFCGeometry) -> Result<bool> {
-        let rv = unsafe { sfcgal_geometry_intersects_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        let rv =
+            unsafe { sfcgal_geometry_intersects_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         check_predicate(rv)
     }
 
     /// Returns the intersection of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn intersection(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_intersection(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        let result =
+            unsafe { sfcgal_geometry_intersection(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the 3d intersection of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn intersection_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_intersection_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        let result =
+            unsafe { sfcgal_geometry_intersection_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the difference of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn difference(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_difference(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        let result =
+            unsafe { sfcgal_geometry_difference(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the 3d difference of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn difference_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_difference_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        let result =
+            unsafe { sfcgal_geometry_difference_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the union of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn union(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_union(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the 3d union of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn union_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_union_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        let result =
+            unsafe { sfcgal_geometry_union_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the straight skeleton of the given `SFCGeometry`.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_straight_skeleton(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
     /// Returns the straight skeleton of the given `SFCGeometry` with the distance to the border as M coordinate.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_straight_skeleton_distance_in_m(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        let result =
+            unsafe { sfcgal_geometry_straight_skeleton_distance_in_m(self.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the approximate medial axis for the given `SFCGeometry` Polygon.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga16a9b4b1211843f8444284b1fefebc46))
     pub fn approximate_medial_axis(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_approximate_medial_axis(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the offset polygon of the given `SFCGeometry`.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9766f54ebede43a9b71fccf1524a1054))
     pub fn offset_polygon(&self, radius: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_offset_polygon(self.c_geom.as_ptr(), radius) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the extrusion of the given `SFCGeometry` (not supported on Solid and Multisolid).
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga277d01bd9978e13644baa1755f1cd3e0)
     pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_extrude(self.c_geom.as_ptr(), ex, ey, ez) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns a tesselation of the given `SFCGeometry`.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
     pub fn tesselate(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_tesselate(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns a triangulation of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gae382792f387654a9adb2e2c38735e08d))
     pub fn triangulate_2dz(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_triangulate_2dz(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the convex hull of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9027b5654cbacf6c2106d70b129d3a23))
     pub fn convexhull(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the 3d convex hull of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gacf01a9097f2059afaad871658b4b5a6f))
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull_3d(self.c_geom.as_ptr()) };
-        unsafe {
-            SFCGeometry::new_from_raw(result, true)
-        }
+        unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 }
 
@@ -443,11 +425,13 @@ mod tests {
     fn volume() {
         let cube = SFCGeometry::new(
             "SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
-            ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
-            ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
-            ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
-            ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
-            ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))").unwrap();
+             ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
+             ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
+             ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
+             ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
+             ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))",
+        )
+        .unwrap();
         assert_eq!(cube.volume().unwrap(), 1.);
     }
 
@@ -455,12 +439,14 @@ mod tests {
     fn volume_on_not_volume_geometry() {
         let surface = SFCGeometry::new(
             "POLYHEDRALSURFACE Z \
-            (((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
-            ((0 0 0, 0 1 0, 0 1 1, 0 0 1, 0 0 0)),\
-            ((0 0 0, 1 0 0, 1 0 1, 0 0 1, 0 0 0)),\
-            ((1 1 1, 1 0 1, 0 0 1, 0 1 1, 1 1 1)),\
-            ((1 1 1, 1 0 1, 1 0 0, 1 1 0, 1 1 1)),\
-            ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1)))").unwrap();
+             (((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
+             ((0 0 0, 0 1 0, 0 1 1, 0 0 1, 0 0 0)),\
+             ((0 0 0, 1 0 0, 1 0 1, 0 0 1, 0 0 0)),\
+             ((1 1 1, 1 0 1, 0 0 1, 0 1 1, 1 1 1)),\
+             ((1 1 1, 1 0 1, 1 0 0, 1 1 0, 1 1 1)),\
+             ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1)))",
+        )
+        .unwrap();
         assert_eq!(surface.volume().is_err(), true);
     }
 
@@ -514,12 +500,14 @@ mod tests {
     fn validity_detail_on_invalid_geom() {
         let surface = SFCGeometry::new(
             "POLYHEDRALSURFACE Z \
-            (((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
-            ((0 0 0, 0 1 0, 0 1 1, 0 0 1, 0 0 0)),\
-            ((0 0 0, 1 0 0, 1 0 1, 0 0 1, 0 0 0)),\
-            ((1 1 1, 1 0 1, 0 0 1, 0 1 1, 1 1 1)),\
-            ((1 1 1, 1 0 1, 1 0 0, 1 1 0, 1 1 1)),\
-            ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1)))").unwrap();
+             (((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
+             ((0 0 0, 0 1 0, 0 1 1, 0 0 1, 0 0 0)),\
+             ((0 0 0, 1 0 0, 1 0 1, 0 0 1, 0 0 0)),\
+             ((1 1 1, 1 0 1, 0 0 1, 0 1 1, 1 1 1)),\
+             ((1 1 1, 1 0 1, 1 0 0, 1 1 0, 1 1 1)),\
+             ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1)))",
+        )
+        .unwrap();
         assert_eq!(surface.is_valid().unwrap(), false);
         assert_eq!(
             surface.validity_detail().unwrap(),
@@ -548,7 +536,6 @@ mod tests {
             "MULTILINESTRING M((-0.0 -0.0 0.0,0.5 0.5 0.5),(1.0 -0.0 0.0,0.5 0.5 0.5),(1.0 1.0 0.0,0.5 0.5 0.5),(-0.0 1.0 0.0,0.5 0.5 0.5))",
         );
     }
-
 
     #[test]
     fn tesselate() {
@@ -588,42 +575,54 @@ mod tests {
     }
 
     #[test]
-    fn difference_3d(){
-        let cube1 = SFCGeometry::new("
+    fn difference_3d() {
+        let cube1 = SFCGeometry::new(
+            "
             SOLID((((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
             ((0 0 0, 0 0 1, 0 1 1, 0 1 0, 0 0 0)),\
             ((0 0 0, 1 0 0, 1 0 1, 0 0 1, 0 0 0)),\
             ((1 1 1, 0 1 1, 0 0 1, 1 0 1, 1 1 1)),\
             ((1 1 1, 1 0 1, 1 0 0, 1 1 0, 1 1 1)),\
-            ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1))))").unwrap();
-        let cube2 = SFCGeometry::new("
+            ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1))))",
+        )
+        .unwrap();
+        let cube2 = SFCGeometry::new(
+            "
             SOLID((((0 0 0.5, 0 1 0.5, 1 1 0.5, 1 0 0.5, 0 0 0.5)),\
             ((0 0 0.5, 0 0 1, 0 1 1, 0 1 0.5, 0 0 0.5)),\
             ((0 0 0.5, 1 0 0.5, 1 0 1, 0 0 1, 0 0 0.5)),\
             ((1 1 1, 0 1 1, 0 0 1, 1 0 1, 1 1 1)),\
             ((1 1 1, 1 0 1, 1 0 0.5, 1 1 0.5, 1 1 1)),\
-            ((1 1 1, 1 1 0.5, 0 1 0.5, 0 1 1, 1 1 1))))").unwrap();
+            ((1 1 1, 1 1 0.5, 0 1 0.5, 0 1 1, 1 1 1))))",
+        )
+        .unwrap();
         let diff = cube1.difference_3d(&cube2).unwrap();
         assert_eq!(diff.is_valid().unwrap(), true);
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);
     }
 
     #[test]
-    fn intersection_3d(){
-        let cube1 = SFCGeometry::new("
+    fn intersection_3d() {
+        let cube1 = SFCGeometry::new(
+            "
             SOLID((((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
             ((0 0 0, 0 0 1, 0 1 1, 0 1 0, 0 0 0)),\
             ((0 0 0, 1 0 0, 1 0 1, 0 0 1, 0 0 0)),\
             ((1 1 1, 0 1 1, 0 0 1, 1 0 1, 1 1 1)),\
             ((1 1 1, 1 0 1, 1 0 0, 1 1 0, 1 1 1)),\
-            ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1))))").unwrap();
-        let cube2 = SFCGeometry::new("
+            ((1 1 1, 1 1 0, 0 1 0, 0 1 1, 1 1 1))))",
+        )
+        .unwrap();
+        let cube2 = SFCGeometry::new(
+            "
             SOLID((((0 0 0.5, 0 1 0.5, 1 1 0.5, 1 0 0.5, 0 0 0.5)),\
             ((0 0 0.5, 0 0 1, 0 1 1, 0 1 0.5, 0 0 0.5)),\
             ((0 0 0.5, 1 0 0.5, 1 0 1, 0 0 1, 0 0 0.5)),\
             ((1 1 1, 0 1 1, 0 0 1, 1 0 1, 1 1 1)),\
             ((1 1 1, 1 0 1, 1 0 0.5, 1 1 0.5, 1 1 1)),\
-            ((1 1 1, 1 1 0.5, 0 1 0.5, 0 1 1, 1 1 1))))").unwrap();
+            ((1 1 1, 1 1 0.5, 0 1 0.5, 0 1 1, 1 1 1))))",
+        )
+        .unwrap();
         let diff = cube1.intersection_3d(&cube2).unwrap();
         assert_eq!(diff.is_valid().unwrap(), true);
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);

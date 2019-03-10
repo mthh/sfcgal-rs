@@ -1,22 +1,24 @@
-use sfcgal_sys::{
-    sfcgal_geometry_t, sfcgal_geometry_delete,
-    sfcgal_point_create_from_xy, sfcgal_point_create_from_xyz,
-    sfcgal_point_x, sfcgal_point_y, sfcgal_point_z,
-    sfcgal_linestring_create, sfcgal_linestring_add_point, sfcgal_linestring_point_n, sfcgal_linestring_num_points,
-    sfcgal_triangle_create, sfcgal_triangle_set_vertex, sfcgal_triangle_vertex,
-    sfcgal_polygon_create_from_exterior_ring, sfcgal_polygon_add_interior_ring,
-    sfcgal_polygon_num_interior_rings, sfcgal_polygon_exterior_ring, sfcgal_polygon_interior_ring_n,
-    sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create,
-    sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_num_geometries,
-    sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_create,
-    sfcgal_solid_shell_n, sfcgal_solid_num_shells, sfcgal_solid_create,
-    sfcgal_solid_create_from_exterior_shell,
-    sfcgal_triangulated_surface_create, sfcgal_triangulated_surface_num_triangles,
-    sfcgal_triangulated_surface_triangle_n, sfcgal_triangulated_surface_add_triangle,
-    sfcgal_polyhedral_surface_create, sfcgal_polyhedral_surface_num_polygons, sfcgal_polyhedral_surface_polygon_n,
-    sfcgal_polyhedral_surface_add_polygon,
+use crate::{
+    utils::check_null_geom, GeomType, Point2d, Point3d, Result, SFCGeometry, ToCoordinates,
+    ToSFCGAL,
 };
-use crate::{SFCGeometry, GeomType, Result, ToSFCGAL, ToCoordinates, utils::check_null_geom, Point2d, Point3d};
+use sfcgal_sys::{
+    sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_create,
+    sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_num_geometries,
+    sfcgal_geometry_delete, sfcgal_geometry_t, sfcgal_linestring_add_point,
+    sfcgal_linestring_create, sfcgal_linestring_num_points, sfcgal_linestring_point_n,
+    sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create,
+    sfcgal_point_create_from_xy, sfcgal_point_create_from_xyz, sfcgal_point_x, sfcgal_point_y,
+    sfcgal_point_z, sfcgal_polygon_add_interior_ring, sfcgal_polygon_create_from_exterior_ring,
+    sfcgal_polygon_exterior_ring, sfcgal_polygon_interior_ring_n,
+    sfcgal_polygon_num_interior_rings, sfcgal_polyhedral_surface_add_polygon,
+    sfcgal_polyhedral_surface_create, sfcgal_polyhedral_surface_num_polygons,
+    sfcgal_polyhedral_surface_polygon_n, sfcgal_solid_create,
+    sfcgal_solid_create_from_exterior_shell, sfcgal_solid_num_shells, sfcgal_solid_shell_n,
+    sfcgal_triangle_create, sfcgal_triangle_set_vertex, sfcgal_triangle_vertex,
+    sfcgal_triangulated_surface_add_triangle, sfcgal_triangulated_surface_create,
+    sfcgal_triangulated_surface_num_triangles, sfcgal_triangulated_surface_triangle_n,
+};
 
 pub trait CoordType {}
 impl CoordType for Point2d {}
@@ -51,9 +53,7 @@ impl FromSFCGALGeom for Point3d {
 
 impl ToSFCGALGeom for Point2d {
     fn to_sfcgeometry(&self) -> Result<*mut sfcgal_geometry_t> {
-        let g = unsafe {
-            sfcgal_point_create_from_xy(self.0, self.1)
-        };
+        let g = unsafe { sfcgal_point_create_from_xy(self.0, self.1) };
         check_null_geom(g)?;
         Ok(g)
     }
@@ -61,23 +61,22 @@ impl ToSFCGALGeom for Point2d {
 
 impl ToSFCGALGeom for Point3d {
     fn to_sfcgeometry(&self) -> Result<*mut sfcgal_geometry_t> {
-        let g = unsafe {
-            sfcgal_point_create_from_xyz(self.0, self.1, self.2)
-        };
+        let g = unsafe { sfcgal_point_create_from_xyz(self.0, self.1, self.2) };
         check_null_geom(g)?;
         Ok(g)
     }
 }
 
-impl<T> ToSFCGALGeom for Vec<T> where T: ToSFCGALGeom + CoordType {
+impl<T> ToSFCGALGeom for Vec<T>
+where
+    T: ToSFCGALGeom + CoordType,
+{
     fn to_sfcgeometry(&self) -> Result<*mut sfcgal_geometry_t> {
         let out_linestring = unsafe { sfcgal_linestring_create() };
         check_null_geom(out_linestring)?;
         for point in self {
             let sf_pt_geom: *mut sfcgal_geometry_t = point.to_sfcgeometry()?;
-            unsafe {
-                sfcgal_linestring_add_point(out_linestring, sf_pt_geom)
-            };
+            unsafe { sfcgal_linestring_add_point(out_linestring, sf_pt_geom) };
         }
         Ok(out_linestring)
     }
@@ -131,35 +130,35 @@ pub enum CoordSeq<T> {
 }
 
 fn coords_polygon_to_sfcgal<T>(rings: &[Vec<T>]) -> Result<*mut sfcgal_geometry_t>
-    where T: ToSFCGALGeom + CoordType
+where
+    T: ToSFCGALGeom + CoordType,
 {
-    let out_polygon = unsafe {
-        sfcgal_polygon_create_from_exterior_ring(rings[0].to_sfcgeometry()?)
-    };
+    let out_polygon =
+        unsafe { sfcgal_polygon_create_from_exterior_ring(rings[0].to_sfcgeometry()?) };
     check_null_geom(out_polygon)?;
     for ring in rings.iter().skip(1) {
-        unsafe {
-            sfcgal_polygon_add_interior_ring(out_polygon, ring.to_sfcgeometry()?)
-        };
+        unsafe { sfcgal_polygon_add_interior_ring(out_polygon, ring.to_sfcgeometry()?) };
     }
     Ok(out_polygon)
 }
 
-fn coords_polyhedralsurface_to_sfcgal<T>(polyhedres: &[Vec<Vec<T>>]) -> Result<*mut sfcgal_geometry_t>
-    where T: ToSFCGALGeom + CoordType
+fn coords_polyhedralsurface_to_sfcgal<T>(
+    polyhedres: &[Vec<Vec<T>>],
+) -> Result<*mut sfcgal_geometry_t>
+where
+    T: ToSFCGALGeom + CoordType,
 {
     let out_surf = unsafe { sfcgal_polyhedral_surface_create() };
     check_null_geom(out_surf)?;
     for poly in polyhedres {
-        unsafe {
-            sfcgal_polyhedral_surface_add_polygon(out_surf, coords_polygon_to_sfcgal(poly)?)
-        };
+        unsafe { sfcgal_polyhedral_surface_add_polygon(out_surf, coords_polygon_to_sfcgal(poly)?) };
     }
     Ok(out_surf)
 }
 
 unsafe fn pts_to_triangle_sfcgal<T>(pts: &[T]) -> Result<*mut sfcgal_geometry_t>
-    where T: ToSFCGALGeom
+where
+    T: ToSFCGALGeom,
 {
     let out_triangle = sfcgal_triangle_create();
     check_null_geom(out_triangle)?;
@@ -187,37 +186,35 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
     /// [`CoordSeq`]: enum.CoordSeq.html
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
         match self {
-            CoordSeq::Point(pt) => {
-                unsafe {
-                    SFCGeometry::new_from_raw(pt.to_sfcgeometry()?, true)
-                }
-            },
-            CoordSeq::Multipoint(pts) => {
-                make_sfcgal_multi_geom!(
-                    sfcgal_multi_point_create(),
-                    pts.iter().map(|p| p.to_sfcgeometry()).collect::<Result<Vec<_>>>()?
-                )
-            },
+            CoordSeq::Point(pt) => unsafe { SFCGeometry::new_from_raw(pt.to_sfcgeometry()?, true) },
+            CoordSeq::Multipoint(pts) => make_sfcgal_multi_geom!(
+                sfcgal_multi_point_create(),
+                pts.iter()
+                    .map(|p| p.to_sfcgeometry())
+                    .collect::<Result<Vec<_>>>()?
+            ),
             CoordSeq::Linestring(pts) => {
                 let out_linestring = pts.to_sfcgeometry()?;
                 unsafe { SFCGeometry::new_from_raw(out_linestring, true) }
-            },
-            CoordSeq::Multilinestring(ref linestring_list) => {
-                make_sfcgal_multi_geom!(
-                    sfcgal_multi_linestring_create(),
-                    linestring_list.iter().map(|l| l.to_sfcgeometry()).collect::<Result<Vec<_>>>()?
-                )
-            },
+            }
+            CoordSeq::Multilinestring(ref linestring_list) => make_sfcgal_multi_geom!(
+                sfcgal_multi_linestring_create(),
+                linestring_list
+                    .iter()
+                    .map(|l| l.to_sfcgeometry())
+                    .collect::<Result<Vec<_>>>()?
+            ),
             CoordSeq::Polygon(ref rings) => {
                 let out_polygon = coords_polygon_to_sfcgal(rings)?;
                 unsafe { SFCGeometry::new_from_raw(out_polygon, true) }
-            },
-            CoordSeq::Multipolygon(ref polygons) => {
-                make_sfcgal_multi_geom!(
-                    sfcgal_multi_polygon_create(),
-                    polygons.iter().map(|p| coords_polygon_to_sfcgal(p)).collect::<Result<Vec<_>>>()?
-                )
-            },
+            }
+            CoordSeq::Multipolygon(ref polygons) => make_sfcgal_multi_geom!(
+                sfcgal_multi_polygon_create(),
+                polygons
+                    .iter()
+                    .map(|p| coords_polygon_to_sfcgal(p))
+                    .collect::<Result<Vec<_>>>()?
+            ),
             CoordSeq::Geometrycollection(ref geoms) => {
                 let out_geom_collection = unsafe { sfcgal_geometry_collection_create() };
                 check_null_geom(out_geom_collection)?;
@@ -228,25 +225,23 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                         // as we are passing it to `sfcgal_geometry_collection_add_geometry`
                         // we are not responsible for its deallocation anymore :
                         sfcgeom.owned = false;
-                        sfcgal_geometry_collection_add_geometry(out_geom_collection, sfcgeom.c_geom.as_ptr());
+                        sfcgal_geometry_collection_add_geometry(
+                            out_geom_collection,
+                            sfcgeom.c_geom.as_ptr(),
+                        );
                     };
                 }
                 unsafe { SFCGeometry::new_from_raw(out_geom_collection, true) }
-
+            }
+            CoordSeq::Triangle(ref pts) => unsafe {
+                SFCGeometry::new_from_raw(pts_to_triangle_sfcgal(pts)?, true)
             },
-            CoordSeq::Triangle(ref pts) => {
-                unsafe {
-                    SFCGeometry::new_from_raw(
-                        pts_to_triangle_sfcgal(pts)?,
-                        true,
-                    )
-                }
-            },
-            CoordSeq::Triangulatedsurface(ref triangles) => {
-                unsafe {
-                    let out_surface = sfcgal_triangulated_surface_create();
-                    check_null_geom(out_surface)?;
-                    triangles.iter().map(|pts| {
+            CoordSeq::Triangulatedsurface(ref triangles) => unsafe {
+                let out_surface = sfcgal_triangulated_surface_create();
+                check_null_geom(out_surface)?;
+                triangles
+                    .iter()
+                    .map(|pts| {
                         sfcgal_triangulated_surface_add_triangle(
                             out_surface,
                             pts_to_triangle_sfcgal(pts)?,
@@ -254,13 +249,12 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                         Ok(())
                     })
                     .collect::<Result<Vec<_>>>()?;
-                    SFCGeometry::new_from_raw(out_surface, true)
-                }
+                SFCGeometry::new_from_raw(out_surface, true)
             },
             CoordSeq::Polyhedralsurface(ref polygons) => {
                 let out_surface = coords_polyhedralsurface_to_sfcgal(polygons)?;
                 unsafe { SFCGeometry::new_from_raw(out_surface, true) }
-            },
+            }
             CoordSeq::Solid(ref polyhedres) => {
                 unsafe {
                     let mut it = polyhedres.iter();
@@ -280,19 +274,19 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                     SFCGeometry::new_from_raw(out_solid, true)
                 }
             }
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
 
 macro_rules! sfcgal_pt_to_coords {
-    ($geom: expr, T) => ({
+    ($geom: expr, T) => {{
         T::from_sfcgeometry($geom)
-    });
+    }};
 }
 
 macro_rules! sfcgal_line_to_coords {
-    ($geom: expr, $type_pt: ident) => ({
+    ($geom: expr, $type_pt: ident) => {{
         let g = $geom;
         let n_points = unsafe { sfcgal_linestring_num_points(g) };
         let mut v_points = Vec::with_capacity(n_points);
@@ -302,28 +296,26 @@ macro_rules! sfcgal_line_to_coords {
             v_points.push(sfcgal_pt_to_coords!(pt_sfcgal, $type_pt));
         }
         v_points
-    });
+    }};
 }
 
 macro_rules! sfcgal_polygon_to_coords {
-    ($geom: expr, $type_pt: ident) => ({
+    ($geom: expr, $type_pt: ident) => {{
         let g = $geom;
         let nrings = unsafe { sfcgal_polygon_num_interior_rings(g) };
         let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(g) };
         let mut rings = Vec::with_capacity(nrings + 1usize);
         rings.push(sfcgal_line_to_coords!(exterior_sfcgal, $type_pt));
         for ix in 0..nrings {
-            let line_sfcgal = unsafe {
-                sfcgal_polygon_interior_ring_n(g, ix)
-            };
+            let line_sfcgal = unsafe { sfcgal_polygon_interior_ring_n(g, ix) };
             rings.push(sfcgal_line_to_coords!(line_sfcgal, $type_pt));
         }
         rings
-    });
+    }};
 }
 
 macro_rules! sfcgal_triangle_to_coords {
-    ($geom: expr, $type_pt: ident) => ({
+    ($geom: expr, $type_pt: ident) => {{
         let g = $geom;
         let (p0, p1, p2) = unsafe {
             (
@@ -333,37 +325,29 @@ macro_rules! sfcgal_triangle_to_coords {
             )
         };
         vec![p0, p1, p2]
-    });
+    }};
 }
 
 macro_rules! sfcgal_polyhedral_surface_to_coords {
-    ($geom: expr, $type_pt: ident) => ({
+    ($geom: expr, $type_pt: ident) => {{
         let g = $geom;
         let ngeoms = unsafe { sfcgal_polyhedral_surface_num_polygons(g) };
         let mut polygons = Vec::with_capacity(ngeoms);
         for ix in 0..ngeoms {
-            let poly = unsafe {
-                sfcgal_polyhedral_surface_polygon_n(g, ix)
-            };
+            let poly = unsafe { sfcgal_polyhedral_surface_polygon_n(g, ix) };
             polygons.push(sfcgal_polygon_to_coords!(poly, $type_pt));
         }
         polygons
-    });
+    }};
 }
 
-
 fn get_nb_geometry(geom: *const sfcgal_geometry_t) -> usize {
-    unsafe {
-        sfcgal_geometry_collection_num_geometries(geom)
-    }
+    unsafe { sfcgal_geometry_collection_num_geometries(geom) }
 }
 
 fn get_geom_at_index(geom: *const sfcgal_geometry_t, ix: usize) -> *const sfcgal_geometry_t {
-    unsafe {
-        sfcgal_geometry_collection_geometry_n(geom, ix)
-    }
+    unsafe { sfcgal_geometry_collection_geometry_n(geom, ix) }
 }
-
 
 /// Convert a [`SFCGeometry`], given it's internal [`GeomType`], to the corresponding [`CoordSeq`]
 /// holding its coordinates (as tuple of 2 or 3 members).
@@ -372,56 +356,50 @@ fn get_geom_at_index(geom: *const sfcgal_geometry_t, ix: usize) -> *const sfcgal
 /// [`GeomType`]: enum.GeomType.html
 /// [`CoordSeq`]: enum.CoordSeq.html
 impl ToCoordinates for SFCGeometry {
-    fn to_coordinates<T>(&self) ->  Result<CoordSeq<T>> where T: FromSFCGALGeom + CoordType {
+    fn to_coordinates<T>(&self) -> Result<CoordSeq<T>>
+    where
+        T: FromSFCGALGeom + CoordType,
+    {
         match self._type()? {
-            GeomType::Point => {
-                Ok(
-                    CoordSeq::Point(
-                        sfcgal_pt_to_coords!(unsafe { self.c_geom.as_ref() }, T)
-                    )
-                )
-            },
+            GeomType::Point => Ok(CoordSeq::Point(sfcgal_pt_to_coords!(
+                unsafe { self.c_geom.as_ref() },
+                T
+            ))),
             GeomType::Multipoint => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = get_nb_geometry(geom);
                 let mut pts = Vec::with_capacity(ngeoms);
                 for ix in 0..ngeoms {
-                    pts.push(
-                        sfcgal_pt_to_coords!(get_geom_at_index(geom, ix), T));
+                    pts.push(sfcgal_pt_to_coords!(get_geom_at_index(geom, ix), T));
                 }
                 Ok(CoordSeq::Multipoint(pts))
-            },
-            GeomType::Linestring => {
-                Ok(
-                    CoordSeq::Linestring(
-                        sfcgal_line_to_coords!(unsafe { self.c_geom.as_ref() }, T)
-                    )
-                )
-            },
+            }
+            GeomType::Linestring => Ok(CoordSeq::Linestring(sfcgal_line_to_coords!(
+                unsafe { self.c_geom.as_ref() },
+                T
+            ))),
             GeomType::Multilinestring => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = get_nb_geometry(geom);
                 let mut lines = Vec::with_capacity(ngeoms);
                 for ix in 0..ngeoms {
-                    lines.push(
-                        sfcgal_line_to_coords!(get_geom_at_index(geom, ix), T));
+                    lines.push(sfcgal_line_to_coords!(get_geom_at_index(geom, ix), T));
                 }
                 Ok(CoordSeq::Multilinestring(lines))
-            },
+            }
             GeomType::Polygon => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 Ok(CoordSeq::Polygon(sfcgal_polygon_to_coords!(geom, T)))
-            },
+            }
             GeomType::Multipolygon => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = get_nb_geometry(geom);
                 let mut polygons = Vec::with_capacity(ngeoms);
                 for ix in 0..ngeoms {
-                    polygons.push(
-                        sfcgal_polygon_to_coords!(get_geom_at_index(geom, ix), T));
+                    polygons.push(sfcgal_polygon_to_coords!(get_geom_at_index(geom, ix), T));
                 }
                 Ok(CoordSeq::Multipolygon(polygons))
-            },
+            }
             GeomType::Geometrycollection => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = get_nb_geometry(geom);
@@ -430,7 +408,8 @@ impl ToCoordinates for SFCGeometry {
                     let inner_geom = unsafe {
                         // Todo : document what we are doing that
                         SFCGeometry::new_from_raw(
-                            sfcgal_geometry_collection_geometry_n(geom, ix) as *mut sfcgal_geometry_t,
+                            sfcgal_geometry_collection_geometry_n(geom, ix)
+                                as *mut sfcgal_geometry_t,
                             false,
                         )?
                     };
@@ -438,29 +417,24 @@ impl ToCoordinates for SFCGeometry {
                     geoms.push(coords);
                 }
                 Ok(CoordSeq::Geometrycollection(geoms))
-            },
-            GeomType::Triangle => {
-                Ok(CoordSeq::Triangle(sfcgal_triangle_to_coords!(unsafe { self.c_geom.as_ref() }, T)))
-            },
+            }
+            GeomType::Triangle => Ok(CoordSeq::Triangle(sfcgal_triangle_to_coords!(
+                unsafe { self.c_geom.as_ref() },
+                T
+            ))),
             GeomType::Triangulatedsurface => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = unsafe { sfcgal_triangulated_surface_num_triangles(geom) };
                 let mut triangles = Vec::with_capacity(ngeoms);
                 for ix in 0..ngeoms {
-                    let triangle = unsafe {
-                        sfcgal_triangulated_surface_triangle_n(geom, ix)
-                    };
+                    let triangle = unsafe { sfcgal_triangulated_surface_triangle_n(geom, ix) };
                     triangles.push(sfcgal_triangle_to_coords!(triangle, T));
                 }
                 Ok(CoordSeq::Triangulatedsurface(triangles))
-            },
-            GeomType::Polyhedralsurface => {
-                Ok(
-                    CoordSeq::Polyhedralsurface(
-                        sfcgal_polyhedral_surface_to_coords!( unsafe { self.c_geom.as_ref() }, T)
-                    )
-                )
-            },
+            }
+            GeomType::Polyhedralsurface => Ok(CoordSeq::Polyhedralsurface(
+                sfcgal_polyhedral_surface_to_coords!(unsafe { self.c_geom.as_ref() }, T),
+            )),
             GeomType::Solid => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = unsafe { sfcgal_solid_num_shells(geom) };
@@ -470,15 +444,14 @@ impl ToCoordinates for SFCGeometry {
                     polyhedres.push(sfcgal_polyhedral_surface_to_coords!(poly, T));
                 }
                 Ok(CoordSeq::Solid(polyhedres))
-
-            },
+            }
             GeomType::Multisolid => {
                 let geom_ms = unsafe { self.c_geom.as_ref() };
                 let n_solides = get_nb_geometry(geom_ms);
                 let mut solides = Vec::with_capacity(n_solides);
                 for ix_geom in 0..n_solides {
                     let solid = get_geom_at_index(geom_ms, ix_geom);
-                    let n_shell= unsafe { sfcgal_solid_num_shells(solid) };
+                    let n_shell = unsafe { sfcgal_solid_num_shells(solid) };
                     let mut polyhedres = Vec::with_capacity(n_shell);
                     for ix in 0..n_shell {
                         let poly = unsafe { sfcgal_solid_shell_n(solid, ix) };
@@ -494,8 +467,8 @@ impl ToCoordinates for SFCGeometry {
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
     use super::{Point2d, Point3d};
+    use crate::*;
 
     #[test]
     fn point_2d_sfcgal_to_coordinates_to_sfcgal() {
@@ -600,7 +573,6 @@ mod tests {
         assert_eq!(input_wkt, line_sfcgal.to_wkt_decim(1).unwrap());
     }
 
-
     #[test]
     fn multilinestring_2d_sfcgal_to_coordinates() {
         let input_wkt = "MULTILINESTRING((3.5 5.6,4.8 10.5),(8.9 12.9,2.1 3.5),(1.1 4.8,6.2 7.5))";
@@ -643,7 +615,7 @@ mod tests {
     }
 
     #[test]
-    fn triangle_2d_sfcgal_to_coordinates_to_sfcgal(){
+    fn triangle_2d_sfcgal_to_coordinates_to_sfcgal() {
         let input_wkt = "TRIANGLE((0.0 1.0,1.0 0.0,1.0 1.0,0.0 1.0))";
         let triangle_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point2d> = triangle_sfcgal.to_coordinates().unwrap();
@@ -664,11 +636,11 @@ mod tests {
     #[test]
     fn solid_3d_sfcgal_to_coordinates() {
         let input_wkt = "SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
-        ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
-        ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
-        ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
-        ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
-        ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))";
+                         ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
+                         ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
+                         ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
+                         ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
+                         ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))";
         let cube = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = cube.to_coordinates().unwrap();
         if let CoordSeq::Solid(ref polys) = coords {
@@ -720,7 +692,8 @@ mod tests {
 
     #[test]
     fn geometrycollection_3d_sfcgal_to_coordinates() {
-        let input_wkt = "GEOMETRYCOLLECTION(POINT(4.0 6.0 1.0),LINESTRING(4.0 6.0 1.0,7.0 10.0 1.0))";
+        let input_wkt =
+            "GEOMETRYCOLLECTION(POINT(4.0 6.0 1.0),LINESTRING(4.0 6.0 1.0,7.0 10.0 1.0))";
         let gc_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = gc_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Geometrycollection(ref seq_coords) = coords {
@@ -757,45 +730,56 @@ mod tests {
             vec![(1.1, 1.1), (2.2, 2.2), (5.2, 5.2)],
         ];
         let coords_polygon = vec![
-            vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)], // Exterior ring
-            vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)], // 1 interior ring
+            vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.), (0., 0.)], // Exterior ring
+            vec![(0.1, 0.1), (0.1, 0.9), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)], // 1 interior ring
         ];
         let coords_multipolygon = vec![
-            vec![                                                       // First polygon
-                vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.,), (0., 0.)], // Exterior ring
-                vec![(0.1, 0.1), (0.1, 0.9,), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)], // 1 interior ring
+            vec![
+                // First polygon
+                vec![(0., 0.), (1., 0.), (1., 1.), (0., 1.), (0., 0.)], // Exterior ring
+                vec![(0.1, 0.1), (0.1, 0.9), (0.9, 0.9), (0.9, 0.1), (0.1, 0.1)], // 1 interior ring
             ],
-            vec![                                                       // second polygon
-                vec![(2., 2.), (6., 2.), (6., 6.), (2., 6.,), (2., 2.)], // Exterior ring
+            vec![
+                // second polygon
+                vec![(2., 2.), (6., 2.), (6., 6.), (2., 6.), (2., 2.)], // Exterior ring
             ],
         ];
         let pt_sfcgal = CoordSeq::Point(coords_point).to_sfcgal().unwrap();
         let multipt_sfcgal = CoordSeq::Multipoint(coords_multipoint).to_sfcgal().unwrap();
         let line_sfcgal = CoordSeq::Linestring(coords_linestring).to_sfcgal().unwrap();
-        let multiline_sfcgal = CoordSeq::Multilinestring(coords_multilinestring).to_sfcgal().unwrap();
+        let multiline_sfcgal = CoordSeq::Multilinestring(coords_multilinestring)
+            .to_sfcgal()
+            .unwrap();
         let polygon_sfcgal = CoordSeq::Polygon(coords_polygon).to_sfcgal().unwrap();
-        let multipolygon_sfcgal = CoordSeq::Multipolygon(coords_multipolygon).to_sfcgal().unwrap();
+        let multipolygon_sfcgal = CoordSeq::Multipolygon(coords_multipolygon)
+            .to_sfcgal()
+            .unwrap();
         assert_eq!("POINT(1.1 1.1)", pt_sfcgal.to_wkt_decim(1).unwrap());
-        assert_eq!("MULTIPOINT((1.1 1.1),(2.2 2.2))", multipt_sfcgal.to_wkt_decim(1).unwrap());
-        assert_eq!("LINESTRING(1.1 1.1,2.2 2.2)", line_sfcgal.to_wkt_decim(1).unwrap());
+        assert_eq!(
+            "MULTIPOINT((1.1 1.1),(2.2 2.2))",
+            multipt_sfcgal.to_wkt_decim(1).unwrap()
+        );
+        assert_eq!(
+            "LINESTRING(1.1 1.1,2.2 2.2)",
+            line_sfcgal.to_wkt_decim(1).unwrap()
+        );
         assert_eq!(
             "MULTILINESTRING((1.1 1.1,2.2 2.2),\
-            (3.1 3.1,5.2 5.2,5.2 5.2),\
-            (1.1 1.1,2.2 2.2,5.2 5.2))",
+             (3.1 3.1,5.2 5.2,5.2 5.2),\
+             (1.1 1.1,2.2 2.2,5.2 5.2))",
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
             "POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0),\
-            (0.1 0.1,0.1 0.9,0.9 0.9,0.9 0.1,0.1 0.1))",
+             (0.1 0.1,0.1 0.9,0.9 0.9,0.9 0.1,0.1 0.1))",
             polygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
             "MULTIPOLYGON(((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0),\
-            (0.1 0.1,0.1 0.9,0.9 0.9,0.9 0.1,0.1 0.1)),\
-            ((2.0 2.0,6.0 2.0,6.0 6.0,2.0 6.0,2.0 2.0)))",
+             (0.1 0.1,0.1 0.9,0.9 0.9,0.9 0.1,0.1 0.1)),\
+             ((2.0 2.0,6.0 2.0,6.0 6.0,2.0 6.0,2.0 2.0)))",
             multipolygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
-
     }
 
     #[test]
@@ -809,41 +793,83 @@ mod tests {
             vec![(1.1, 1.1, 3.0), (2.2, 2.2, 3.0), (5.2, 5.2, 3.0)],
         ];
         let coords_polygon = vec![
-            vec![(0., 0., 3.0), (1., 0., 3.0), (1., 1., 3.0), (0., 1., 3.0), (0., 0., 3.0)], // Exterior ring
-            vec![(0.1, 0.1, 3.0), (0.1, 0.9, 3.0), (0.9, 0.9, 3.0), (0.9, 0.1, 3.0), (0.1, 0.1, 3.0)], // 1 interior ring
+            vec![
+                (0., 0., 3.0),
+                (1., 0., 3.0),
+                (1., 1., 3.0),
+                (0., 1., 3.0),
+                (0., 0., 3.0),
+            ], // Exterior ring
+            vec![
+                (0.1, 0.1, 3.0),
+                (0.1, 0.9, 3.0),
+                (0.9, 0.9, 3.0),
+                (0.9, 0.1, 3.0),
+                (0.1, 0.1, 3.0),
+            ], // 1 interior ring
         ];
         let coords_multipolygon = vec![
-            vec![                                                       // First polygon
-                vec![(0., 0., 3.0), (1., 0., 3.0), (1., 1., 3.0), (0., 1., 3.0), (0., 0., 3.0)], // Exterior ring
-                vec![(0.1, 0.1, 3.0), (0.1, 0.9, 3.0), (0.9, 0.9, 3.0), (0.9, 0.1, 3.0), (0.1, 0.1, 3.0)], // 1 interior ring
+            vec![
+                // First polygon
+                vec![
+                    (0., 0., 3.0),
+                    (1., 0., 3.0),
+                    (1., 1., 3.0),
+                    (0., 1., 3.0),
+                    (0., 0., 3.0),
+                ], // Exterior ring
+                vec![
+                    (0.1, 0.1, 3.0),
+                    (0.1, 0.9, 3.0),
+                    (0.9, 0.9, 3.0),
+                    (0.9, 0.1, 3.0),
+                    (0.1, 0.1, 3.0),
+                ], // 1 interior ring
             ],
-            vec![                                                       // second polygon
-                vec![(2., 2., 3.), (6., 2., 3.), (6., 6., 3.), (2., 6., 3.), (2., 2., 3.)], // Exterior ring
+            vec![
+                // second polygon
+                vec![
+                    (2., 2., 3.),
+                    (6., 2., 3.),
+                    (6., 6., 3.),
+                    (2., 6., 3.),
+                    (2., 2., 3.),
+                ], // Exterior ring
             ],
         ];
         let pt_sfcgal = CoordSeq::Point(coords_point).to_sfcgal().unwrap();
         let multipt_sfcgal = CoordSeq::Multipoint(coords_multipoint).to_sfcgal().unwrap();
         let line_sfcgal = CoordSeq::Linestring(coords_linestring).to_sfcgal().unwrap();
-        let multiline_sfcgal = CoordSeq::Multilinestring(coords_multilinestring).to_sfcgal().unwrap();
+        let multiline_sfcgal = CoordSeq::Multilinestring(coords_multilinestring)
+            .to_sfcgal()
+            .unwrap();
         let polygon_sfcgal = CoordSeq::Polygon(coords_polygon).to_sfcgal().unwrap();
-        let multipolygon_sfcgal = CoordSeq::Multipolygon(coords_multipolygon).to_sfcgal().unwrap();
+        let multipolygon_sfcgal = CoordSeq::Multipolygon(coords_multipolygon)
+            .to_sfcgal()
+            .unwrap();
         assert_eq!("POINT(1.1 1.1 1.1)", pt_sfcgal.to_wkt_decim(1).unwrap());
-        assert_eq!("MULTIPOINT((1.1 1.1 5.0),(2.2 2.2 5.0))", multipt_sfcgal.to_wkt_decim(1).unwrap());
-        assert_eq!("LINESTRING(1.1 1.1 5.0,2.2 2.2 5.0)", line_sfcgal.to_wkt_decim(1).unwrap());
+        assert_eq!(
+            "MULTIPOINT((1.1 1.1 5.0),(2.2 2.2 5.0))",
+            multipt_sfcgal.to_wkt_decim(1).unwrap()
+        );
+        assert_eq!(
+            "LINESTRING(1.1 1.1 5.0,2.2 2.2 5.0)",
+            line_sfcgal.to_wkt_decim(1).unwrap()
+        );
         assert_eq!(
             "MULTILINESTRING((1.1 1.1 3.0,2.2 2.2 3.0),(3.1 3.1 3.0,5.2 5.2 3.0,5.2 5.2 3.0),\
-            (1.1 1.1 3.0,2.2 2.2 3.0,5.2 5.2 3.0))",
+             (1.1 1.1 3.0,2.2 2.2 3.0,5.2 5.2 3.0))",
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
             "POLYGON((0.0 0.0 3.0,1.0 0.0 3.0,1.0 1.0 3.0,0.0 1.0 3.0,0.0 0.0 3.0),\
-            (0.1 0.1 3.0,0.1 0.9 3.0,0.9 0.9 3.0,0.9 0.1 3.0,0.1 0.1 3.0))",
+             (0.1 0.1 3.0,0.1 0.9 3.0,0.9 0.9 3.0,0.9 0.1 3.0,0.1 0.1 3.0))",
             polygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
             "MULTIPOLYGON(((0.0 0.0 3.0,1.0 0.0 3.0,1.0 1.0 3.0,0.0 1.0 3.0,0.0 0.0 3.0),\
-            (0.1 0.1 3.0,0.1 0.9 3.0,0.9 0.9 3.0,0.9 0.1 3.0,0.1 0.1 3.0)),\
-            ((2.0 2.0 3.0,6.0 2.0 3.0,6.0 6.0 3.0,2.0 6.0 3.0,2.0 2.0 3.0)))",
+             (0.1 0.1 3.0,0.1 0.9 3.0,0.9 0.9 3.0,0.9 0.1 3.0,0.1 0.1 3.0)),\
+             ((2.0 2.0 3.0,6.0 2.0 3.0,6.0 6.0 3.0,2.0 6.0 3.0,2.0 2.0 3.0)))",
             multipolygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
     }

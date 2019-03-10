@@ -1,24 +1,25 @@
 #![windows_subsystem = "windows"]
 
-extern crate web_view;
-extern crate geojson;
 extern crate geo_types;
+extern crate geojson;
 extern crate sfcgal;
 extern crate svg;
+extern crate web_view;
 
-use web_view::*;
-use geojson::{GeoJson, Geometry, Feature, FeatureCollection, Value, conversion::TryInto as TryIntoGeoType};
+use geojson::{
+    conversion::TryInto as TryIntoGeoType, Feature, FeatureCollection, GeoJson, Geometry, Value,
+};
 use sfcgal::{ToSFCGAL, TryInto};
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Read;
 use std::thread;
+use web_view::*;
 
+use svg::node::element::path::Data;
+use svg::node::element::{Group, Path};
 use svg::Document;
 use svg::Node;
-use svg::node::element::{Group, Path};
-use svg::node::element::path::Data;
-
 
 fn read_example_file() -> String {
     let path = "examples/abc.geojson";
@@ -43,11 +44,13 @@ fn make_skeleton(raw_json: String) -> (GeoJson, GeoJson) {
         .map(|ref feature| {
             if let Some(geom) = &feature.geometry {
                 if let Value::Polygon(ref pos) = geom.value {
-                    let geo_polygon: geo_types::Polygon<f64> = Value::Polygon(pos.to_vec()).try_into().unwrap();
+                    let geo_polygon: geo_types::Polygon<f64> =
+                        Value::Polygon(pos.to_vec()).try_into().unwrap();
                     sfcgal_geoms.push(geo_polygon.to_sfcgal().unwrap());
                 }
             }
-        }).for_each(drop);
+        })
+        .for_each(drop);
 
     let features_geojson = sfcgal_geoms
         .into_iter()
@@ -69,7 +72,8 @@ fn make_skeleton(raw_json: String) -> (GeoJson, GeoJson) {
                 properties: None,
                 foreign_members: None,
             }
-        }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
 
     let res = GeoJson::FeatureCollection(FeatureCollection {
         foreign_members: None,
@@ -81,10 +85,10 @@ fn make_skeleton(raw_json: String) -> (GeoJson, GeoJson) {
 
 pub fn create_svg_from_geojson(layers: &[(GeoJson, String)], _width: u32, _height: u32) -> String {
     let mapextent = MapExtent {
-      left: -78.5,
-      right: -73.,
-      bottom: 5.,
-      top: 9.,
+        left: -78.5,
+        right: -73.,
+        bottom: 5.,
+        top: 9.,
     };
     let width: u32 = _width - 20;
     let height: u32 = _height - 20;
@@ -111,13 +115,15 @@ pub fn create_svg_from_geojson(layers: &[(GeoJson, String)], _width: u32, _heigh
             if let Some(ref geom) = feature.geometry {
                 match &geom.value {
                     Value::Polygon(ref positions) => {
-                        group.append(Path::new()
-                            .set("fill", "gray")
-                            .set("fill-opacity", "0.8")
-                            .set("stroke", "blue")
-                            .set("stroke-width", "0.8")
-                            .set("stroke-opacity", "0.9")
-                            .set("d", converter.draw_path_ring(&positions, None)));
+                        group.append(
+                            Path::new()
+                                .set("fill", "gray")
+                                .set("fill-opacity", "0.8")
+                                .set("stroke", "blue")
+                                .set("stroke-width", "0.8")
+                                .set("stroke-opacity", "0.9")
+                                .set("d", converter.draw_path_ring(&positions, None)),
+                        );
                     }
                     Value::MultiPolygon(ref polys) => {
                         let mut data = Data::new();
@@ -125,25 +131,29 @@ pub fn create_svg_from_geojson(layers: &[(GeoJson, String)], _width: u32, _heigh
                             data = converter.draw_path_ring(positions, Some(data));
                         }
                         data = data.close();
-                        group.append(Path::new()
-                            .set("fill", "gray")
-                            .set("fill-opacity", "0.8")
-                            .set("stroke", "blue")
-                            .set("stroke-width", "0.8")
-                            .set("stroke-opacity", "0.9")
-                            .set("d", data));
+                        group.append(
+                            Path::new()
+                                .set("fill", "gray")
+                                .set("fill-opacity", "0.8")
+                                .set("stroke", "blue")
+                                .set("stroke-width", "0.8")
+                                .set("stroke-opacity", "0.9")
+                                .set("d", data),
+                        );
                     }
                     Value::MultiLineString(ref lines) => {
                         let mut data = Data::new();
                         for positions in lines {
                             data = converter.draw_path_ring(&[positions.to_vec()], Some(data));
                         }
-                        group.append(Path::new()
-                                         .set("fill", "none")
-                                         .set("stroke", "orange")
-                                         .set("stroke-width", "1.1")
-                                         .set("stroke-opacity", "0.9")
-                                         .set("d", data));
+                        group.append(
+                            Path::new()
+                                .set("fill", "none")
+                                .set("stroke", "orange")
+                                .set("stroke-width", "1.1")
+                                .set("stroke-opacity", "0.9")
+                                .set("d", data),
+                        );
                     }
                     _ => panic!("Error: Expected a multilinestring / polygon / multipolygon!!"),
                 }
@@ -151,10 +161,13 @@ pub fn create_svg_from_geojson(layers: &[(GeoJson, String)], _width: u32, _heigh
         }
         document = document.add(group.set("id", id_layer.as_str()));
     }
-    svg::write(unsafe { BufWriter::new(result_string.as_mut_vec()) }, &document).unwrap();
+    svg::write(
+        unsafe { BufWriter::new(result_string.as_mut_vec()) },
+        &document,
+    )
+    .unwrap();
     result_string
 }
-
 
 #[derive(Debug, Default, Clone)]
 pub struct MapExtent {
@@ -193,14 +206,22 @@ impl Converter {
         for ring in positions {
             let mut iter = ring.iter();
             let first = iter.next().unwrap();
-            data = data.move_to(((first[0] - self.map_extent.left) / self.resolution,
-                                 (self.map_extent.top - first[1]) / self.resolution));
+            data = data.move_to((
+                (first[0] - self.map_extent.left) / self.resolution,
+                (self.map_extent.top - first[1]) / self.resolution,
+            ));
             for point in iter {
-                data = data.line_to(((point[0] - self.map_extent.left) / self.resolution,
-                                     (self.map_extent.top - point[1]) / self.resolution));
+                data = data.line_to((
+                    (point[0] - self.map_extent.left) / self.resolution,
+                    (self.map_extent.top - point[1]) / self.resolution,
+                ));
             }
         }
-        if close { data.close() } else { data }
+        if close {
+            data.close()
+        } else {
+            data
+        }
     }
 }
 
@@ -217,7 +238,9 @@ fn main() {
         .invoke_handler(|webview, arg| {
             match arg {
                 "draw" => {
-                    webview.eval("document.getElementById('waiting').style.display = '';").unwrap();
+                    webview
+                        .eval("document.getElementById('waiting').style.display = '';")
+                        .unwrap();
                     let handle = webview.handle();
                     let raw_json_clone = raw_json.clone();
                     thread::spawn(move || {
@@ -226,10 +249,13 @@ fn main() {
                             &vec![
                                 (decoded_geojson, String::from("bg")),
                                 (res, String::from("result")),
-                            ], 800, 600);
-                        handle.dispatch(move |webview| {
-                            render(webview, svg_content)
-                        }).unwrap();
+                            ],
+                            800,
+                            600,
+                        );
+                        handle
+                            .dispatch(move |webview| render(webview, svg_content))
+                            .unwrap();
                     });
                 }
                 "exit" => {
@@ -242,10 +268,15 @@ fn main() {
         .build()
         .unwrap();
 
-    webview.handle().dispatch(move |webview| {
-        render(webview, create_svg_from_geojson(
-            &vec![(decoded_geojson, String::from("bg"))], 800, 600))
-    }).unwrap();
+    webview
+        .handle()
+        .dispatch(move |webview| {
+            render(
+                webview,
+                create_svg_from_geojson(&vec![(decoded_geojson, String::from("bg"))], 800, 600),
+            )
+        })
+        .unwrap();
 
     webview.run().unwrap();
 }
