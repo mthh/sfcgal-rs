@@ -1,18 +1,43 @@
 # sfcgal-rs
-__*(WIP)*__
 
 [![Build Status Travis](https://travis-ci.org/mthh/sfcgal-rs.svg?branch=master)](https://travis-ci.org/mthh/sfcgal-rs)
 
-Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.
+Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
 
 Some of the key features of the underlying library:
-- Supports ISO 19107:2013 and [OGC Simple Features Access 1.2](http://www.opengeospatial.org/standards/sfa) for 3D operations.
-- Reads and writes WKT with exact rational number representation for coordinates for 2D and 3D geometries.
+- Supports ISO 19107 and [OGC Simple Features Access 1.2](http://www.opengeospatial.org/standards/sfa) for 3D operations.
+- Reads and writes WKT with exact rational number representation of coordinates for 2D and 3D geometries.
 - Intersection, difference and union.
 - Straight skeleton, tesselation, Minkovski sum and convex hull.
 
 ## Usage
+
+__Example with 3-member tuples for 3d coordinates and WKT__:
+```rust
+extern crate sfcgal;
+use sfcgal::{SFCGeometry, CoordSeq, ToCoordinates, ToSFCGAL};
+
+// create a linestring from WKT:
+let line_3d = SFCGeometry::new("LINESTRING(-0.5 -0.5 2.5, 0.0 0.0 4.0)")?;
+
+// create a polygon as Vec of 3-member tuples...
+let coords_polygon = vec![
+    vec![(-1., -1., 3.0), (1., -1., 3.0), (1., 1., 3.0), (-1., 1., 3.0), (-1., -1., 3.0)], // Exterior ring
+    vec![(0.1, 0.1, 3.0), (0.1, 0.9, 3.0), (0.9, 0.9, 3.0), (0.9, 0.1, 3.0), (0.1, 0.1, 3.0)], // 1 interior ring
+];
+// ...by using the CoordSeq enum variants to match the wanted SFCGAL geometry type
+// (returns a SFCGeometry)
+let polygon_3d = CoordSeq::Polygon(coords_polygon).to_sfcgal()?;
+
+// ...
+let intersection = line_3d.intersection_3d(&polygon_3d)?;
+
+// Retrieve coordinates of the resulting geometry as 3-member tuples:
+let coords_intersection: CoordSeq<(f64, f64, f64)> = intersection.to_coordinates()?;
+
+println!("{:?} and {:?} intersects at {:?}", line_3d, polygon_3d, coords_intersection);
+```
 
 __Example with [geo-types](https://github.com/georust/geo)__:
 ```rust
@@ -40,34 +65,15 @@ let line_sfc = line.to_sfcgal().unwrap();
 assert!(polyg_sfc.intersects(&line_sfc).unwrap(), true);
 ```
 
-__Example with 3-member tuples for 3d coordinates__:
-```rust
-extern crate sfcgal;
-use sfcgal::{CoordSeq, ToCoordinates, ToSFCGAL};
-
-// create a linestring and a polygon as Vec of tuples:
-let coords_linestring = vec![(-0.5, -0.5, 2.5), (0., 0., 4.0)];
-let coords_polygon = vec![
-    vec![(-1., -1., 3.0), (1., -1., 3.0), (1., 1., 3.0), (-1., 1., 3.0), (-1., -1., 3.0)], // Exterior ring
-    vec![(0.1, 0.1, 3.0), (0.1, 0.9, 3.0), (0.9, 0.9, 3.0), (0.9, 0.1, 3.0), (0.1, 0.1, 3.0)], // 1 interior ring
-];
-
-// Use the CoordSeq enum variants to match the wanted SFCGAL geometry type:
-let line_3d = CoordSeq::Linestring(coords_linestring).to_sfcgal()?;
-let polygon_3d = CoordSeq::Polygon(coords_polygon).to_sfcgal()?;
-
-// ...
-let intersects = line_3d.intersects_3d(&polygon_3d)?;
-assert!(intersects);
-let intersection = line_3d.intersection_3d(&polygon_3d)?;
-let coords_intersection: CoordSeq<(f64, f64, f64)> = intersection.to_coordinates()?;
-println!("{:?} and {:?} intersects at {:?}", line_3d, polygon_3d, coords_intersection);
-```
-
 ### Examples
 
-See `examples/skeleton_geojson.rs` for an example of working with some other crates from Rust geo ecosystem.  
-See `examples/render_skeleton.rs` for an example of computing a straight skeleton from some GeoJSON file and rendering the result with [web_view](https://github.com/Boscop/web-view/) after converting it in SVG.  
+See `examples/skeleton_geojson.rs` for an example of working with some other crates from Rust-geo ecosystem.  
+
+
+### Motivation
+
+Needed a SFCGAL feature for a side-project in Rust and I thought it would be a good opportunity to try using [bindgen](https://github.com/rust-lang/rust-bindgen) on SFCGAL C API.  
+In the end a large part of the API was wrapped so maybe it could be reused or improved by someone now it's published on crates.io.
 
 
 ## License
