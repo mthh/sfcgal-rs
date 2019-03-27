@@ -1,3 +1,5 @@
+#![crate_name = "sfcgal"]
+#![doc(html_root_url = "https://mthh.github.io/sfcgal-rs/")]
 //! Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/)
 //! library and conversion to / from other geometry crates from Rust ecosystem.
 //! Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-sys) crate exposing low-level bindings.
@@ -37,7 +39,6 @@
 //! # }
 //! # fn main() { fun().unwrap(); }
 //! ```
-#![doc(html_root_url = "https://mthh.github.io/sfcgal-rs/")]
 
 #[macro_use]
 extern crate failure;
