@@ -12,7 +12,7 @@ homepage = "https://github.com/mthh/sfcgal-rs"
 repository = "https://github.com/mthh/sfcgal-rs"
 keywords = ["geometry", "geospatial", "gis", "sfcgal"]
 categories = ["algorithms", "api-bindings"]
-
+documentation = "https://mthh.github.io/sfcgal-rs/sfcgal/"
 
 [dependencies]
 sfcgal-sys = "0.1.0"
