@@ -1,6 +1,9 @@
 # sfcgal-rs
 
 [![Build Status Travis](https://travis-ci.org/mthh/sfcgal-rs.svg?branch=master)](https://travis-ci.org/mthh/sfcgal-rs)
+[![Crates.io](https://img.shields.io/crates/v/sfcgal.svg)](https://crates.io/crates/sfcgal)
+
+[Documentation](https://mthh.github.io/sfcgal-rs/sfcgal/)
 
 Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
