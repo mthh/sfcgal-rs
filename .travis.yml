@@ -2,17 +2,33 @@ language: rust
 dist: xenial
 sudo: required
 compiler:
-  - clang
+- clang
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install --force-yes clang-3.9 libclang-3.9-dev libboost-chrono1.58-dev libboost-program-options1.58-dev libboost-filesystem1.58-dev libboost-timer1.58-dev libboost-test1.58-dev libboost-thread1.58-dev libboost-system1.58-dev libboost-serialization1.58-dev libmpfr-dev libgmp-dev cmake libwebkit2gtk-4.0-dev
-  - wget https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.13/CGAL-4.13.tar.xz
-  - tar xJf CGAL-4.13.tar.xz
-  - cd CGAL-4.13 && mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$HOME/CGAL-4.13 .. && make && sudo make install && cd ../..
-  - wget https://github.com/Oslandia/SFCGAL/archive/v1.3.6.tar.gz
-  - tar -xzvf v1.3.6.tar.gz
-  - cd SFCGAL-1.3.6 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install && cd ..
+- sudo apt-get update
+- sudo apt-get install --force-yes clang-3.9 libclang-3.9-dev libboost-chrono1.58-dev
+  libboost-program-options1.58-dev libboost-filesystem1.58-dev libboost-timer1.58-dev
+  libboost-test1.58-dev libboost-thread1.58-dev libboost-system1.58-dev libboost-serialization1.58-dev
+  libmpfr-dev libgmp-dev cmake libwebkit2gtk-4.0-dev
+- wget https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.13/CGAL-4.13.tar.xz
+- tar xJf CGAL-4.13.tar.xz
+- cd CGAL-4.13 && mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$HOME/CGAL-4.13
+  .. && make && sudo make install && cd ../..
+- wget https://github.com/Oslandia/SFCGAL/archive/v1.3.6.tar.gz
+- tar -xzvf v1.3.6.tar.gz
+- cd SFCGAL-1.3.6 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install
+  && cd ..
+after_success: |
+  [ $TRAVIS_BRANCH = master ] &&
+  [ $TRAVIS_PULL_REQUEST = false ] &&
+  cargo doc &&
+  echo "<meta http-equiv=refresh content=0;url=`echo $TRAVIS_REPO_SLUG | cut -d '/' -f 2`/index.html>" > target/doc/index.html &&
+  sudo pip install ghp-import &&
+  ghp-import -n target/doc &&
+  git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
+env:
+  global:
+    secure: g3Sylqx0tjcapQrjZNLeY37N5Yg0c5I8BHixsY2CU9v6s+bcKr50C5EGZuw6sOY2Qpj9ggFYIqqcbiEpg8C1GYJ4gnE1P791eJ6aIrTTLNSiss9VBwg6FC/tdtxdRQT2rcaiOMpU4Dp/wTGi7AcQFf9IhdMEtcg2QVGBAwD4x9jEeZwwBc2580jFCz7O4dXMLUHwINWQXzCbqGPqezP+r35VMEFmveykjrJPONS0DTYP0I1mKubCz4CehVFootqTjP/2JseXZouMv5XuzXDlPvRIXsZkN6c7e1xxEVEofVVSbo8PON8/ozOVdROO9UVIHR7pH+rdlh6ZECOXl3t1+hlHPJRjk7dx5DlbovOhSrQNy2nRfnpOgZWYGN9bLHnzgJ7ZiWUiDmnRYwi98yExZyYJ4Av+WWDgAhEl10lZXWaLGWVPutaTYWQcvQ0DZg5vMyjXzK5/e8YC8DOPG+UdsAgXEW+6brQBfhsi+2H6cUu4VhsTDVCYRndKJpsJhnDE0zHNveev4YKfIGazVm4pvlGQytyGQSdOT3G5frHLZYTd95sg7k0O/t8kciGChZWOOKKYJlvc02V+EYRB2ch9S9LdItPtS//qYTpIscT+ne0I6IVY5IHntWjp5XM/wSFDGWl1oJgSiZLFaoBXnN1qidBIHJcpxKTVc1dZb9hUp5Y=

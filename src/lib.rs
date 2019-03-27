@@ -37,6 +37,7 @@
 //! # }
 //! # fn main() { fun().unwrap(); }
 //! ```
+#![doc(html_root_url = "https://mthh.github.io/sfcgal-rs/")]
 
 #[macro_use]
 extern crate failure;
