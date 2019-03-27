@@ -62,10 +62,10 @@ pub use conversion::{CoordSeq, FromGeoJSON, ToGeoJSON, TryInto};
 pub use errors::Result;
 pub use geometry::{GeomType, SFCGeometry};
 
-/// Type alias for manipulating 2d coordinates, reprensented as (x, y).
+/// Type alias for manipulating 2d coordinates, represented as (x, y).
 pub type Point2d = (f64, f64);
 
-/// Type alias for manipulating 3d coordinates, reprensented as (x, y, z).
+/// Type alias for manipulating 3d coordinates, represented as (x, y, z).
 pub type Point3d = (f64, f64, f64);
 
 /// Convert object to a [`SFCGeometry`] (implemented on [`CoordSeq`] and [geo-types](https://docs.rs/geo-types/) geometries)
