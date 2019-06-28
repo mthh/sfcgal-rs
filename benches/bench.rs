@@ -4,7 +4,6 @@ extern crate geojson;
 extern crate sfcgal;
 extern crate test;
 
-use geojson::conversion::TryInto as TryIntoGeoType;
 use sfcgal::{FromGeoJSON, SFCGeometry, ToCoordinates, ToGeoJSON, ToSFCGAL, TryInto};
 use std::io::Read;
 use test::{black_box, Bencher};
@@ -42,25 +41,25 @@ fn make_sfgal_geom() -> SFCGeometry {
     SFCGeometry::from_geojson::<Point2d>(&geoms[0].value).unwrap()
 }
 
-#[bench]
-fn bench_geojson_to_geotypes_to_sfcgal_2d(b: &mut Bencher) {
-    let mut geom = read_example_file();
-    let g = geom.get_mut(0).unwrap();
-    b.iter(|| {
-        let geo_polygon: geo_types::Polygon<f64> = g.value.clone().try_into().unwrap();
-        geo_polygon.to_sfcgal().unwrap();
-    });
-}
-
-#[bench]
-fn bench_geotypes_to_sfcgal_2d(b: &mut Bencher) {
-    let mut geom = read_example_file();
-    let g = geom.get_mut(0).unwrap();
-    let geo_polygon: geo_types::Polygon<f64> = g.value.clone().try_into().unwrap();
-    b.iter(|| {
-        geo_polygon.to_sfcgal().unwrap();
-    });
-}
+// #[bench]
+// fn bench_geojson_to_geotypes_to_sfcgal_2d(b: &mut Bencher) {
+//     let mut geom = read_example_file();
+//     let g = geom.get_mut(0).unwrap();
+//     b.iter(|| {
+//         let geo_polygon: geo_types::Polygon<f64> = g.value.clone().try_into().unwrap();
+//         geo_polygon.to_sfcgal().unwrap();
+//     });
+// }
+//
+// #[bench]
+// fn bench_geotypes_to_sfcgal_2d(b: &mut Bencher) {
+//     let mut geom = read_example_file();
+//     let g = geom.get_mut(0).unwrap();
+//     let geo_polygon: geo_types::Polygon<f64> = g.value.clone().try_into().unwrap();
+//     b.iter(|| {
+//         geo_polygon.to_sfcgal().unwrap();
+//     });
+// }
 
 #[bench]
 fn bench_geojson_to_sfcgal_3d(b: &mut Bencher) {

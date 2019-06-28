@@ -14,6 +14,8 @@ Some of the key features of the underlying library:
 - Intersection, difference and union.
 - Straight skeleton, tesselation, Minkovski sum and convex hull.
 
+Required version of SFCGAL is currently 1.3.7 (latest version).
+
 ## Usage
 
 __Example with 3-member tuples for 3d coordinates and WKT__:

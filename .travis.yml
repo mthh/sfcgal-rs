@@ -13,13 +13,13 @@ before_install:
   libboost-program-options1.58-dev libboost-filesystem1.58-dev libboost-timer1.58-dev
   libboost-test1.58-dev libboost-thread1.58-dev libboost-system1.58-dev libboost-serialization1.58-dev
   libmpfr-dev libgmp-dev cmake libwebkit2gtk-4.0-dev
-- wget https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.13/CGAL-4.13.tar.xz
-- tar xJf CGAL-4.13.tar.xz
-- cd CGAL-4.13 && mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$HOME/CGAL-4.13
+- wget https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.14/CGAL-4.14.tar.xz
+- tar xJf CGAL-4.14.tar.xz
+- cd CGAL-4.14 && mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$HOME/CGAL-4.14
   .. && make && sudo make install && cd ../..
-- wget https://github.com/Oslandia/SFCGAL/archive/v1.3.6.tar.gz
-- tar -xzvf v1.3.6.tar.gz
-- cd SFCGAL-1.3.6 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install
+- wget https://github.com/Oslandia/SFCGAL/archive/v1.3.7.tar.gz
+- tar -xzvf v1.3.7.tar.gz
+- cd SFCGAL-1.3.7 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install
   && cd ..
 after_success: |
   [ $TRAVIS_BRANCH = master ] &&

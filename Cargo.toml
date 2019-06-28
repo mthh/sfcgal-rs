@@ -1,6 +1,6 @@
 [package]
 name = "sfcgal"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Matthieu Viry <matthieu.viry@univ-grenoble-alpes.fr>"]
 license = "MIT/Apache-2.0"
 edition = "2018"
@@ -15,11 +15,11 @@ categories = ["algorithms", "api-bindings"]
 documentation = "https://mthh.github.io/sfcgal-rs/sfcgal/"
 
 [dependencies]
-sfcgal-sys = "0.1.0"
+sfcgal-sys = "0.2.0"
 failure = "^0.1"
 libc = "0.2.48"
 geo-types = "0.4"
 enum-primitive-derive = "^0.1"
 num-traits = "^0.1"
 approx = "0.3"
-geojson = "0.15"
+geojson = "0.16"
