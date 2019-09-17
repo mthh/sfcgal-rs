@@ -17,7 +17,9 @@ use sfcgal_sys::{
     sfcgal_geometry_triangulate_2dz, sfcgal_geometry_type_id, sfcgal_geometry_union,
     sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
     sfcgal_geometry_collection_create, sfcgal_geometry_collection_add_geometry,
-    sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create
+    sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create,
+    sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_num_geometries,
+    sfcgal_geometry_minkowski_sum,
 };
 use std::ffi::CString;
 use std::ptr::NonNull;
@@ -291,6 +293,14 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Returns the minkowski sum of the given `SFCGeometry` and an other `SFCGEOMETRY`.
+    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga02d35888dac40eee2eb2a2b133979c8d))
+    pub fn minkowski_sum(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
+        let result =
+            unsafe { sfcgal_geometry_minkowski_sum(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
     /// Returns the straight skeleton of the given `SFCGeometry`.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
@@ -355,7 +365,8 @@ impl SFCGeometry {
     }
 
     /// Create a SFCGeometry collection type (MultiPoint, MultiLineString, MultiPolygon, MultiSolid
-    /// or GeometryCollection) given a mutable slice of `SFCGeometry`'s.
+    /// or GeometryCollection) given a mutable slice of `SFCGeometry`'s
+    /// (this is a destructive operation)
     /// ``` rust
     /// use sfcgal::SFCGeometry;
     /// let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
@@ -390,16 +401,46 @@ impl SFCGeometry {
             res_geom.owned = false;
             make_multi_geom(res_geom.c_geom.as_ptr(), geoms)
         } else {
-            let res_geom = unsafe { sfcgal_geometry_collection_create() };
-            return unsafe { SFCGeometry::new_from_raw(res_geom, true) };
+            unreachable!();
         }
     }
 
     /// Get the members of a SFCGeometry.
     /// Returns Err if the SFCGeometry if not a collection (i.e. if it's type
-    /// is not in { MultiPoint, MultiLineString, MultiPolygon, MultiSolid, GeometryCollection })
+    /// is not in { MultiPoint, MultiLineString, MultiPolygon, MultiSolid, GeometryCollection }).
+    /// The original geometry stay untouched.
+    /// ``` rust
+    /// use sfcgal::SFCGeometry;
+    /// let g = SFCGeometry::new("MULTIPOINT((1.0 1.0),(2.0 2.0))").unwrap();
+    /// let members = g.get_collection_members().unwrap();
+    /// assert_eq!(
+    ///     members[0].to_wkt_decim(1).unwrap(),
+    ///     "POINT(1.0 1.0)",
+    /// );
+    /// assert_eq!(
+    ///     members[1].to_wkt_decim(1).unwrap(),
+    ///     "POINT(2.0 2.0)",
+    /// );
+    /// ```
     pub fn get_collection_members(self) -> Result<Vec<SFCGeometry>> {
-        Ok(Vec::new())
+        let _type = self._type()?;
+        if !_type.is_collection_type() {
+            return Err(format_err!(
+                "Error: the given geometry doesn't have any member ({:?} is not a collection type)",
+                 _type,
+             ));
+        }
+        unsafe {
+            let ptr = self.c_geom.as_ptr();
+            let n_geom = sfcgal_geometry_collection_num_geometries(ptr);
+            let mut result = Vec::new();
+            for n in 0..n_geom {
+                let _original_c_geom = sfcgal_geometry_collection_geometry_n(ptr, n);
+                let clone_c_geom = sfcgal_geometry_clone(_original_c_geom);
+                result.push(SFCGeometry::new_from_raw(clone_c_geom, true)?);
+            }
+            Ok(result)
+        }
     }
 }
 
@@ -767,18 +808,24 @@ mod tests {
         let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
-            "MULTISOLID(((((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
-            ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
-            ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
-            ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
-            ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
-            ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)))),\
-            ((((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
-            ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
-            ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
-            ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
-            ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
-            ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)))))",
+            "MULTISOLID(\
+                ((\
+                    ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
+                    ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+                    ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
+                    ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+                    ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
+                    ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
+                )),\
+                ((\
+                    ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
+                    ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+                    ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
+                    ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+                    ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
+                    ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
+                ))\
+            )",
         );
     }
 }
