@@ -200,7 +200,10 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             },
             _ => Err(
                 format_err!(
-                    "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, `Triangulatedsurface` and `Polyhedralsurface` to geo_types::Geometry are not yet implemented!"))
+                    "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, \
+                    `Triangulatedsurface` and `Polyhedralsurface` \
+                    to geo_types::Geometry are not yet implemented!")
+                )
         }
     }
 }

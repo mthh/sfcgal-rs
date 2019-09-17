@@ -16,6 +16,8 @@ use sfcgal_sys::{
     sfcgal_geometry_straight_skeleton_distance_in_m, sfcgal_geometry_t, sfcgal_geometry_tesselate,
     sfcgal_geometry_triangulate_2dz, sfcgal_geometry_type_id, sfcgal_geometry_union,
     sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
+    sfcgal_geometry_collection_create, sfcgal_geometry_collection_add_geometry,
+    sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create
 };
 use std::ffi::CString;
 use std::ptr::NonNull;
@@ -25,7 +27,7 @@ use std::ptr::NonNull;
 /// Indicates the type of shape represented by a `SFCGeometry`.
 /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga1afcf1fad6c2daeca001481b125b84c6))
 #[repr(C)]
-#[derive(PartialEq, Eq, Debug, Primitive)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Primitive)]
 pub enum GeomType {
     Point = 1,
     Linestring = 2,
@@ -41,6 +43,14 @@ pub enum GeomType {
     Multisolid = 102,
 }
 
+impl GeomType {
+    fn is_collection_type(&self) -> bool {
+        match &self {
+            GeomType::Multipoint | GeomType::Multilinestring | GeomType::Multipolygon | GeomType::Multisolid | GeomType::Geometrycollection => true,
+            _ => false,
+        }
+    }
+}
 /// Represents the orientation of a `SFCGeometry`.
 #[derive(PartialEq, Eq, Debug, Primitive)]
 pub enum Orientation {
@@ -343,7 +353,72 @@ impl SFCGeometry {
         let result = unsafe { sfcgal_geometry_convexhull_3d(self.c_geom.as_ptr()) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Create a SFCGeometry collection type (MultiPoint, MultiLineString, MultiPolygon, MultiSolid
+    /// or GeometryCollection) given a mutable slice of `SFCGeometry`'s.
+    /// ``` rust
+    /// use sfcgal::SFCGeometry;
+    /// let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+    /// let b = SFCGeometry::new("POINT(2.0 2.0)").unwrap();
+    /// let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+    /// assert_eq!(
+    ///     g.to_wkt_decim(1).unwrap(),
+    ///     "MULTIPOINT((1.0 1.0),(2.0 2.0))",
+    /// );
+    /// ```
+    pub fn create_collection(geoms: &mut [SFCGeometry]) -> Result<SFCGeometry> {
+        if geoms.is_empty() {
+            let res_geom = unsafe { sfcgal_geometry_collection_create() };
+            return unsafe { SFCGeometry::new_from_raw(res_geom, true) };
+        }
+        let types = geoms.iter().map(|g| g._type().unwrap()).collect::<Vec<GeomType>>();
+        let multis = types.iter().map(|gt| gt.is_collection_type()).collect::<Vec<bool>>();
+        if !is_all_same(&types) || multis.iter().any(|&x| x == true) {
+            let res_geom = unsafe { sfcgal_geometry_collection_create() };
+            make_multi_geom(res_geom, geoms)
+        } else if types[0] == GeomType::Point {
+            let res_geom = unsafe { sfcgal_multi_point_create() };
+            make_multi_geom(res_geom, geoms)
+        } else if types[0] == GeomType::Linestring {
+            let res_geom = unsafe { sfcgal_multi_linestring_create() };
+            make_multi_geom(res_geom, geoms)
+        } else if types[0] == GeomType::Polygon {
+            let res_geom = unsafe { sfcgal_multi_polygon_create() };
+            make_multi_geom(res_geom, geoms)
+        } else if types[0] == GeomType::Solid {
+            let res_geom = unsafe { sfcgal_multi_linestring_create() };
+            unsafe { SFCGeometry::new_from_raw(res_geom, true) }
+        } else {
+            let res_geom = unsafe { sfcgal_geometry_collection_create() };
+            return unsafe { SFCGeometry::new_from_raw(res_geom, true) };
+        }
+    }
+
+    /// Get the members of a SFCGeometry.
+    /// Returns Err if the SFCGeometry if not a collection (i.e. if it's type
+    /// is not in { MultiPoint, MultiLineString, MultiPolygon, MultiSolid, GeometryCollection })
+    pub fn get_collection_members(self) -> Result<Vec<SFCGeometry>> {
+        Ok(Vec::new())
+    }
 }
+
+fn is_all_same<T>(arr: &[T]) -> bool where T: Ord + Eq {
+    arr.iter().min() == arr.iter().max()
+}
+
+fn make_multi_geom(out_multi: *mut sfcgal_geometry_t, geoms: &mut [SFCGeometry]) -> Result<SFCGeometry>{
+    for sfcgal_geom in geoms.into_iter() {
+        unsafe {
+            sfcgal_geom.owned = false;
+            sfcgal_geometry_collection_add_geometry(
+                out_multi,
+                sfcgal_geom.c_geom.as_ptr() as *mut sfcgal_geometry_t,
+            )
+        };
+    }
+    unsafe { SFCGeometry::new_from_raw(out_multi, true) }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -533,7 +608,11 @@ mod tests {
         let wkt = result.to_wkt_decim(1).unwrap();
         assert_eq!(
             wkt,
-            "MULTILINESTRING M((-0.0 -0.0 0.0,0.5 0.5 0.5),(1.0 -0.0 0.0,0.5 0.5 0.5),(1.0 1.0 0.0,0.5 0.5 0.5),(-0.0 1.0 0.0,0.5 0.5 0.5))",
+            "MULTILINESTRING M(\
+            (-0.0 -0.0 0.0,0.5 0.5 0.5),\
+            (1.0 -0.0 0.0,0.5 0.5 0.5),\
+            (1.0 1.0 0.0,0.5 0.5 0.5),\
+            (-0.0 1.0 0.0,0.5 0.5 0.5))",
         );
     }
 
@@ -626,5 +705,47 @@ mod tests {
         let diff = cube1.intersection_3d(&cube2).unwrap();
         assert_eq!(diff.is_valid().unwrap(), true);
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);
+    }
+
+    #[test]
+    fn create_collection_empty() {
+        let g = SFCGeometry::create_collection(&mut[]).unwrap();
+        assert_eq!(
+            g.to_wkt_decim(1).unwrap(),
+            "GEOMETRYCOLLECTION EMPTY",
+        );
+    }
+
+    #[test]
+    fn create_collection_heterogenous() {
+        let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+        let b = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        assert_eq!(
+            g.to_wkt_decim(1).unwrap(),
+            "GEOMETRYCOLLECTION(POINT(1.0 1.0),LINESTRING(10.0 1.0 2.0,1.0 2.0 1.7))",
+        );
+    }
+
+    #[test]
+    fn create_collection_multipoint_from_points() {
+        let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+        let b = SFCGeometry::new("POINT(2.0 2.0)").unwrap();
+        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        assert_eq!(
+            g.to_wkt_decim(1).unwrap(),
+            "MULTIPOINT((1.0 1.0),(2.0 2.0))",
+        );
+    }
+
+    #[test]
+    fn create_collection_multilinestring_from_linestrings() {
+        let a = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+        let b = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        assert_eq!(
+            g.to_wkt_decim(1).unwrap(),
+            "MULTILINESTRING((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",
+        );
     }
 }
