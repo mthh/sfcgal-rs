@@ -386,8 +386,9 @@ impl SFCGeometry {
             let res_geom = unsafe { sfcgal_multi_polygon_create() };
             make_multi_geom(res_geom, geoms)
         } else if types[0] == GeomType::Solid {
-            let res_geom = unsafe { sfcgal_multi_linestring_create() };
-            unsafe { SFCGeometry::new_from_raw(res_geom, true) }
+            let mut res_geom = SFCGeometry::new("MULTISOLID EMPTY")?;
+            res_geom.owned = false;
+            make_multi_geom(res_geom.c_geom.as_ptr(), geoms)
         } else {
             let res_geom = unsafe { sfcgal_geometry_collection_create() };
             return unsafe { SFCGeometry::new_from_raw(res_geom, true) };
@@ -746,6 +747,38 @@ mod tests {
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
             "MULTILINESTRING((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",
+        );
+    }
+
+    #[test]
+    fn create_collection_multisolid_from_solids() {
+        let a = SFCGeometry::new("SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
+                                 ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
+                                 ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
+                                 ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
+                                 ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
+                                 ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))").unwrap();
+         let b = SFCGeometry::new("SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
+                                  ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
+                                  ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
+                                  ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
+                                  ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
+                                  ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))").unwrap();
+        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        assert_eq!(
+            g.to_wkt_decim(1).unwrap(),
+            "MULTISOLID(((((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
+            ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+            ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
+            ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+            ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
+            ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)))),\
+            ((((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
+            ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+            ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
+            ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+            ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
+            ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)))))",
         );
     }
 }
