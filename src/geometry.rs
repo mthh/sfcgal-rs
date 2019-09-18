@@ -444,6 +444,48 @@ impl SFCGeometry {
     }
 }
 
+
+pub struct SFCGeomIntoIterator {
+    geom: SFCGeometry,
+    index: usize,
+    max: usize,
+}
+
+impl IntoIterator for SFCGeometry {
+    type Item = SFCGeometry;
+    type IntoIter = SFCGeomIntoIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let n_geom = unsafe { sfcgal_geometry_collection_num_geometries(self.c_geom.as_ptr()) };
+        SFCGeomIntoIterator {
+            geom: self,
+            index: 0,
+            max: n_geom,
+        }
+    }
+}
+
+impl Iterator for SFCGeomIntoIterator {
+    type Item = SFCGeometry;
+    fn next(&mut self) -> Option<SFCGeometry> {
+        if self.index < self.max {
+            unsafe  {
+                let clone_c_geom = sfcgal_geometry_clone(
+                    sfcgal_geometry_collection_geometry_n(
+                        self.geom.c_geom.as_ptr(),
+                        self.index,
+                    ),
+                );
+                self.index += 1;
+                SFCGeometry::new_from_raw(clone_c_geom, true).ok()
+            }
+        } else {
+            None
+        }
+
+    }
+}
+
 fn is_all_same<T>(arr: &[T]) -> bool where T: Ord + Eq {
     arr.iter().min() == arr.iter().max()
 }
@@ -826,6 +868,21 @@ mod tests {
                     ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
                 ))\
             )",
+        );
+    }
+
+    #[test]
+    fn iter_collection_geometry() {
+        let geom = SFCGeometry::new(
+            "MULTILINESTRING((10.0 1.0 2.0,1.0 2.0 1.7),(3.3 3.4 1.9,4.5 6.0 1.7))").unwrap();
+        let mut iter = geom.into_iter();
+        assert_eq!(
+            iter.next().unwrap().to_wkt_decim(1).unwrap(),
+            "LINESTRING(10.0 1.0 2.0,1.0 2.0 1.7)",
+        );
+        assert_eq!(
+            iter.next().unwrap().to_wkt_decim(1).unwrap(),
+            "LINESTRING(3.3 3.4 1.9,4.5 6.0 1.7)",
         );
     }
 }
