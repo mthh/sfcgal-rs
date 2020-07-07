@@ -107,103 +107,91 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
     fn try_into(self) -> Result<geo_types::Geometry<f64>> {
         match self._type()? {
             GeomType::Point => {
-                let c  = self.to_coordinates::<Point2d>()?;
+                let c = self.to_coordinates::<Point2d>()?;
                 let p: geo_types::Point<f64> = match c {
                     CoordSeq::Point(pt) => pt.into(),
                     _ => unimplemented!(),
                 };
                 Ok(geo_types::Geometry::Point(p))
-            },
+            }
             GeomType::Multipoint => {
-                let c  = self.to_coordinates::<Point2d>()?;
+                let c = self.to_coordinates::<Point2d>()?;
                 let p: geo_types::MultiPoint<f64> = match c {
                     CoordSeq::Multipoint(pts) => pts.into(),
                     _ => unimplemented!(),
                 };
                 Ok(geo_types::Geometry::MultiPoint(p))
-            },
-            GeomType::Linestring => {
-                Ok(
-                    geo_types::Geometry::LineString(
-                        geo_line_from_sfcgal(unsafe { self.c_geom.as_ref() })?
-                    )
-                )
-            },
+            }
+            GeomType::Linestring => Ok(geo_types::Geometry::LineString(geo_line_from_sfcgal(
+                unsafe { self.c_geom.as_ref() },
+            )?)),
             GeomType::Multilinestring => {
-                let ngeoms = unsafe {
-                    sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref())
-                };
+                let ngeoms =
+                    unsafe { sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref()) };
                 let mut lines = Vec::with_capacity(ngeoms);
                 for i in 0..ngeoms {
-                    let geom = unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
+                    let geom =
+                        unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
                     lines.push(geo_line_from_sfcgal(geom)?);
                 }
-                Ok(
-                    geo_types::Geometry::MultiLineString(
-                        geo_types::MultiLineString(lines)
-                    )
-                )
-            },
+                Ok(geo_types::Geometry::MultiLineString(
+                    geo_types::MultiLineString(lines),
+                ))
+            }
             GeomType::Polygon => {
                 let nrings = unsafe { sfcgal_polygon_num_interior_rings(self.c_geom.as_ref()) };
                 let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(self.c_geom.as_ref()) };
                 let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
                 let mut interiors_geo = Vec::with_capacity(nrings);
                 for i in 0..nrings {
-                    let line_sfcgal = unsafe {
-                        sfcgal_polygon_interior_ring_n(self.c_geom.as_ref(), i)
-                    };
+                    let line_sfcgal =
+                        unsafe { sfcgal_polygon_interior_ring_n(self.c_geom.as_ref(), i) };
                     interiors_geo.push(geo_line_from_sfcgal(line_sfcgal)?);
                 }
 
-                Ok(
-                    geo_types::Geometry::Polygon(
-                        geo_types::Polygon::new(exterior_geo, interiors_geo)
-                    )
-                )
+                Ok(geo_types::Geometry::Polygon(geo_types::Polygon::new(
+                    exterior_geo,
+                    interiors_geo,
+                )))
             }
             GeomType::Multipolygon => {
-                let ngeoms = unsafe {
-                    sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref())
-                };
+                let ngeoms =
+                    unsafe { sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref()) };
                 let mut vec_polygons = Vec::with_capacity(ngeoms);
                 for i in 0..ngeoms {
-                    let _polyg = unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
+                    let _polyg =
+                        unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
                     let nrings = unsafe { sfcgal_polygon_num_interior_rings(_polyg) };
                     let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(_polyg) };
                     let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
                     let mut interiors_geo = Vec::with_capacity(nrings);
                     for j in 0..nrings {
-                        let line_sfcgal = unsafe {
-                            sfcgal_polygon_interior_ring_n(_polyg, j)
-                        };
+                        let line_sfcgal = unsafe { sfcgal_polygon_interior_ring_n(_polyg, j) };
                         interiors_geo.push(geo_line_from_sfcgal(line_sfcgal)?);
                     }
                     vec_polygons.push(geo_types::Polygon::new(exterior_geo, interiors_geo));
                 }
 
-                Ok(
-                        geo_types::MultiPolygon(vec_polygons).into()
-                )
-            },
+                Ok(geo_types::MultiPolygon(vec_polygons).into())
+            }
             GeomType::Geometrycollection => {
-                let c  = self.to_coordinates::<Point2d>()?;
+                let c = self.to_coordinates::<Point2d>()?;
                 let p = match c {
-                    CoordSeq::Geometrycollection(g) => {
-                        g.into_iter()
-                            .map(|g| g.try_into())
-                            .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?
-                    },
-                    _ => unimplemented!()
+                    CoordSeq::Geometrycollection(g) => g
+                        .into_iter()
+                        .map(|g| g.try_into())
+                        .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?,
+                    _ => unimplemented!(),
                 };
-                Ok(geo_types::Geometry::GeometryCollection(geo_types::GeometryCollection(p)))
-            },
-            _ => Err(
-                format_err!(
-                    "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, \
-                    `Triangulatedsurface` and `Polyhedralsurface` \
-                    to geo_types::Geometry are not yet implemented!")
-                )
+                Ok(geo_types::Geometry::GeometryCollection(
+                    geo_types::GeometryCollection(p),
+                ))
+            }
+            _ => Err(format_err!(
+                "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, \
+                 `Triangulatedsurface` and `Polyhedralsurface` \
+                 to geo_types::Geometry are not yet implemented!"
+            )),
         }
     }
 }

@@ -13,9 +13,8 @@ use sfcgal_sys::{
     sfcgal_polygon_exterior_ring, sfcgal_polygon_interior_ring_n,
     sfcgal_polygon_num_interior_rings, sfcgal_polyhedral_surface_add_polygon,
     sfcgal_polyhedral_surface_create, sfcgal_polyhedral_surface_num_polygons,
-    sfcgal_polyhedral_surface_polygon_n, sfcgal_solid_create,
-    sfcgal_solid_create_from_exterior_shell, sfcgal_solid_add_interior_shell,
-    sfcgal_solid_num_shells, sfcgal_solid_shell_n,
+    sfcgal_polyhedral_surface_polygon_n, sfcgal_solid_add_interior_shell, sfcgal_solid_create,
+    sfcgal_solid_create_from_exterior_shell, sfcgal_solid_num_shells, sfcgal_solid_shell_n,
     sfcgal_triangle_create, sfcgal_triangle_set_vertex, sfcgal_triangle_vertex,
     sfcgal_triangulated_surface_add_triangle, sfcgal_triangulated_surface_create,
     sfcgal_triangulated_surface_num_triangles, sfcgal_triangulated_surface_triangle_n,
@@ -266,15 +265,19 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                 } else {
                     let exterior = coords_polyhedralsurface_to_sfcgal(&polyhedres[0])?;
                     let r_solid = unsafe { sfcgal_solid_create_from_exterior_shell(exterior) };
-                    polyhedres.into_iter().skip(1).map(|poly| {
-                        unsafe {
-                            sfcgal_solid_add_interior_shell(
-                                r_solid,
-                                coords_polyhedralsurface_to_sfcgal(poly)?,
-                            )
-                        };
-                        Ok(())
-                    }).collect::<Result<Vec<_>>>()?;
+                    polyhedres
+                        .into_iter()
+                        .skip(1)
+                        .map(|poly| {
+                            unsafe {
+                                sfcgal_solid_add_interior_shell(
+                                    r_solid,
+                                    coords_polyhedralsurface_to_sfcgal(poly)?,
+                                )
+                            };
+                            Ok(())
+                        })
+                        .collect::<Result<Vec<_>>>()?;
                     r_solid
                 };
                 unsafe { SFCGeometry::new_from_raw(out_solid, true) }
@@ -664,20 +667,20 @@ mod tests {
     #[test]
     fn solid_with_interior_shell_3d_sfcgal_to_coordinates() {
         let input_wkt = "SOLID((\
-        ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
-        ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
-        ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)),\
-        ((0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0,0.0 0.0 1.0)),\
-        ((1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0,1.0 0.0 1.0)),\
-        ((1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0,1.0 0.0 0.0))\
-        ),(\
-        ((0.0 0.0 0.0,0.0 0.5 0.0,0.5 0.5 0.0,0.5 0.0 0.0,0.0 0.0 0.0)),\
-        ((0.5 0.0 0.0,0.5 0.5 0.0,0.5 0.5 0.5,0.5 0.0 0.5,0.5 0.0 0.0)),\
-        ((0.0 0.5 0.0,0.0 0.5 0.5,0.5 0.5 0.5,0.5 0.5 0.0,0.0 0.5 0.0)),\
-        ((0.0 0.0 0.5,0.0 0.5 0.5,0.0 0.5 0.0,0.0 0.0 0.0,0.0 0.0 0.5)),\
-        ((0.5 0.0 0.5,0.5 0.5 0.5,0.0 0.5 0.5,0.0 0.0 0.5,0.5 0.0 0.5)),\
-        ((0.5 0.0 0.0,0.5 0.0 0.5,0.0 0.0 0.5,0.0 0.0 0.0,0.5 0.0 0.0))\
-        ))";
+                         ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+                         ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+                         ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)),\
+                         ((0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0,0.0 0.0 1.0)),\
+                         ((1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0,1.0 0.0 1.0)),\
+                         ((1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0,1.0 0.0 0.0))\
+                         ),(\
+                         ((0.0 0.0 0.0,0.0 0.5 0.0,0.5 0.5 0.0,0.5 0.0 0.0,0.0 0.0 0.0)),\
+                         ((0.5 0.0 0.0,0.5 0.5 0.0,0.5 0.5 0.5,0.5 0.0 0.5,0.5 0.0 0.0)),\
+                         ((0.0 0.5 0.0,0.0 0.5 0.5,0.5 0.5 0.5,0.5 0.5 0.0,0.0 0.5 0.0)),\
+                         ((0.0 0.0 0.5,0.0 0.5 0.5,0.0 0.5 0.0,0.0 0.0 0.0,0.0 0.0 0.5)),\
+                         ((0.5 0.0 0.5,0.5 0.5 0.5,0.0 0.5 0.5,0.0 0.0 0.5,0.5 0.0 0.5)),\
+                         ((0.5 0.0 0.0,0.5 0.0 0.5,0.0 0.0 0.5,0.0 0.0 0.0,0.5 0.0 0.0))\
+                         ))";
         let cube = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = cube.to_coordinates().unwrap();
         if let CoordSeq::Solid(ref polys) = coords {

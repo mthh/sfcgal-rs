@@ -335,13 +335,14 @@ mod tests {
     #[test]
     fn multiline_2d_sfcgal_to_geojson_to_sfcgal() {
         let input_wkt = "MULTILINESTRING(\
-            (-0.0 -0.0,0.5 0.5),\
-            (1.0 -0.0,0.5 0.5),\
-            (1.0 1.0,0.5 0.5),\
-            (-0.0 1.0,0.5 0.5))";
+                         (-0.0 -0.0,0.5 0.5),\
+                         (1.0 -0.0,0.5 0.5),\
+                         (1.0 1.0,0.5 0.5),\
+                         (-0.0 1.0,0.5 0.5))";
         let multiline_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let multiline_geojson = multiline_sfcgal.to_geojson::<Point2d>().unwrap();
-        let multiline_sfcgal_new = SFCGeometry::from_geojson::<Point2d>(&multiline_geojson).unwrap();
+        let multiline_sfcgal_new =
+            SFCGeometry::from_geojson::<Point2d>(&multiline_geojson).unwrap();
         assert_eq!(
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
             multiline_sfcgal_new.to_wkt_decim(1).unwrap()
@@ -356,13 +357,14 @@ mod tests {
     #[test]
     fn multiline_3d_sfcgal_to_geojson_to_sfcgal() {
         let input_wkt = "MULTILINESTRING(\
-            (-0.0 -0.0 1.3,0.5 0.5 1.3),\
-            (1.0 -0.0 1.3,0.5 0.5 1.3),\
-            (1.0 1.0 1.3,0.5 0.5 1.3),\
-            (-0.0 1.0 1.3,0.5 0.5 1.3))";
+                         (-0.0 -0.0 1.3,0.5 0.5 1.3),\
+                         (1.0 -0.0 1.3,0.5 0.5 1.3),\
+                         (1.0 1.0 1.3,0.5 0.5 1.3),\
+                         (-0.0 1.0 1.3,0.5 0.5 1.3))";
         let multiline_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let multiline_geojson = multiline_sfcgal.to_geojson::<Point3d>().unwrap();
-        let multiline_sfcgal_new = SFCGeometry::from_geojson::<Point3d>(&multiline_geojson).unwrap();
+        let multiline_sfcgal_new =
+            SFCGeometry::from_geojson::<Point3d>(&multiline_geojson).unwrap();
         assert_eq!(
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
             multiline_sfcgal_new.to_wkt_decim(1).unwrap()
@@ -413,7 +415,8 @@ mod tests {
         let input_wkt = "MULTIPOLYGON(((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 0.0)))";
         let multipolyg_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let multipolyg_geojson = multipolyg_sfcgal.to_geojson::<Point2d>().unwrap();
-        let multipolyg_sfcgal_new = SFCGeometry::from_geojson::<Point2d>(&multipolyg_geojson).unwrap();
+        let multipolyg_sfcgal_new =
+            SFCGeometry::from_geojson::<Point2d>(&multipolyg_geojson).unwrap();
         assert_eq!(
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
             multipolyg_sfcgal_new.to_wkt_decim(1).unwrap()
@@ -424,7 +427,8 @@ mod tests {
         let input_wkt = "MULTIPOLYGON(((0.0 0.0 2.0, 1.0 0.0 2.0, 1.0 1.0 2.0, 0.0 0.0 2.0)))";
         let multipolyg_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let multipolyg_geojson = multipolyg_sfcgal.to_geojson::<Point3d>().unwrap();
-        let multipolyg_sfcgal_new = SFCGeometry::from_geojson::<Point3d>(&multipolyg_geojson).unwrap();
+        let multipolyg_sfcgal_new =
+            SFCGeometry::from_geojson::<Point3d>(&multipolyg_geojson).unwrap();
         assert_eq!(
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
             multipolyg_sfcgal_new.to_wkt_decim(1).unwrap()
@@ -441,7 +445,8 @@ mod tests {
         let input_wkt = "GEOMETRYCOLLECTION(POINT(1.0 1.0),LINESTRING(10.0 1.0,1.0 2.0))";
         let multipolyg_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let multipolyg_geojson = multipolyg_sfcgal.to_geojson::<Point2d>().unwrap();
-        let multipolyg_sfcgal_new = SFCGeometry::from_geojson::<Point2d>(&multipolyg_geojson).unwrap();
+        let multipolyg_sfcgal_new =
+            SFCGeometry::from_geojson::<Point2d>(&multipolyg_geojson).unwrap();
         assert_eq!(
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
             multipolyg_sfcgal_new.to_wkt_decim(1).unwrap()
@@ -449,10 +454,12 @@ mod tests {
     }
     #[test]
     fn geomcollection_3d_sfcgal_to_geojson_to_sfcgal() {
-        let input_wkt = "GEOMETRYCOLLECTION(POINT(1.0 1.0 4.0),LINESTRING(10.0 1.0 4.0,1.0 2.0 4.0))";
+        let input_wkt =
+            "GEOMETRYCOLLECTION(POINT(1.0 1.0 4.0),LINESTRING(10.0 1.0 4.0,1.0 2.0 4.0))";
         let multipolyg_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let multipolyg_geojson = multipolyg_sfcgal.to_geojson::<Point3d>().unwrap();
-        let multipolyg_sfcgal_new = SFCGeometry::from_geojson::<Point3d>(&multipolyg_geojson).unwrap();
+        let multipolyg_sfcgal_new =
+            SFCGeometry::from_geojson::<Point3d>(&multipolyg_geojson).unwrap();
         assert_eq!(
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
             multipolyg_sfcgal_new.to_wkt_decim(1).unwrap()

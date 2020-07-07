@@ -6,20 +6,20 @@ use num_traits::FromPrimitive;
 use sfcgal_sys::{
     initialize, sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_area,
     sfcgal_geometry_area_3d, sfcgal_geometry_as_text, sfcgal_geometry_as_text_decim,
-    sfcgal_geometry_clone, sfcgal_geometry_convexhull, sfcgal_geometry_convexhull_3d,
-    sfcgal_geometry_delete, sfcgal_geometry_difference, sfcgal_geometry_difference_3d,
-    sfcgal_geometry_distance, sfcgal_geometry_distance_3d, sfcgal_geometry_extrude,
-    sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d, sfcgal_geometry_intersects,
-    sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d, sfcgal_geometry_is_empty,
-    sfcgal_geometry_is_planar, sfcgal_geometry_is_valid, sfcgal_geometry_is_valid_detail,
-    sfcgal_geometry_offset_polygon, sfcgal_geometry_orientation, sfcgal_geometry_straight_skeleton,
+    sfcgal_geometry_clone, sfcgal_geometry_collection_add_geometry,
+    sfcgal_geometry_collection_create, sfcgal_geometry_collection_geometry_n,
+    sfcgal_geometry_collection_num_geometries, sfcgal_geometry_convexhull,
+    sfcgal_geometry_convexhull_3d, sfcgal_geometry_delete, sfcgal_geometry_difference,
+    sfcgal_geometry_difference_3d, sfcgal_geometry_distance, sfcgal_geometry_distance_3d,
+    sfcgal_geometry_extrude, sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d,
+    sfcgal_geometry_intersects, sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d,
+    sfcgal_geometry_is_empty, sfcgal_geometry_is_planar, sfcgal_geometry_is_valid,
+    sfcgal_geometry_is_valid_detail, sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon,
+    sfcgal_geometry_orientation, sfcgal_geometry_straight_skeleton,
     sfcgal_geometry_straight_skeleton_distance_in_m, sfcgal_geometry_t, sfcgal_geometry_tesselate,
     sfcgal_geometry_triangulate_2dz, sfcgal_geometry_type_id, sfcgal_geometry_union,
     sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
-    sfcgal_geometry_collection_create, sfcgal_geometry_collection_add_geometry,
-    sfcgal_multi_point_create, sfcgal_multi_linestring_create, sfcgal_multi_polygon_create,
-    sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_num_geometries,
-    sfcgal_geometry_minkowski_sum,
+    sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create,
 };
 use std::ffi::CString;
 use std::ptr::NonNull;
@@ -48,7 +48,11 @@ pub enum GeomType {
 impl GeomType {
     fn is_collection_type(&self) -> bool {
         match &self {
-            GeomType::Multipoint | GeomType::Multilinestring | GeomType::Multipolygon | GeomType::Multisolid | GeomType::Geometrycollection => true,
+            GeomType::Multipoint
+            | GeomType::Multilinestring
+            | GeomType::Multipolygon
+            | GeomType::Multisolid
+            | GeomType::Geometrycollection => true,
             _ => false,
         }
     }
@@ -382,8 +386,14 @@ impl SFCGeometry {
             let res_geom = unsafe { sfcgal_geometry_collection_create() };
             return unsafe { SFCGeometry::new_from_raw(res_geom, true) };
         }
-        let types = geoms.iter().map(|g| g._type().unwrap()).collect::<Vec<GeomType>>();
-        let multis = types.iter().map(|gt| gt.is_collection_type()).collect::<Vec<bool>>();
+        let types = geoms
+            .iter()
+            .map(|g| g._type().unwrap())
+            .collect::<Vec<GeomType>>();
+        let multis = types
+            .iter()
+            .map(|gt| gt.is_collection_type())
+            .collect::<Vec<bool>>();
         if !is_all_same(&types) || multis.iter().any(|&x| x == true) {
             let res_geom = unsafe { sfcgal_geometry_collection_create() };
             make_multi_geom(res_geom, geoms)
@@ -427,8 +437,8 @@ impl SFCGeometry {
         if !_type.is_collection_type() {
             return Err(format_err!(
                 "Error: the given geometry doesn't have any member ({:?} is not a collection type)",
-                 _type,
-             ));
+                _type,
+            ));
         }
         unsafe {
             let ptr = self.c_geom.as_ptr();
@@ -444,11 +454,17 @@ impl SFCGeometry {
     }
 }
 
-fn is_all_same<T>(arr: &[T]) -> bool where T: Ord + Eq {
+fn is_all_same<T>(arr: &[T]) -> bool
+where
+    T: Ord + Eq,
+{
     arr.iter().min() == arr.iter().max()
 }
 
-fn make_multi_geom(out_multi: *mut sfcgal_geometry_t, geoms: &mut [SFCGeometry]) -> Result<SFCGeometry>{
+fn make_multi_geom(
+    out_multi: *mut sfcgal_geometry_t,
+    geoms: &mut [SFCGeometry],
+) -> Result<SFCGeometry> {
     for sfcgal_geom in geoms.into_iter() {
         unsafe {
             sfcgal_geom.owned = false;
@@ -460,7 +476,6 @@ fn make_multi_geom(out_multi: *mut sfcgal_geometry_t, geoms: &mut [SFCGeometry])
     }
     unsafe { SFCGeometry::new_from_raw(out_multi, true) }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -651,10 +666,10 @@ mod tests {
         assert_eq!(
             wkt,
             "MULTILINESTRING M(\
-            (-0.0 -0.0 0.0,0.5 0.5 0.5),\
-            (1.0 -0.0 0.0,0.5 0.5 0.5),\
-            (1.0 1.0 0.0,0.5 0.5 0.5),\
-            (-0.0 1.0 0.0,0.5 0.5 0.5))",
+             (-0.0 -0.0 0.0,0.5 0.5 0.5),\
+             (1.0 -0.0 0.0,0.5 0.5 0.5),\
+             (1.0 1.0 0.0,0.5 0.5 0.5),\
+             (-0.0 1.0 0.0,0.5 0.5 0.5))",
         );
     }
 
@@ -751,18 +766,15 @@ mod tests {
 
     #[test]
     fn create_collection_empty() {
-        let g = SFCGeometry::create_collection(&mut[]).unwrap();
-        assert_eq!(
-            g.to_wkt_decim(1).unwrap(),
-            "GEOMETRYCOLLECTION EMPTY",
-        );
+        let g = SFCGeometry::create_collection(&mut []).unwrap();
+        assert_eq!(g.to_wkt_decim(1).unwrap(), "GEOMETRYCOLLECTION EMPTY",);
     }
 
     #[test]
     fn create_collection_heterogenous() {
         let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
         let b = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
-        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
             "GEOMETRYCOLLECTION(POINT(1.0 1.0),LINESTRING(10.0 1.0 2.0,1.0 2.0 1.7))",
@@ -773,7 +785,7 @@ mod tests {
     fn create_collection_multipoint_from_points() {
         let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
         let b = SFCGeometry::new("POINT(2.0 2.0)").unwrap();
-        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
             "MULTIPOINT((1.0 1.0),(2.0 2.0))",
@@ -784,7 +796,7 @@ mod tests {
     fn create_collection_multilinestring_from_linestrings() {
         let a = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
         let b = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
-        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
             "MULTILINESTRING((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",
@@ -793,39 +805,45 @@ mod tests {
 
     #[test]
     fn create_collection_multisolid_from_solids() {
-        let a = SFCGeometry::new("SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
-                                 ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
-                                 ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
-                                 ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
-                                 ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
-                                 ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))").unwrap();
-         let b = SFCGeometry::new("SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
-                                  ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
-                                  ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
-                                  ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
-                                  ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
-                                  ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))").unwrap();
-        let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
+        let a = SFCGeometry::new(
+            "SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
+             ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
+             ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
+             ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
+             ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
+             ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))",
+        )
+        .unwrap();
+        let b = SFCGeometry::new(
+            "SOLID((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
+             ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
+             ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
+             ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
+             ((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),\
+             ((0 1 0,0 1 1,1 1 1,1 1 0,0 1 0))))",
+        )
+        .unwrap();
+        let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
             "MULTISOLID(\
-                ((\
-                    ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
-                    ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
-                    ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
-                    ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
-                    ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
-                    ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
-                )),\
-                ((\
-                    ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
-                    ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
-                    ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
-                    ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
-                    ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
-                    ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
-                ))\
-            )",
+             ((\
+             ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
+             ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+             ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
+             ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+             ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
+             ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
+             )),\
+             ((\
+             ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
+             ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
+             ((0.0 0.0 0.0,1.0 0.0 0.0,1.0 0.0 1.0,0.0 0.0 1.0,0.0 0.0 0.0)),\
+             ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
+             ((0.0 0.0 1.0,1.0 0.0 1.0,1.0 1.0 1.0,0.0 1.0 1.0,0.0 0.0 1.0)),\
+             ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0))\
+             ))\
+             )",
         );
     }
 }
