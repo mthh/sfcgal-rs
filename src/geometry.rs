@@ -2,6 +2,7 @@ use crate::conversion::{CoordSeq, CoordType, ToSFCGALGeom};
 use crate::errors::get_last_error;
 use crate::utils::{_c_string_with_size, _string, check_computed_value, check_predicate};
 use crate::{Result, ToSFCGAL};
+use libc::c_char;
 use num_traits::FromPrimitive;
 use sfcgal_sys::{
     initialize, sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_area,
@@ -22,6 +23,7 @@ use sfcgal_sys::{
     sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create,
 };
 use std::ffi::CString;
+use std::mem::MaybeUninit;
 use std::ptr::NonNull;
 
 /// SFCGAL Geometry types.
@@ -138,22 +140,29 @@ impl SFCGeometry {
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL exact integer fractions as coordinate values.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
     pub fn to_wkt(&self) -> Result<String> {
-        let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
         let mut length: usize = 0;
-        unsafe { sfcgal_geometry_as_text(self.c_geom.as_ref(), &mut ptr, &mut length) };
-        Ok(_c_string_with_size(ptr, length))
+        unsafe {
+            sfcgal_geometry_as_text(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+            Ok(_c_string_with_size(ptr.assume_init(), length))
+        }
     }
 
     /// Returns a WKT representation of the given `SFCGeometry` using floating point coordinate values with
     /// the desired number of decimals.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
-        let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
         let mut length: usize = 0;
         unsafe {
-            sfcgal_geometry_as_text_decim(self.c_geom.as_ref(), nb_decim, &mut ptr, &mut length)
-        };
-        Ok(_c_string_with_size(ptr, length))
+            sfcgal_geometry_as_text_decim(
+                self.c_geom.as_ref(),
+                nb_decim,
+                ptr.as_mut_ptr(),
+                &mut length,
+            );
+            Ok(_c_string_with_size(ptr.assume_init(), length))
+        }
     }
 
     /// Test if the given `SFCGeometry` is empty or not.
@@ -170,18 +179,19 @@ impl SFCGeometry {
 
     /// Returns reason for the invalidity or None in case of validity.
     pub fn validity_detail(&self) -> Result<Option<String>> {
-        let mut ptr: *mut i8 = unsafe { std::mem::uninitialized() };
-        let rv = unsafe {
-            sfcgal_geometry_is_valid_detail(
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+        unsafe {
+            let rv = sfcgal_geometry_is_valid_detail(
                 self.c_geom.as_ptr(),
-                &mut ptr,
+                ptr.as_mut_ptr(),
                 std::ptr::null::<sfcgal_geometry_t>() as *mut *mut sfcgal_geometry_t,
-            )
-        };
-        match rv {
-            1 => Ok(None),
-            0 => Ok(Some(_string(ptr))),
-            _ => Err(format_err!("SFCGAL error: {}", get_last_error())),
+            );
+
+            match rv {
+                1 => Ok(None),
+                0 => Ok(Some(_string(ptr.assume_init()))),
+                _ => Err(format_err!("SFCGAL error: {}", get_last_error())),
+            }
         }
     }
 
