@@ -2,7 +2,7 @@ use crate::conversion::coords::{CoordSeq, CoordType, ToSFCGALGeom};
 use crate::{
     utils::check_null_geom, GeomType, Point2d, Result, SFCGeometry, ToCoordinates, ToSFCGAL,
 };
-use failure::Error;
+use anyhow::Error;
 use sfcgal_sys::{
     sfcgal_geometry_collection_add_geometry, sfcgal_geometry_collection_create,
     sfcgal_geometry_collection_geometry_n, sfcgal_geometry_collection_num_geometries,

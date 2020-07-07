@@ -16,7 +16,7 @@ documentation = "https://mthh.github.io/sfcgal-rs/sfcgal/"
 
 [dependencies]
 sfcgal-sys = "0.2"
-failure = "0.1"
+anyhow = "1.0"
 libc = "0.2"
 geo-types = "0.4"
 enum-primitive-derive = "0.1"
