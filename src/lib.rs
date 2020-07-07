@@ -41,16 +41,11 @@
 //! ```
 
 #[macro_use]
-extern crate failure;
-extern crate libc;
-extern crate sfcgal_sys;
+extern crate anyhow;
 #[macro_use]
 extern crate enum_primitive_derive;
-extern crate geo_types;
-extern crate num_traits;
 #[macro_use]
 extern crate approx;
-extern crate geojson;
 
 use sfcgal_sys::sfcgal_version;
 
