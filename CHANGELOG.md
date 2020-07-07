@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [0.3.0] - 2020-07-07
+## [0.3.0] - 2020-07-08
 ### Changed
 - Use ffi types : size_t, c_char, etc [#1](https://github.com/mthh/sfcgal-rs/pull/1)
 - Use less restrict x.y version number in Cargo.toml [#1](https://github.com/mthh/sfcgal-rs/pull/1)
