@@ -21,7 +21,7 @@ use sfcgal_sys::{
     sfcgal_geometry_straight_skeleton_distance_in_m, sfcgal_geometry_t, sfcgal_geometry_tesselate,
     sfcgal_geometry_triangulate_2dz, sfcgal_geometry_type_id, sfcgal_geometry_union,
     sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
-    sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create,
+    sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create, size_t,
 };
 use std::{ffi::CString, mem::MaybeUninit, os::raw::c_char, ptr::NonNull};
 
@@ -110,7 +110,7 @@ impl SFCGeometry {
     pub fn new(wkt: &str) -> Result<SFCGeometry> {
         initialize();
         let c_str = CString::new(wkt)?;
-        let obj = unsafe { sfcgal_io_read_wkt(c_str.as_ptr(), wkt.len()) };
+        let obj = unsafe { sfcgal_io_read_wkt(c_str.as_ptr(), wkt.len() as size_t) };
         unsafe { SFCGeometry::new_from_raw(obj, true) }
     }
 
@@ -140,7 +140,7 @@ impl SFCGeometry {
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
     pub fn to_wkt(&self) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
-        let mut length: usize = 0;
+        let mut length: size_t = 0;
         unsafe {
             sfcgal_geometry_as_text(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
             Ok(_c_string_with_size(ptr.assume_init(), length))
@@ -152,7 +152,7 @@ impl SFCGeometry {
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
-        let mut length: usize = 0;
+        let mut length: size_t = 0;
         unsafe {
             sfcgal_geometry_as_text_decim(
                 self.c_geom.as_ref(),

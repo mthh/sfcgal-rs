@@ -129,7 +129,7 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             GeomType::Multilinestring => {
                 let ngeoms =
                     unsafe { sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref()) };
-                let mut lines = Vec::with_capacity(ngeoms);
+                let mut lines = Vec::with_capacity(ngeoms as usize);
                 for i in 0..ngeoms {
                     let geom =
                         unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
@@ -143,7 +143,7 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 let nrings = unsafe { sfcgal_polygon_num_interior_rings(self.c_geom.as_ref()) };
                 let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(self.c_geom.as_ref()) };
                 let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
-                let mut interiors_geo = Vec::with_capacity(nrings);
+                let mut interiors_geo = Vec::with_capacity(nrings as usize);
                 for i in 0..nrings {
                     let line_sfcgal =
                         unsafe { sfcgal_polygon_interior_ring_n(self.c_geom.as_ref(), i) };
@@ -158,14 +158,14 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             GeomType::Multipolygon => {
                 let ngeoms =
                     unsafe { sfcgal_geometry_collection_num_geometries(self.c_geom.as_ref()) };
-                let mut vec_polygons = Vec::with_capacity(ngeoms);
+                let mut vec_polygons = Vec::with_capacity(ngeoms as usize);
                 for i in 0..ngeoms {
                     let _polyg =
                         unsafe { sfcgal_geometry_collection_geometry_n(self.c_geom.as_ref(), i) };
                     let nrings = unsafe { sfcgal_polygon_num_interior_rings(_polyg) };
                     let exterior_sfcgal = unsafe { sfcgal_polygon_exterior_ring(_polyg) };
                     let exterior_geo = geo_line_from_sfcgal(exterior_sfcgal)?;
-                    let mut interiors_geo = Vec::with_capacity(nrings);
+                    let mut interiors_geo = Vec::with_capacity(nrings as usize);
                     for j in 0..nrings {
                         let line_sfcgal = unsafe { sfcgal_polygon_interior_ring_n(_polyg, j) };
                         interiors_geo.push(geo_line_from_sfcgal(line_sfcgal)?);
@@ -201,7 +201,7 @@ fn geo_line_from_sfcgal(
     sfcgal_geom: *const sfcgal_geometry_t,
 ) -> Result<geo_types::LineString<f64>> {
     let n_points = unsafe { sfcgal_linestring_num_points(sfcgal_geom) };
-    let mut v_points = Vec::with_capacity(n_points);
+    let mut v_points = Vec::with_capacity(n_points as usize);
     for i in 0..n_points {
         let pt_sfcgal = unsafe { sfcgal_linestring_point_n(sfcgal_geom, i) };
         check_null_geom(pt_sfcgal)?;
