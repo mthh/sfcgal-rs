@@ -11,8 +11,8 @@
 //!
 //! #### Example
 //! ```rust
-//! # extern crate failure;
-//! # fn fun() -> Result<(), failure::Error> {
+//! # extern crate anyhow;
+//! # fn fun() -> Result<(), anyhow::Error> {
 //! extern crate sfcgal;
 //! use sfcgal::{SFCGeometry, CoordSeq, ToGeoJSON, ToSFCGAL, Point2d, Point3d};
 //!
