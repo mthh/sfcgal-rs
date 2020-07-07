@@ -1,6 +1,7 @@
-use crate::conversion::coords::{CoordSeq, CoordType, ToSFCGALGeom};
 use crate::{
-    utils::check_null_geom, GeomType, Point2d, Result, SFCGeometry, ToCoordinates, ToSFCGAL,
+    conversion::coords::{CoordSeq, CoordType, ToSFCGALGeom},
+    utils::check_null_geom,
+    GeomType, Point2d, Result, SFCGeometry, ToCoordinates, ToSFCGAL,
 };
 use anyhow::Error;
 use sfcgal_sys::{

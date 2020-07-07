@@ -1,7 +1,6 @@
 use approx::AbsDiff;
-use libc::c_char;
 use sfcgal_sys::sfcgal_geometry_t;
-use std::ffi::CStr;
+use std::{ffi::CStr, os::raw::c_char};
 
 use crate::errors::get_last_error;
 use crate::Result;

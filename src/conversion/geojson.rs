@@ -1,5 +1,7 @@
-use crate::conversion::coords::{CoordType, FromSFCGALGeom, ToSFCGALGeom};
-use crate::{CoordSeq, Point2d, Point3d, Result, SFCGeometry, ToCoordinates, ToSFCGAL};
+use crate::{
+    conversion::coords::{CoordType, FromSFCGALGeom, ToSFCGALGeom},
+    CoordSeq, Point2d, Point3d, Result, SFCGeometry, ToCoordinates, ToSFCGAL,
+};
 use anyhow::Error;
 use geojson::Value as GeometryValue;
 

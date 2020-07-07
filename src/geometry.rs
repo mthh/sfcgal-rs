@@ -1,8 +1,9 @@
-use crate::conversion::{CoordSeq, CoordType, ToSFCGALGeom};
-use crate::errors::get_last_error;
-use crate::utils::{_c_string_with_size, _string, check_computed_value, check_predicate};
-use crate::{Result, ToSFCGAL};
-use libc::c_char;
+use crate::{
+    conversion::{CoordSeq, CoordType, ToSFCGALGeom},
+    errors::get_last_error,
+    utils::{_c_string_with_size, _string, check_computed_value, check_predicate},
+    {Result, ToSFCGAL},
+};
 use num_traits::FromPrimitive;
 use sfcgal_sys::{
     initialize, sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_area,
@@ -22,9 +23,7 @@ use sfcgal_sys::{
     sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
     sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create,
 };
-use std::ffi::CString;
-use std::mem::MaybeUninit;
-use std::ptr::NonNull;
+use std::{ffi::CString, mem::MaybeUninit, os::raw::c_char, ptr::NonNull};
 
 /// SFCGAL Geometry types.
 ///
