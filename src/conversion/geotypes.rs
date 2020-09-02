@@ -89,6 +89,11 @@ impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
                         )
                     ))
                 },
+                CoordSeq::Triangle(pts) => {
+                    Ok(geo_types::Geometry::Triangle(
+                        geo_types::Triangle(pts[0].into(), pts[1].into(), pts[2].into())
+                    ))
+                },
                 _ => Err(
                     format_err!(
                         "Conversion from CoordSeq variants `Solid`, `Multisolid`, `Triangulatedsurface` and `Polyhedralsurface` are not yet implemented!"))
@@ -189,7 +194,7 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 ))
             }
             _ => Err(format_err!(
-                "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, \
+                "Conversion from SFCGeometry of type `Solid`, `Multisolid`, \
                  `Triangulatedsurface` and `Polyhedralsurface` \
                  to geo_types::Geometry are not yet implemented!"
             )),
@@ -349,6 +354,16 @@ impl ToSFCGAL for geo_types::GeometryCollection<f64> {
     }
 }
 
+/// Create a `SFCGeometry` from a geo-types Rect
+impl ToSFCGAL for geo_types::Rect<f64> {
+    fn to_sfcgal(&self) -> Result<SFCGeometry> {
+        let poly = self.to_polygon();
+        poly.to_sfcgal()
+    }
+}
+
+
+
 /// Create a `SFCGeometry` from any geo-type Geometry
 impl ToSFCGAL for geo_types::Geometry<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
@@ -361,6 +376,8 @@ impl ToSFCGAL for geo_types::Geometry<f64> {
             geo_types::Geometry::MultiLineString(ref c) => c.to_sfcgal(),
             geo_types::Geometry::MultiPolygon(ref c) => c.to_sfcgal(),
             geo_types::Geometry::GeometryCollection(ref c) => c.to_sfcgal(),
+            geo_types::Geometry::Rect(ref c) => c.to_sfcgal(),
+            geo_types::Geometry::Triangle(ref c) => c.to_sfcgal(),
         }
     }
 }
@@ -448,7 +465,7 @@ mod tests {
         let coords: Result<geo_types::Geometry<f64>, _> = tri_sfcgal.try_into();
         assert_eq!(
             coords.err().unwrap().to_string(),
-            "Conversion from SFCGeometry of type `Triangle`, `Solid`, `Multisolid`, \
+            "Conversion from SFCGeometry of type `Solid`, `Multisolid`, \
             `Triangulatedsurface` and `Polyhedralsurface` to geo_types::Geometry are not yet implemented!",
         )
     }

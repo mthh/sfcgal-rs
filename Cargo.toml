@@ -15,11 +15,11 @@ categories = ["algorithms", "api-bindings"]
 documentation = "https://mthh.github.io/sfcgal-rs/sfcgal/"
 
 [dependencies]
-sfcgal-sys = "0.3"
+sfcgal-sys = "0.4"
 anyhow = "1.0"
 libc = "0.2"
-geo-types = "0.5"
+geo-types = "0.6"
 enum-primitive-derive = "0.1"
 num-traits = "0.1"
 approx = "0.3"
-geojson = "0.17"
+geojson = "0.19"
