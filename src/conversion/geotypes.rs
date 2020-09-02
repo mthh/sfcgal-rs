@@ -192,7 +192,16 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 Ok(geo_types::Geometry::GeometryCollection(
                     geo_types::GeometryCollection(p),
                 ))
-            }
+            },
+            GeomType::Triangle => {
+                let coords = match self.to_coordinates::<Point2d>()? {
+                    CoordSeq::Triangle(t) => t,
+                    _ => unimplemented!(),
+                };
+                Ok(geo_types::Geometry::Triangle(
+                    geo_types::Triangle(coords[0].into(), coords[1].into(), coords[2].into())
+                ))
+            },
             _ => Err(format_err!(
                 "Conversion from SFCGeometry of type `Solid`, `Multisolid`, \
                  `Triangulatedsurface` and `Polyhedralsurface` \
@@ -462,12 +471,18 @@ mod tests {
         let tri_sfcgal = tri.to_sfcgal().unwrap();
         assert!(tri_sfcgal.is_valid().unwrap());
         assert_eq!(tri_sfcgal._type().unwrap(), GeomType::Triangle);
-        let coords: Result<geo_types::Geometry<f64>, _> = tri_sfcgal.try_into();
-        assert_eq!(
-            coords.err().unwrap().to_string(),
-            "Conversion from SFCGeometry of type `Solid`, `Multisolid`, \
-            `Triangulatedsurface` and `Polyhedralsurface` to geo_types::Geometry are not yet implemented!",
-        )
+        let tri_geo: geo_types::Geometry<f64> = tri_sfcgal.try_into().unwrap();
+        match tri_geo {
+            geo_types::Geometry::Triangle(t) => {
+                assert_eq!(t.0.x, 0.);
+                assert_eq!(t.0.y, 0.);
+                assert_eq!(t.1.x, 1.);
+                assert_eq!(t.1.y, 0.);
+                assert_eq!(t.2.x, 0.5);
+                assert_eq!(t.2.y, 1.);
+            },
+            _ => panic!("Bad conversion when converting Triangle"),
+        }
     }
 
     #[test]
