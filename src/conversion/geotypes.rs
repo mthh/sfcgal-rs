@@ -192,16 +192,18 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 Ok(geo_types::Geometry::GeometryCollection(
                     geo_types::GeometryCollection(p),
                 ))
-            },
+            }
             GeomType::Triangle => {
                 let coords = match self.to_coordinates::<Point2d>()? {
                     CoordSeq::Triangle(t) => t,
                     _ => unimplemented!(),
                 };
-                Ok(geo_types::Geometry::Triangle(
-                    geo_types::Triangle(coords[0].into(), coords[1].into(), coords[2].into())
-                ))
-            },
+                Ok(geo_types::Geometry::Triangle(geo_types::Triangle(
+                    coords[0].into(),
+                    coords[1].into(),
+                    coords[2].into(),
+                )))
+            }
             _ => Err(format_err!(
                 "Conversion from SFCGeometry of type `Solid`, `Multisolid`, \
                  `Triangulatedsurface` and `Polyhedralsurface` \
@@ -371,8 +373,6 @@ impl ToSFCGAL for geo_types::Rect<f64> {
     }
 }
 
-
-
 /// Create a `SFCGeometry` from any geo-type Geometry
 impl ToSFCGAL for geo_types::Geometry<f64> {
     fn to_sfcgal(&self) -> Result<SFCGeometry> {
@@ -480,7 +480,7 @@ mod tests {
                 assert_eq!(t.1.y, 0.);
                 assert_eq!(t.2.x, 0.5);
                 assert_eq!(t.2.y, 1.);
-            },
+            }
             _ => panic!("Bad conversion when converting Triangle"),
         }
     }

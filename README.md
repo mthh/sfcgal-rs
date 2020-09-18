@@ -14,7 +14,7 @@ Some of the key features of the underlying library:
 - Intersection, difference and union.
 - Straight skeleton, tesselation, Minkovski sum and convex hull.
 
-Required version of SFCGAL is currently 1.3.7 (latest version).
+Required version of SFCGAL is currently 1.3.8 (latest version - 29/06/2020).
 
 ## Usage
 

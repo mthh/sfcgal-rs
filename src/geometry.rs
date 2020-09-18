@@ -11,17 +11,19 @@ use sfcgal_sys::{
     sfcgal_geometry_clone, sfcgal_geometry_collection_add_geometry,
     sfcgal_geometry_collection_create, sfcgal_geometry_collection_geometry_n,
     sfcgal_geometry_collection_num_geometries, sfcgal_geometry_convexhull,
-    sfcgal_geometry_convexhull_3d, sfcgal_geometry_delete, sfcgal_geometry_difference,
-    sfcgal_geometry_difference_3d, sfcgal_geometry_distance, sfcgal_geometry_distance_3d,
-    sfcgal_geometry_extrude, sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d,
-    sfcgal_geometry_intersects, sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d,
-    sfcgal_geometry_is_empty, sfcgal_geometry_is_planar, sfcgal_geometry_is_valid,
-    sfcgal_geometry_is_valid_detail, sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon,
-    sfcgal_geometry_orientation, sfcgal_geometry_straight_skeleton,
-    sfcgal_geometry_straight_skeleton_distance_in_m, sfcgal_geometry_t, sfcgal_geometry_tesselate,
-    sfcgal_geometry_triangulate_2dz, sfcgal_geometry_type_id, sfcgal_geometry_union,
-    sfcgal_geometry_union_3d, sfcgal_geometry_volume, sfcgal_io_read_wkt,
-    sfcgal_multi_linestring_create, sfcgal_multi_point_create, sfcgal_multi_polygon_create, size_t,
+    sfcgal_geometry_convexhull_3d, sfcgal_geometry_covers, sfcgal_geometry_covers_3d,
+    sfcgal_geometry_delete, sfcgal_geometry_difference, sfcgal_geometry_difference_3d,
+    sfcgal_geometry_distance, sfcgal_geometry_distance_3d, sfcgal_geometry_extrude,
+    sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d, sfcgal_geometry_intersects,
+    sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d, sfcgal_geometry_is_empty,
+    sfcgal_geometry_is_measured, sfcgal_geometry_is_planar, sfcgal_geometry_is_valid,
+    sfcgal_geometry_is_valid_detail, sfcgal_geometry_line_sub_string,
+    sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon, sfcgal_geometry_orientation,
+    sfcgal_geometry_straight_skeleton, sfcgal_geometry_straight_skeleton_distance_in_m,
+    sfcgal_geometry_t, sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
+    sfcgal_geometry_type_id, sfcgal_geometry_union, sfcgal_geometry_union_3d,
+    sfcgal_geometry_volume, sfcgal_io_read_wkt, sfcgal_multi_linestring_create,
+    sfcgal_multi_point_create, sfcgal_multi_polygon_create, size_t,
 };
 use std::{ffi::CString, mem::MaybeUninit, os::raw::c_char, ptr::NonNull};
 
@@ -176,6 +178,12 @@ impl SFCGeometry {
         check_predicate(rv)
     }
 
+    /// Test if the given `SFCGeometry` is measured (has an 'm' coordinates)
+    pub fn is_measured(&self) -> Result<bool> {
+        let rv = unsafe { sfcgal_geometry_is_measured(self.c_geom.as_ptr()) };
+        check_predicate(rv)
+    }
+
     /// Returns reason for the invalidity or None in case of validity.
     pub fn validity_detail(&self) -> Result<Option<String>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
@@ -279,6 +287,18 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    ///
+    pub fn covers(&self, other: &SFCGeometry) -> Result<bool> {
+        let rv = unsafe { sfcgal_geometry_covers(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        check_predicate(rv)
+    }
+
+    ///
+    pub fn covers_3d(&self, other: &SFCGeometry) -> Result<bool> {
+        let rv = unsafe { sfcgal_geometry_covers_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+        check_predicate(rv)
+    }
+
     /// Returns the difference of the given `SFCGeometry` to an other `SFCGeometry`.
     pub fn difference(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
@@ -374,6 +394,13 @@ impl SFCGeometry {
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gacf01a9097f2059afaad871658b4b5a6f))
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull_3d(self.c_geom.as_ptr()) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    /// Returns the substring of the given `SFCGeometry` LineString between fractional distances.
+    /// ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9184685ade86d02191ffaf0337ed3c1d))
+    pub fn line_substring(&self, start: f64, end: f64) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_line_sub_string(self.c_geom.as_ptr(), start, end) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
@@ -551,6 +578,15 @@ mod tests {
     }
 
     #[test]
+    fn measured_geometry() {
+        let pt1 = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+        let pt2 = SFCGeometry::new("POINTM(1.0 1.0 2.0)").unwrap();
+
+        assert_eq!(pt1.is_measured().unwrap(), false);
+        assert_eq!(pt2.is_measured().unwrap(), true);
+    }
+
+    #[test]
     fn area() {
         let polygon = SFCGeometry::new("POLYGON((1 1, 3 1, 4 4, 1 3, 1 1))").unwrap();
         assert_eq!(polygon.area().unwrap(), 6.0);
@@ -717,6 +753,21 @@ mod tests {
         let result = pt.tesselate().unwrap();
         let output_wkt = result.to_wkt_decim(1).unwrap();
         assert_eq!(input_wkt, output_wkt);
+    }
+
+    #[test]
+    fn line_substring() {
+        let g = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+        let result = g.line_substring(-0.2, 0.2).unwrap();
+        assert_eq!(
+            result.to_wkt_decim(1).unwrap(),
+            "LINESTRING(2.8 1.8 1.8,8.2 1.2 1.9)"
+        );
+        // With "start" or "end" point not in [-1; 1]
+        assert_eq!(
+            g.line_substring(-2., 0.2).err().unwrap().to_string(),
+            "Obtained null pointer when creating geometry: SFCGAL::algorithm::lineSubstring: start value out of range."
+        );
     }
 
     #[test]

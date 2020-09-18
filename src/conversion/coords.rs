@@ -881,5 +881,4 @@ mod tests {
             multipolygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
     }
-
 }
