@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [0.5.0] - 2020-09-xx
+## [0.5.0] - 2020-10-18
 ### Added
 - Update to SFCGAL 1.3.8 and expose the following functions from the C API:
   * `sfcgal_geometry_covers`, `sfcgal_geometry_covers_3d`, `sfcgal_geometry_is_measured` and `sfcgal_geometry_line_sub_string`
