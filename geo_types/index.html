@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `geo_types` crate."><meta name="keywords" content="rust, rustlang, rust-lang, geo_types"><title>geo_types - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../geo_types/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/georust/meta/master/logo/logo.png' alt='logo'></div></a><p class='location'>Crate geo_types</p><div class='block version'><p>Version 0.6.1</p></div><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all geo_types's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'geo_types', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/geo_types/lib.rs.html#1-187' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>geo_types</a></span></h1><div class='docblock'><p>The <code>geo-types</code> library provides geospatial primitive types and traits to the <a href="https://github.com/georust"><code>GeoRust</code></a>
+crate ecosystem.</p>
+<p>In most cases, you will only need to use this crate if you're a crate author and want compatibility
+with other <code>GeoRust</code> crates. Otherwise, the <a href="https://crates.io/crates/geo"><code>geo</code></a> crate re-exports these types and
+provides geospatial algorithms, while the <a href="https://crates.io/crates/geojson"><code>geojson</code></a> crate allows serialising
+and de-serialising <code>geo-types</code> primitives to GeoJSON.</p>
+<h1 id="semantics" class="section-header"><a href="#semantics">Semantics</a></h1>
+<p>The geospatial types provided here aim to adhere to the
+<a href="//www.ogc.org/standards/sfa">OpenGIS Simple feature access</a> standards.
+Thus, the types here are inter-operable with other
+implementations of the standards: <a href="//github.com/locationtech/jts">JTS</a>, <a href="//trac.osgeo.org/geos">geos</a>, etc.</p>
+</div><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table><tr class='module-item'><td><a class="macro" href="macro.line_string.html" title='geo_types::line_string macro'>line_string</a></td><td class='docblock-short'><p>Creates a <a href="./line_string/struct.LineString.html"><code>LineString</code></a> containing the given coordinates.</p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.point.html" title='geo_types::point macro'>point</a></td><td class='docblock-short'><p>Creates a <a href="./struct.Point.html"><code>Point</code></a> from the given coordinates.</p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.polygon.html" title='geo_types::polygon macro'>polygon</a></td><td class='docblock-short'><p>Creates a <a href="./struct.Polygon.html"><code>Polygon</code></a> containing the given coordinates.</p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.Coordinate.html" title='geo_types::Coordinate struct'>Coordinate</a></td><td class='docblock-short'><p>A lightweight struct used to store coordinates on the 2-dimensional
+Cartesian plane.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.GeometryCollection.html" title='geo_types::GeometryCollection struct'>GeometryCollection</a></td><td class='docblock-short'><p>A collection of <a href="enum.Geometry.html"><code>Geometry</code></a> types.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.InvalidRectCoordinatesError.html" title='geo_types::InvalidRectCoordinatesError struct'>InvalidRectCoordinatesError</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="struct" href="struct.Line.html" title='geo_types::Line struct'>Line</a></td><td class='docblock-short'><p>A line segment made up of exactly two
+<a href="struct.Coordinate.html"><code>Coordinate</code>s</a>.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.LineString.html" title='geo_types::LineString struct'>LineString</a></td><td class='docblock-short'><p>An ordered collection of two or more
+<a href="struct.Coordinate.html"><code>Coordinate</code>s</a>, representing a
+path between locations.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.MultiLineString.html" title='geo_types::MultiLineString struct'>MultiLineString</a></td><td class='docblock-short'><p>A collection of
+<a href="line_string/struct.LineString.html"><code>LineString</code>s</a>. Can
+be created from a <code>Vec</code> of <code>LineString</code>s, or from an
+Iterator which yields <code>LineString</code>s. Iterating over this
+object yields the component <code>LineString</code>s.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.MultiPoint.html" title='geo_types::MultiPoint struct'>MultiPoint</a></td><td class='docblock-short'><p>A collection of <a href="struct.Point.html"><code>Point</code>s</a>. Can
+be created from a <code>Vec</code> of <code>Point</code>s, or from an
+Iterator which yields <code>Point</code>s. Iterating over this
+object yields the component <code>Point</code>s.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.MultiPolygon.html" title='geo_types::MultiPolygon struct'>MultiPolygon</a></td><td class='docblock-short'><p>A collection of <a href="struct.Polygon.html"><code>Polygon</code>s</a>. Can
+be created from a <code>Vec</code> of <code>Polygon</code>s, or from an
+Iterator which yields <code>Polygon</code>s. Iterating over this
+object yields the component <code>Polygon</code>s.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Point.html" title='geo_types::Point struct'>Point</a></td><td class='docblock-short'><p>A single point in 2D space.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.PointsIter.html" title='geo_types::PointsIter struct'>PointsIter</a></td><td class='docblock-short'><p>A <code>Point</code> iterator returned by the <code>points_iter</code> method</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Polygon.html" title='geo_types::Polygon struct'>Polygon</a></td><td class='docblock-short'><p>A bounded two-dimensional area.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Rect.html" title='geo_types::Rect struct'>Rect</a></td><td class='docblock-short'><p>An <em>axis-aligned</em> bounded 2D rectangle whose area is
+defined by minimum and maximum <code>Coordinate</code>s.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Triangle.html" title='geo_types::Triangle struct'>Triangle</a></td><td class='docblock-short'><p>A bounded 2D area whose three vertices are defined by
+<code>Coordinate</code>s. The semantics and validity are that of
+the equivalent [<code>Polygon</code>]; in addition, the three
+vertices must not be collinear and they must be distinct.</p>
+</td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.Geometry.html" title='geo_types::Geometry enum'>Geometry</a></td><td class='docblock-short'><p>An enum representing any possible geometry type.</p>
+</td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.CoordinateType.html" title='geo_types::CoordinateType trait'>CoordinateType</a></td><td class='docblock-short'><p>The type of an x or y value of a point/coordinate.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "geo_types";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["geojson"] = [{"text":"impl Serialize for GeoJson","synthetic":false,"types":[]},{"text":"impl Serialize for Value","synthetic":false,"types":[]},{"text":"impl Serialize for Geometry","synthetic":false,"types":[]},{"text":"impl Serialize for Feature","synthetic":false,"types":[]},{"text":"impl Serialize for Id","synthetic":false,"types":[]},{"text":"impl Serialize for FeatureCollection","synthetic":false,"types":[]}];
+implementors["serde_json"] = [{"text":"impl Serialize for Map&lt;String, Value&gt;","synthetic":false,"types":[]},{"text":"impl Serialize for Value","synthetic":false,"types":[]},{"text":"impl Serialize for Number","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

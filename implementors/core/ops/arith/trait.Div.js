@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["geo_types"] = [{"text":"impl&lt;T&gt; Div&lt;T&gt; for Coordinate&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: CoordinateType,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;T&gt; Div&lt;T&gt; for Point&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: CoordinateType,&nbsp;</span>","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

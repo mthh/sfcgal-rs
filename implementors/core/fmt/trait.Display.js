@@ -1,0 +1,10 @@
+(function() {var implementors = {};
+implementors["anyhow"] = [{"text":"impl Display for Error","synthetic":false,"types":[]}];
+implementors["geo_types"] = [{"text":"impl Display for InvalidRectCoordinatesError","synthetic":false,"types":[]}];
+implementors["geojson"] = [{"text":"impl Display for GeoJson","synthetic":false,"types":[]},{"text":"impl Display for Feature","synthetic":false,"types":[]},{"text":"impl Display for Geometry","synthetic":false,"types":[]},{"text":"impl Display for FeatureCollection","synthetic":false,"types":[]},{"text":"impl Display for Error","synthetic":false,"types":[]}];
+implementors["num_traits"] = [{"text":"impl Display for ParseFloatError","synthetic":false,"types":[]}];
+implementors["quote"] = [{"text":"impl Display for Tokens","synthetic":false,"types":[]},{"text":"impl Display for Ident","synthetic":false,"types":[]}];
+implementors["serde"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Display for Unexpected&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Display for dyn Expected + 'a","synthetic":false,"types":[]}];
+implementors["serde_json"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl Display for Value","synthetic":false,"types":[]},{"text":"impl Display for Number","synthetic":false,"types":[]}];
+implementors["syn"] = [{"text":"impl Display for Ident","synthetic":false,"types":[]},{"text":"impl Display for IntTy","synthetic":false,"types":[]},{"text":"impl Display for FloatTy","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
