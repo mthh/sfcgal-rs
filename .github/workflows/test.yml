@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           sudo apt-get install -y libcgal-dev libboost1.74-all-dev libmpfr-dev libgmp-dev cmake wget unzip clang libstdc++-11-dev
           wget https://gitlab.com/Oslandia/SFCGAL/-/archive/v1.4.1/SFCGAL-v1.4.1.zip
