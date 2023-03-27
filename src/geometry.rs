@@ -6,9 +6,9 @@ use crate::{
 };
 use num_traits::FromPrimitive;
 use sfcgal_sys::{
-    initialize, sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_area,
-    sfcgal_geometry_area_3d, sfcgal_geometry_as_text, sfcgal_geometry_as_text_decim,
-    sfcgal_geometry_clone, sfcgal_geometry_collection_add_geometry,
+    initialize, sfcgal_geometry_alpha_shapes, sfcgal_geometry_approximate_medial_axis,
+    sfcgal_geometry_area, sfcgal_geometry_area_3d, sfcgal_geometry_as_text,
+    sfcgal_geometry_as_text_decim, sfcgal_geometry_clone, sfcgal_geometry_collection_add_geometry,
     sfcgal_geometry_collection_create, sfcgal_geometry_collection_geometry_n,
     sfcgal_geometry_collection_num_geometries, sfcgal_geometry_convexhull,
     sfcgal_geometry_convexhull_3d, sfcgal_geometry_covers, sfcgal_geometry_covers_3d,
@@ -18,12 +18,13 @@ use sfcgal_sys::{
     sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d, sfcgal_geometry_is_empty,
     sfcgal_geometry_is_measured, sfcgal_geometry_is_planar, sfcgal_geometry_is_valid,
     sfcgal_geometry_is_valid_detail, sfcgal_geometry_line_sub_string,
-    sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon, sfcgal_geometry_orientation,
+    sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon,
+    sfcgal_geometry_optimal_alpha_shapes, sfcgal_geometry_orientation,
     sfcgal_geometry_straight_skeleton, sfcgal_geometry_straight_skeleton_distance_in_m,
     sfcgal_geometry_t, sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
     sfcgal_geometry_type_id, sfcgal_geometry_union, sfcgal_geometry_union_3d,
     sfcgal_geometry_volume, sfcgal_io_read_wkt, sfcgal_multi_linestring_create,
-    sfcgal_multi_point_create, sfcgal_multi_polygon_create, size_t,
+    sfcgal_multi_point_create, sfcgal_multi_polygon_create,
 };
 use std::{ffi::CString, mem::MaybeUninit, os::raw::c_char, ptr::NonNull};
 
@@ -50,14 +51,14 @@ pub enum GeomType {
 
 impl GeomType {
     fn is_collection_type(&self) -> bool {
-        match &self {
+        matches!(
+            &self,
             GeomType::Multipoint
-            | GeomType::Multilinestring
-            | GeomType::Multipolygon
-            | GeomType::Multisolid
-            | GeomType::Geometrycollection => true,
-            _ => false,
-        }
+                | GeomType::Multilinestring
+                | GeomType::Multipolygon
+                | GeomType::Multisolid
+                | GeomType::Geometrycollection
+        )
     }
 }
 /// Represents the orientation of a `SFCGeometry`.
@@ -112,7 +113,7 @@ impl SFCGeometry {
     pub fn new(wkt: &str) -> Result<SFCGeometry> {
         initialize();
         let c_str = CString::new(wkt)?;
-        let obj = unsafe { sfcgal_io_read_wkt(c_str.as_ptr(), wkt.len() as size_t) };
+        let obj = unsafe { sfcgal_io_read_wkt(c_str.as_ptr(), wkt.len()) };
         unsafe { SFCGeometry::new_from_raw(obj, true) }
     }
 
@@ -142,7 +143,7 @@ impl SFCGeometry {
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
     pub fn to_wkt(&self) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
-        let mut length: size_t = 0;
+        let mut length: usize = 0;
         unsafe {
             sfcgal_geometry_as_text(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
             Ok(_c_string_with_size(ptr.assume_init(), length))
@@ -154,7 +155,7 @@ impl SFCGeometry {
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
-        let mut length: size_t = 0;
+        let mut length: usize = 0;
         unsafe {
             sfcgal_geometry_as_text_decim(
                 self.c_geom.as_ref(),
@@ -340,6 +341,7 @@ impl SFCGeometry {
         let result = unsafe { sfcgal_geometry_straight_skeleton(self.c_geom.as_ptr()) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
     /// Returns the straight skeleton of the given `SFCGeometry` with the distance to the border as M coordinate.
     /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
@@ -404,6 +406,41 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Returns the alpha shape of the given `SFCGeometry` Point set.
+    /// ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#gadb33896047f57656dec64dff1984fba5))
+    pub fn alpha_shapes(&self, alpha: f64, allow_holes: bool) -> Result<SFCGeometry> {
+        if !self.is_valid().unwrap() {
+            return Err(format_err!(
+                "Error: alpha shapes can only be computed on valid geometries"
+            ));
+        }
+        if alpha < 0.0 || !alpha.is_finite() {
+            return Err(format_err!(
+                "Error: alpha parameter must be positive or equal to 0.0, got {}",
+                alpha,
+            ));
+        }
+        let result =
+            unsafe { sfcgal_geometry_alpha_shapes(self.c_geom.as_ptr(), alpha, allow_holes) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    /// Return the optimal alpha shape of the given `SFCGeometry` Point set.
+    pub fn optimal_alpha_shapes(
+        &self,
+        allow_holes: bool,
+        nb_components: usize,
+    ) -> Result<SFCGeometry> {
+        let result = unsafe {
+            sfcgal_geometry_optimal_alpha_shapes(
+                self.c_geom.as_ptr(),
+                allow_holes,
+                nb_components as usize,
+            )
+        };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
     /// Create a SFCGeometry collection type (MultiPoint, MultiLineString, MultiPolygon, MultiSolid
     /// or GeometryCollection) given a mutable slice of `SFCGeometry`'s
     /// (this is a destructive operation)
@@ -430,7 +467,7 @@ impl SFCGeometry {
             .iter()
             .map(|gt| gt.is_collection_type())
             .collect::<Vec<bool>>();
-        if !is_all_same(&types) || multis.iter().any(|&x| x == true) {
+        if !is_all_same(&types) || multis.iter().any(|&x| x) {
             let res_geom = unsafe { sfcgal_geometry_collection_create() };
             make_multi_geom(res_geom, geoms)
         } else if types[0] == GeomType::Point {
@@ -501,7 +538,7 @@ fn make_multi_geom(
     out_multi: *mut sfcgal_geometry_t,
     geoms: &mut [SFCGeometry],
 ) -> Result<SFCGeometry> {
-    for sfcgal_geom in geoms.into_iter() {
+    for sfcgal_geom in geoms.iter_mut() {
         unsafe {
             sfcgal_geom.owned = false;
             sfcgal_geometry_collection_add_geometry(
@@ -528,7 +565,7 @@ mod tests {
         let geom = SFCGeometry::new("POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 0.0))");
         assert!(geom.is_ok());
         let geom = geom.unwrap();
-        assert!(geom.is_valid().unwrap(), true);
+        assert!(geom.is_valid().unwrap());
         let geom1 = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
         assert_eq!(geom.intersects(&geom1).unwrap(), true);
     }
@@ -674,7 +711,7 @@ mod tests {
     }
 
     #[test]
-    fn validity_detail_on_invalid_geom() {
+    fn validity_detail_on_invalid_geom_1() {
         let surface = SFCGeometry::new(
             "POLYHEDRALSURFACE Z \
              (((0 0 0, 0 1 0, 1 1 0, 1 0 0, 0 0 0)),\
@@ -689,6 +726,26 @@ mod tests {
         assert_eq!(
             surface.validity_detail().unwrap(),
             Some(String::from("inconsistent orientation of PolyhedralSurface detected at edge 3 (4-7) of polygon 5")),
+        );
+    }
+
+    #[test]
+    fn validity_detail_on_invalid_geom_2() {
+        let surface = SFCGeometry::new("POLYGON((1 2,1 2,1 2,1 2))").unwrap();
+        assert_eq!(surface.is_valid().unwrap(), false);
+        assert_eq!(
+            surface.validity_detail().unwrap(),
+            Some(String::from("ring 0 degenerated to a point")),
+        );
+    }
+
+    #[test]
+    fn validity_detail_on_invalid_geom_3() {
+        let surface = SFCGeometry::new("LINESTRING(1 2, 1 2, 1 2)").unwrap();
+        assert_eq!(surface.is_valid().unwrap(), false);
+        assert_eq!(
+            surface.validity_detail().unwrap(),
+            Some(String::from("no length")),
         );
     }
 
@@ -822,6 +879,61 @@ mod tests {
         let diff = cube1.intersection_3d(&cube2).unwrap();
         assert_eq!(diff.is_valid().unwrap(), true);
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);
+    }
+
+    #[test]
+    fn alpha_shapes_on_point() {
+        let multipoint = SFCGeometry::new("POINT(1 3)").unwrap();
+        let res = multipoint.alpha_shapes(20.0, false).unwrap();
+        assert_eq!(res.to_wkt_decim(1).unwrap(), "GEOMETRYCOLLECTION EMPTY");
+    }
+
+    #[test]
+    fn alpha_shapes_on_multipoint() {
+        let multipoint = SFCGeometry::new("MULTIPOINT((1 2),(2 2),(3 0),(1 3))").unwrap();
+        let res = multipoint.alpha_shapes(20.0, false).unwrap();
+        assert_eq!(
+            res.to_wkt_decim(1).unwrap(),
+            "POLYGON((1.0 2.0,1.0 3.0,2.0 2.0,3.0 0.0,1.0 2.0))"
+        );
+    }
+
+    #[test]
+    fn alpha_shapes_on_linestring() {
+        let multipoint = SFCGeometry::new("LINESTRING(1 2,2 2,3 0,1 3)").unwrap();
+        let res = multipoint.alpha_shapes(20.0, false).unwrap();
+        assert_eq!(
+            res.to_wkt_decim(1).unwrap(),
+            "POLYGON((1.0 2.0,1.0 3.0,2.0 2.0,3.0 0.0,1.0 2.0))"
+        );
+    }
+
+    #[test]
+    fn alpha_shapes_on_multilinestring() {
+        let multipoint =
+            SFCGeometry::new("MULTILINESTRING((1 2,2 2,3 0,1 3), (2 6,3 5,4 2))").unwrap();
+        let res = multipoint.alpha_shapes(20.0, false).unwrap();
+        assert_eq!(
+            res.to_wkt_decim(1).unwrap(),
+            "POLYGON((1.0 2.0,1.0 3.0,2.0 6.0,3.0 5.0,4.0 2.0,3.0 0.0,1.0 2.0))"
+        );
+    }
+
+    #[test]
+    fn alpha_shapes_on_polygon() {
+        let pol1 = SFCGeometry::new("POLYGON((0 0, 0 4, 4 4, 4 0, 0 0))").unwrap();
+        let res = pol1.alpha_shapes(10.0, false).unwrap();
+        assert_eq!(
+            res.to_wkt_decim(1).unwrap(),
+            "POLYGON((0.0 0.0,0.0 4.0,4.0 4.0,4.0 0.0,0.0 0.0))"
+        );
+    }
+
+    #[test]
+    fn alpha_shapes_on_invalid() {
+        let pol1 = SFCGeometry::new("LINESTRING(1 2, 1 2, 1 2, 1 2)").unwrap();
+        let res = pol1.alpha_shapes(10.0, false);
+        assert_eq!(res.is_err(), true);
     }
 
     #[test]

@@ -17,7 +17,7 @@ use sfcgal_sys::{
     sfcgal_solid_create_from_exterior_shell, sfcgal_solid_num_shells, sfcgal_solid_shell_n,
     sfcgal_triangle_create, sfcgal_triangle_set_vertex, sfcgal_triangle_vertex,
     sfcgal_triangulated_surface_add_triangle, sfcgal_triangulated_surface_create,
-    sfcgal_triangulated_surface_num_triangles, sfcgal_triangulated_surface_triangle_n, size_t,
+    sfcgal_triangulated_surface_num_triangles, sfcgal_triangulated_surface_triangle_n,
 };
 
 pub trait CoordType {}
@@ -266,7 +266,7 @@ impl<T: ToSFCGALGeom + CoordType> ToSFCGAL for CoordSeq<T> {
                     let exterior = coords_polyhedralsurface_to_sfcgal(&polyhedres[0])?;
                     let r_solid = unsafe { sfcgal_solid_create_from_exterior_shell(exterior) };
                     polyhedres
-                        .into_iter()
+                        .iter()
                         .skip(1)
                         .map(|poly| {
                             unsafe {
@@ -350,11 +350,11 @@ macro_rules! sfcgal_polyhedral_surface_to_coords {
 }
 
 fn get_nb_geometry(geom: *const sfcgal_geometry_t) -> usize {
-    unsafe { sfcgal_geometry_collection_num_geometries(geom) as usize }
+    unsafe { sfcgal_geometry_collection_num_geometries(geom) }
 }
 
 fn get_geom_at_index(geom: *const sfcgal_geometry_t, ix: usize) -> *const sfcgal_geometry_t {
-    unsafe { sfcgal_geometry_collection_geometry_n(geom, ix as size_t) }
+    unsafe { sfcgal_geometry_collection_geometry_n(geom, ix) }
 }
 
 /// Convert a [`SFCGeometry`], given it's internal [`GeomType`], to the corresponding [`CoordSeq`]
@@ -416,7 +416,7 @@ impl ToCoordinates for SFCGeometry {
                     let inner_geom = unsafe {
                         // Todo : document what we are doing that
                         SFCGeometry::new_from_raw(
-                            sfcgal_geometry_collection_geometry_n(geom, ix as size_t)
+                            sfcgal_geometry_collection_geometry_n(geom, ix)
                                 as *mut sfcgal_geometry_t,
                             false,
                         )?
@@ -433,7 +433,7 @@ impl ToCoordinates for SFCGeometry {
             GeomType::Triangulatedsurface => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = unsafe { sfcgal_triangulated_surface_num_triangles(geom) };
-                let mut triangles = Vec::with_capacity(ngeoms as usize);
+                let mut triangles = Vec::with_capacity(ngeoms);
                 for ix in 0..ngeoms {
                     let triangle = unsafe { sfcgal_triangulated_surface_triangle_n(geom, ix) };
                     triangles.push(sfcgal_triangle_to_coords!(triangle, T));
@@ -446,7 +446,7 @@ impl ToCoordinates for SFCGeometry {
             GeomType::Solid => {
                 let geom = unsafe { self.c_geom.as_ref() };
                 let ngeoms = unsafe { sfcgal_solid_num_shells(geom) };
-                let mut polyhedres = Vec::with_capacity(ngeoms as usize);
+                let mut polyhedres = Vec::with_capacity(ngeoms);
                 for ix in 0..ngeoms {
                     let poly = unsafe { sfcgal_solid_shell_n(geom, ix) };
                     polyhedres.push(sfcgal_polyhedral_surface_to_coords!(poly, T));
@@ -460,7 +460,7 @@ impl ToCoordinates for SFCGeometry {
                 for ix_geom in 0..n_solides {
                     let solid = get_geom_at_index(geom_ms, ix_geom);
                     let n_shell = unsafe { sfcgal_solid_num_shells(solid) };
-                    let mut polyhedres = Vec::with_capacity(n_shell as usize);
+                    let mut polyhedres = Vec::with_capacity(n_shell);
                     for ix in 0..n_shell {
                         let poly = unsafe { sfcgal_solid_shell_n(solid, ix) };
                         polyhedres.push(sfcgal_polyhedral_surface_to_coords!(poly, T));

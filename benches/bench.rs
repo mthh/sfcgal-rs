@@ -5,8 +5,9 @@ extern crate sfcgal;
 extern crate test;
 
 use sfcgal::{FromGeoJSON, SFCGeometry, ToCoordinates, ToGeoJSON, ToSFCGAL, TryInto};
+use std::convert::TryFrom;
 use std::io::Read;
-use test::{black_box, Bencher};
+use test::Bencher;
 
 type Point2d = (f64, f64);
 type Point3d = (f64, f64, f64);
@@ -100,6 +101,6 @@ fn bench_sfcgal_2d_to_geotype_concrete_type(b: &mut Bencher) {
     let geom = make_sfgal_geom();
     b.iter(|| {
         let _polyg: geo_types::Polygon<f64> =
-            geom.clone().try_into().unwrap().into_polygon().unwrap();
+            geo_types::Polygon::try_from(geom.clone().try_into().unwrap()).unwrap();
     });
 }

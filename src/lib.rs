@@ -90,6 +90,6 @@ mod tests {
     use super::version;
     #[test]
     fn display_version() {
-        assert!(version().contains("1.3."));
+        assert!(version().contains("1.4."));
     }
 }

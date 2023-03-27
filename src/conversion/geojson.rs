@@ -50,7 +50,7 @@ impl FromSlice for Point3d {
         Ok((
             *it.next().unwrap(),
             *it.next().unwrap(),
-            *it.next().unwrap_or_else(|| &(0.0f64)),
+            *it.next().unwrap_or(&(0.0f64)),
         ))
     }
 }
@@ -68,7 +68,7 @@ where
         T: FromSlice + CoordType,
     {
         match *self {
-            GeometryValue::Point(ref pt) => Ok(CoordSeq::Point(T::from_slice(&pt)?)),
+            GeometryValue::Point(ref pt) => Ok(CoordSeq::Point(T::from_slice(pt)?)),
             GeometryValue::MultiPoint(ref pts) => {
                 let _pts = pts
                     .iter()
@@ -112,7 +112,7 @@ where
             GeometryValue::GeometryCollection(ref geoms) => {
                 let _geoms = geoms
                     .iter()
-                    .map(|ref geom| geom.value.try_into())
+                    .map(|geom| geom.value.try_into())
                     .collect::<Result<Vec<CoordSeq<T>>>>();
                 Ok(CoordSeq::Geometrycollection(_geoms?))
             }

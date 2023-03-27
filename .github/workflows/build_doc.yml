@@ -1,0 +1,27 @@
+on:
+  push:
+    tags:
+      - '*'
+  pull_request:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+name: Build documentation on new release
+jobs:
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          sudo apt-get install -y libcgal-dev libboost1.74-all-dev libmpfr-dev libgmp-dev cmake wget unzip clang libstdc++-11-dev
+          wget https://gitlab.com/Oslandia/SFCGAL/-/archive/v1.4.1/SFCGAL-v1.4.1.zip
+          unzip SFCGAL-v1.4.1.zip
+          cd SFCGAL-v1.4.1 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install && cd ..
+      - run: cargo test --all-features
+      - run: |
+          cargo doc
+          echo "<meta http-equiv=refresh content=0;url=sfcgal/index.html>" > target/doc/index.html
+          sudo pip install ghp-import
+          ghp-import -n target/doc
+          git push -fq https://${GITHUB_TOKEN}@github.com/mthh/sfcgal-rs.git gh-pages

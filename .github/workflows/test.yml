@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+name: Build and run tests
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          sudo apt-get install -y libcgal-dev libboost1.74-all-dev libmpfr-dev libgmp-dev cmake wget unzip clang libstdc++-11-dev
+          wget https://gitlab.com/Oslandia/SFCGAL/-/archive/v1.4.1/SFCGAL-v1.4.1.zip
+          unzip SFCGAL-v1.4.1.zip
+          cd SFCGAL-v1.4.1 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install && cd ..
+      - run: cargo test --all-features
