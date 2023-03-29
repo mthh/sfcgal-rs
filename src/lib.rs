@@ -44,7 +44,8 @@
 extern crate anyhow;
 #[macro_use]
 extern crate enum_primitive_derive;
-#[allow(unused_imports)] #[macro_use]
+#[allow(unused_imports)]
+#[macro_use]
 extern crate approx;
 
 use sfcgal_sys::sfcgal_version;

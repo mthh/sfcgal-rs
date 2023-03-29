@@ -405,7 +405,8 @@ mod tests {
         let pt = Point::new(0.1, 0.9);
         let pt_sfcgal = pt.to_sfcgal().unwrap();
         assert!(pt_sfcgal.is_valid().unwrap());
-        let pt: Point<f64> = geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
+        let pt: Point<f64> =
+            geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
         assert_eq!(pt.x(), 0.1);
         assert_eq!(pt.y(), 0.9);
     }
@@ -413,7 +414,8 @@ mod tests {
     #[test]
     fn point_sfcgal_try_into_geo() {
         let pt_sfcgal = SFCGeometry::new("POINT(0.1 0.9)").unwrap();
-        let pt: Point<f64> = geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
+        let pt: Point<f64> =
+            geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
         assert_ulps_eq!(pt.x(), 0.1);
         assert_ulps_eq!(pt.y(), 0.9);
     }
@@ -527,7 +529,8 @@ mod tests {
         )]);
         let mutlipolygon_sfcgal = multipolygon.to_sfcgal().unwrap();
         let mpg: MultiPolygon<f64> =
-            geo_types::MultiPolygon::try_from(TryInto::try_into(mutlipolygon_sfcgal).unwrap()).unwrap();
+            geo_types::MultiPolygon::try_from(TryInto::try_into(mutlipolygon_sfcgal).unwrap())
+                .unwrap();
 
         assert_eq!(
             mpg.0[0].exterior(),
