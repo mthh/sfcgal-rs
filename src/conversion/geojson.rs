@@ -112,7 +112,7 @@ where
             GeometryValue::GeometryCollection(ref geoms) => {
                 let _geoms = geoms
                     .iter()
-                    .map(|geom| geom.value.try_into())
+                    .map(|geom| TryIntoCoords::try_into(&geom.value))
                     .collect::<Result<Vec<CoordSeq<T>>>>();
                 Ok(CoordSeq::Geometrycollection(_geoms?))
             }
@@ -232,7 +232,7 @@ impl FromGeoJSON for SFCGeometry {
     fn from_geojson<T: FromSlice + CoordType + ToSFCGALGeom>(
         geom: &GeometryValue,
     ) -> Result<SFCGeometry> {
-        let coords: CoordSeq<T> = geom.try_into()?;
+        let coords: CoordSeq<T> = TryIntoCoords::try_into(&*geom)?;
         coords.to_sfcgal()
     }
 }
@@ -252,7 +252,7 @@ mod tests {
             pt_sfcgal.to_wkt_decim(1).unwrap(),
             pt_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point2d> = pt_geojson.try_into().unwrap();
+        let a: CoordSeq<Point2d> = TryIntoCoords::try_into(&pt_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             pt_sfcgal.to_wkt_decim(1).unwrap(),
@@ -270,7 +270,7 @@ mod tests {
             pt_sfcgal.to_wkt_decim(1).unwrap(),
             pt_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point3d> = pt_geojson.try_into().unwrap();
+        let a: CoordSeq<Point3d> = TryIntoCoords::try_into(&pt_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             pt_sfcgal.to_wkt_decim(1).unwrap(),
@@ -310,7 +310,7 @@ mod tests {
             line_sfcgal.to_wkt_decim(1).unwrap(),
             line_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point2d> = line_geojson.try_into().unwrap();
+        let a: CoordSeq<Point2d> = TryIntoCoords::try_into(&line_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             line_sfcgal.to_wkt_decim(1).unwrap(),
@@ -327,7 +327,7 @@ mod tests {
             line_sfcgal.to_wkt_decim(1).unwrap(),
             line_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point3d> = line_geojson.try_into().unwrap();
+        let a: CoordSeq<Point3d> = TryIntoCoords::try_into(&line_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             line_sfcgal.to_wkt_decim(1).unwrap(),
@@ -349,7 +349,7 @@ mod tests {
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
             multiline_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point2d> = multiline_geojson.try_into().unwrap();
+        let a: CoordSeq<Point2d> = TryIntoCoords::try_into(&multiline_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
@@ -371,7 +371,7 @@ mod tests {
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
             multiline_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point3d> = multiline_geojson.try_into().unwrap();
+        let a: CoordSeq<Point3d> = TryIntoCoords::try_into(&multiline_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
@@ -388,7 +388,7 @@ mod tests {
             polyg_sfcgal.to_wkt_decim(1).unwrap(),
             polyg_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point2d> = polyg_geojson.try_into().unwrap();
+        let a: CoordSeq<Point2d> = TryIntoCoords::try_into(&polyg_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             polyg_sfcgal.to_wkt_decim(1).unwrap(),
@@ -405,7 +405,7 @@ mod tests {
             polyg_sfcgal.to_wkt_decim(1).unwrap(),
             polyg_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point3d> = polyg_geojson.try_into().unwrap();
+        let a: CoordSeq<Point3d> = TryIntoCoords::try_into(&polyg_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             polyg_sfcgal.to_wkt_decim(1).unwrap(),
@@ -435,7 +435,7 @@ mod tests {
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
             multipolyg_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point3d> = multipolyg_geojson.try_into().unwrap();
+        let a: CoordSeq<Point3d> = TryIntoCoords::try_into(&multipolyg_geojson).unwrap();
         let b = a.to_sfcgal().unwrap();
         assert_eq!(
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
@@ -466,7 +466,7 @@ mod tests {
             multipolyg_sfcgal.to_wkt_decim(1).unwrap(),
             multipolyg_sfcgal_new.to_wkt_decim(1).unwrap()
         );
-        let a: CoordSeq<Point3d> = multipolyg_geojson.try_into().unwrap();
+        let a: CoordSeq<Point3d> = TryIntoCoords::try_into(&multipolyg_geojson).unwrap();
         let c = a.to_geojson::<Point3d>().unwrap();
         let b = a.to_sfcgal().unwrap();
         let d = SFCGeometry::from_geojson::<Point3d>(&c).unwrap();

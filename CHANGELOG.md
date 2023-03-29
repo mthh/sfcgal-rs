@@ -7,8 +7,9 @@ All notable changes to this project will be documented in this file.
   * `sfcgal_geometry_alpha_shapes` and `sfcgal_geometry_optimal_alpha_shapes`.
 
 ### Changed
+- Update project to 2021 edition.
 - Update various dependencies (notably `geo_types` and `geojson`).
-- Switch from travis to github actions.
+- Switch from travis to GitHub actions.
 - Apply some clippy suggestions.
 
 

@@ -3,7 +3,7 @@ name = "sfcgal"
 version = "0.5.0"
 authors = ["Matthieu Viry <matthieu.viry@univ-grenoble-alpes.fr>"]
 license = "MIT/Apache-2.0"
-edition = "2018"
+edition = "2021"
 description = """
 High-level bindings to SFCGAL and conversion from/to other geometry libraries.
 """

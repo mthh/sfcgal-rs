@@ -71,7 +71,7 @@ impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
                 },
                 CoordSeq::Multipolygon(polygons) => {
                     let polys = polygons.into_iter().map(|p| {
-                        let a: geo_types::Geometry<f64> = CoordSeq::Polygon(p).try_into()?;
+                        let a: geo_types::Geometry<f64> = TryInto::try_into(CoordSeq::Polygon(p))?;
                         if let Ok(poly) = geo_types::Polygon::try_from(a) {
                             Ok(poly)
                         } else {
@@ -84,7 +84,7 @@ impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
                     Ok(geo_types::Geometry::GeometryCollection(
                         geo_types::GeometryCollection(collection
                             .into_iter()
-                            .map(|g| g.try_into())
+                            .map(|g| TryInto::try_into(g))
                             .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?
                         )
                     ))
@@ -185,7 +185,7 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
                 let p = match c {
                     CoordSeq::Geometrycollection(g) => g
                         .into_iter()
-                        .map(|g| g.try_into())
+                        .map(|g| TryInto::try_into(g))
                         .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?,
                     _ => unimplemented!(),
                 };
@@ -405,7 +405,7 @@ mod tests {
         let pt = Point::new(0.1, 0.9);
         let pt_sfcgal = pt.to_sfcgal().unwrap();
         assert!(pt_sfcgal.is_valid().unwrap());
-        let pt: Point<f64> = geo_types::Point::try_from(pt_sfcgal.try_into().unwrap()).unwrap();
+        let pt: Point<f64> = geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
         assert_eq!(pt.x(), 0.1);
         assert_eq!(pt.y(), 0.9);
     }
@@ -413,7 +413,7 @@ mod tests {
     #[test]
     fn point_sfcgal_try_into_geo() {
         let pt_sfcgal = SFCGeometry::new("POINT(0.1 0.9)").unwrap();
-        let pt: Point<f64> = geo_types::Point::try_from(pt_sfcgal.try_into().unwrap()).unwrap();
+        let pt: Point<f64> = geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
         assert_ulps_eq!(pt.x(), 0.1);
         assert_ulps_eq!(pt.y(), 0.9);
     }
@@ -424,7 +424,7 @@ mod tests {
         let mpt_sfcgal = multipt.to_sfcgal().unwrap();
         assert!(mpt_sfcgal.is_valid().unwrap());
         let mpt: MultiPoint<f64> =
-            geo_types::MultiPoint::try_from(mpt_sfcgal.try_into().unwrap()).unwrap();
+            geo_types::MultiPoint::try_from(TryInto::try_into(mpt_sfcgal).unwrap()).unwrap();
 
         assert_eq!(mpt.0[0].x(), 0.);
         assert_eq!(mpt.0[0].y(), 0.);
@@ -438,7 +438,7 @@ mod tests {
         let line_sfcgal = linestring.to_sfcgal().unwrap();
         assert!(line_sfcgal.is_valid().unwrap());
         let linestring_geo: LineString<f64> =
-            geo_types::LineString::try_from(line_sfcgal.try_into().unwrap()).unwrap();
+            geo_types::LineString::try_from(TryInto::try_into(line_sfcgal).unwrap()).unwrap();
         assert_eq!(linestring_geo.0[0].x, 0.);
         assert_eq!(linestring_geo.0[0].y, 0.);
         assert_eq!(linestring_geo.0[1].x, 1.);
@@ -454,7 +454,7 @@ mod tests {
         let mls_sfcgal = multilinestring.to_sfcgal().unwrap();
         assert!(mls_sfcgal.is_valid().unwrap());
         let mls: MultiLineString<f64> =
-            geo_types::MultiLineString::try_from(mls_sfcgal.try_into().unwrap()).unwrap();
+            geo_types::MultiLineString::try_from(TryInto::try_into(mls_sfcgal).unwrap()).unwrap();
         assert_eq!(mls.0[0].0[0].x, 0.);
         assert_eq!(mls.0[0].0[0].y, 0.);
         assert_eq!(mls.0[0].0[1].x, 1.);
@@ -471,7 +471,7 @@ mod tests {
         let tri_sfcgal = tri.to_sfcgal().unwrap();
         assert!(tri_sfcgal.is_valid().unwrap());
         assert_eq!(tri_sfcgal._type().unwrap(), GeomType::Triangle);
-        let tri_geo: geo_types::Geometry<f64> = tri_sfcgal.try_into().unwrap();
+        let tri_geo: geo_types::Geometry<f64> = TryInto::try_into(tri_sfcgal).unwrap();
         match tri_geo {
             geo_types::Geometry::Triangle(t) => {
                 assert_eq!(t.0.x, 0.);
@@ -499,7 +499,7 @@ mod tests {
         );
         let poly_sfcgal = polygon.to_sfcgal().unwrap();
         let polyg: Polygon<f64> =
-            geo_types::Polygon::try_from(poly_sfcgal.try_into().unwrap()).unwrap();
+            geo_types::Polygon::try_from(TryInto::try_into(poly_sfcgal).unwrap()).unwrap();
         let interiors = polyg.interiors();
         assert_eq!(
             polyg.exterior(),
@@ -527,7 +527,7 @@ mod tests {
         )]);
         let mutlipolygon_sfcgal = multipolygon.to_sfcgal().unwrap();
         let mpg: MultiPolygon<f64> =
-            geo_types::MultiPolygon::try_from(mutlipolygon_sfcgal.try_into().unwrap()).unwrap();
+            geo_types::MultiPolygon::try_from(TryInto::try_into(mutlipolygon_sfcgal).unwrap()).unwrap();
 
         assert_eq!(
             mpg.0[0].exterior(),
@@ -549,7 +549,7 @@ mod tests {
     fn geometrycollection_sfcgal_to_geo_to_sfcgal() {
         let input_wkt = "GEOMETRYCOLLECTION(POINT(4.0 6.0),LINESTRING(4.0 6.0,7.0 10.0))";
         let gc_sfcgal = SFCGeometry::new(input_wkt).unwrap();
-        let gc: geo_types::Geometry<f64> = gc_sfcgal.try_into().unwrap();
+        let gc: geo_types::Geometry<f64> = TryInto::try_into(gc_sfcgal).unwrap();
         if let geo_types::Geometry::GeometryCollection(_gc) = &gc {
             assert_eq!(
                 Point::new(4., 6.),
