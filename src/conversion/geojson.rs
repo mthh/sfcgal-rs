@@ -232,7 +232,7 @@ impl FromGeoJSON for SFCGeometry {
     fn from_geojson<T: FromSlice + CoordType + ToSFCGALGeom>(
         geom: &GeometryValue,
     ) -> Result<SFCGeometry> {
-        let coords: CoordSeq<T> = TryIntoCoords::try_into(&*geom)?;
+        let coords: CoordSeq<T> = TryIntoCoords::try_into(geom)?;
         coords.to_sfcgal()
     }
 }

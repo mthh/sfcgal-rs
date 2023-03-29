@@ -84,7 +84,7 @@ impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
                     Ok(geo_types::Geometry::GeometryCollection(
                         geo_types::GeometryCollection(collection
                             .into_iter()
-                            .map(|g| TryInto::try_into(g))
+                            .map(TryInto::try_into)
                             .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?
                         )
                     ))
@@ -183,10 +183,11 @@ impl TryInto<geo_types::Geometry<f64>> for SFCGeometry {
             GeomType::Geometrycollection => {
                 let c = self.to_coordinates::<Point2d>()?;
                 let p = match c {
-                    CoordSeq::Geometrycollection(g) => g
-                        .into_iter()
-                        .map(|g| TryInto::try_into(g))
-                        .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?,
+                    CoordSeq::Geometrycollection(g) => {
+                        g.into_iter()
+                            .map(TryInto::try_into)
+                            .collect::<Result<Vec<geo_types::Geometry<f64>>>>()?
+                    }
                     _ => unimplemented!(),
                 };
                 Ok(geo_types::Geometry::GeometryCollection(

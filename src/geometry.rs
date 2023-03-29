@@ -432,11 +432,7 @@ impl SFCGeometry {
         nb_components: usize,
     ) -> Result<SFCGeometry> {
         let result = unsafe {
-            sfcgal_geometry_optimal_alpha_shapes(
-                self.c_geom.as_ptr(),
-                allow_holes,
-                nb_components as usize,
-            )
+            sfcgal_geometry_optimal_alpha_shapes(self.c_geom.as_ptr(), allow_holes, nb_components)
         };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
