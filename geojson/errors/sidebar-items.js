@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Errors which can occur when encoding, decoding, and converting GeoJSON"]],"type":[["Result",""]]};

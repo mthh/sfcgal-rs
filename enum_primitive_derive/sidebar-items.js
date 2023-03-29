@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":[["Primitive","Provides implementation of `num_traits::ToPrimitive` and `num_traits::FromPrimitive`"]]};

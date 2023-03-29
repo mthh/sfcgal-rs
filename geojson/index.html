@@ -1,0 +1,329 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Introduction"><meta name="keywords" content="rust, rustlang, rust-lang, geojson"><title>geojson - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../geojson/index.html"><img src="https://raw.githubusercontent.com/georust/meta/master/logo/logo.png" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../geojson/index.html">
+                <img src="https://raw.githubusercontent.com/georust/meta/master/logo/logo.png" alt="logo"></a><h2 class="location"><a href="#">Crate geojson</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.24.0</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">geojson</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/geojson/lib.rs.html#1-509">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="introduction"><a href="#introduction">Introduction</a></h2>
+<p>This crate helps you read and write <a href="https://geojson.org">GeoJSON</a> — a format for encoding
+geographic data structures.</p>
+<p>To get started, add <code>geojson</code> to your <code>Cargo.toml</code>.</p>
+<div class="example-wrap"><pre class="language-text"><code>[dependencies]
+geojson = &quot;*&quot;
+</code></pre></div><h2 id="types-and-crate-structure"><a href="#types-and-crate-structure">Types and crate structure</a></h2>
+<p>This crate is structured around the GeoJSON spec (<a href="https://tools.ietf.org/html/rfc7946">IETF RFC 7946</a>),
+and users are encouraged to familiarise themselves with it. The elements specified in this spec
+have corresponding struct and type definitions in this crate, e.g. <a href="struct.FeatureCollection.html" title="FeatureCollection"><code>FeatureCollection</code></a>, <a href="struct.Feature.html" title="Feature"><code>Feature</code></a>,
+etc.</p>
+<p>There are two primary ways to use this crate.</p>
+<p>The first, most general, approach is to write your code to deal in terms of these structs from
+the GeoJSON spec. This allows you to access the full expressive power of GeoJSON with the speed
+and safety of Rust.</p>
+<p>Alternatively, and commonly, if you only need geometry and properties (and not, e.g.
+<a href="">foreign members</a>), you can bring your own types, and use this crate’s <a href="../serde/index.html" title="serde"><code>serde</code></a> integration
+to serialize and deserialize your custom types directly to and from a GeoJSON Feature Collection.
+<a href="#using-your-own-types-with-serde">See more on using your own types with serde</a>.</p>
+<p>If you want to use GeoJSON as input to or output from a geometry processing crate like
+<a href="https://docs.rs/geo"><code>geo</code></a>, see the section on <a href="#use-geojson-with-other-crates-by-converting-to-geo-types">using geojson with
+geo-types</a>.</p>
+<h3 id="using-structs-from-the-geojson-spec"><a href="#using-structs-from-the-geojson-spec">Using structs from the GeoJSON spec</a></h3>
+<p>A GeoJSON object can be one of three top-level objects, reflected in this crate as the
+<a href="enum.GeoJson.html" title="GeoJson"><code>GeoJson</code></a> enum members of the same name.</p>
+<ol>
+<li>A <a href="struct.Geometry.html" title="Geometry"><code>Geometry</code></a> represents points, curves, and surfaces in coordinate space.</li>
+<li>A <a href="struct.Feature.html" title="Feature"><code>Feature</code></a> usually contains a <code>Geometry</code> and some associated data, for example a “name”
+field or any other properties you’d like associated with the <code>Geometry</code>.</li>
+<li>A <a href="struct.FeatureCollection.html" title="FeatureCollection"><code>FeatureCollection</code></a> is a list of one or more <code>Feature</code>s.</li>
+</ol>
+<p>Because <a href="struct.Feature.html" title="Feature"><code>Feature</code></a> and <a href="struct.FeatureCollection.html" title="FeatureCollection"><code>FeatureCollection</code></a> are more flexible, bare <a href="struct.Geometry.html" title="Geometry"><code>Geometry</code></a> GeoJSON
+documents are rarely encountered in the wild. As such, conversions from <a href="struct.Geometry.html" title="Geometry"><code>Geometry</code></a>
+or <a href="enum.Value.html">Geometry <code>Value</code></a> to <a href="struct.Feature.html" title="Feature"><code>Feature</code></a> objects are provided via the <a href="https://doc.rust-lang.org/1.68.0/core/convert/trait.From.html" title="From"><code>From</code></a> trait.</p>
+<p><em>Beware:</em> A common point of confusion arises when converting a <a href="enum.Value.html#variant.GeometryCollection">GeoJson
+<code>GeometryCollection</code></a>. Do you want it converted to a single
+<a href="struct.Feature.html" title="Feature"><code>Feature</code></a> whose geometry is a <a href="enum.Value.html#variant.GeometryCollection"><code>GeometryCollection</code></a>, or do you
+want a <a href="struct.FeatureCollection.html" title="FeatureCollection"><code>FeatureCollection</code></a> with each <em>element</em> of the
+<a href="enum.Value.html#variant.GeometryCollection"><code>GeometryCollection</code></a> converted to its own <a href="struct.Feature.html" title="Feature"><code>Feature</code></a>, potentially
+with their own individual properties. Either is possible, but it’s important you understand
+which one you want.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2><h3 id="reading"><a href="#reading">Reading</a></h3>
+<p><a href="enum.GeoJson.html" title="GeoJson"><code>GeoJson</code></a> can be deserialized by calling <a href="https://doc.rust-lang.org/std/primitive.str.html#method.parse"><code>str::parse</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>geojson::{Feature, GeoJson, Geometry, Value};
+<span class="kw">use </span>std::convert::TryFrom;
+
+<span class="kw">let </span>geojson_str = <span class="string">r#&quot;
+{
+  &quot;type&quot;: &quot;Feature&quot;,
+  &quot;properties&quot;: { &quot;food&quot;: &quot;donuts&quot; },
+  &quot;geometry&quot;: {
+    &quot;type&quot;: &quot;Point&quot;,
+    &quot;coordinates&quot;: [ -118.2836, 34.0956 ]
+  }
+}
+&quot;#</span>;
+
+<span class="kw">let </span>geojson: GeoJson = geojson_str.parse::&lt;GeoJson&gt;().unwrap();
+<span class="kw">let </span>feature: Feature = Feature::try_from(geojson).unwrap();
+
+<span class="comment">// read property data
+</span><span class="macro">assert_eq!</span>(<span class="string">&quot;donuts&quot;</span>, feature.property(<span class="string">&quot;food&quot;</span>).unwrap());
+
+<span class="comment">// read geometry data
+</span><span class="kw">let </span>geometry: Geometry = feature.geometry.unwrap();
+<span class="kw">if let </span>Value::Point(coords) = geometry.value {
+    <span class="macro">assert_eq!</span>(coords, <span class="macro">vec!</span>[-<span class="number">118.2836</span>, <span class="number">34.0956</span>]);
+}
+</code></pre></div>
+<h3 id="writing"><a href="#writing">Writing</a></h3>
+<p><code>GeoJson</code> can be serialized by calling <a href="geojson/enum.GeoJson.html#impl-ToString"><code>to_string</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>geojson::{Feature, GeoJson, Geometry, Value};
+
+<span class="kw">let </span>geometry = Geometry::new(Value::Point(<span class="macro">vec!</span>[-<span class="number">120.66029</span>, <span class="number">35.2812</span>]));
+
+<span class="kw">let </span>geojson = GeoJson::Feature(Feature {
+    bbox: <span class="prelude-val">None</span>,
+    geometry: <span class="prelude-val">Some</span>(geometry),
+    id: <span class="prelude-val">None</span>,
+    <span class="comment">// See the next section about Feature properties
+    </span>properties: <span class="prelude-val">Some</span>(get_properties()),
+    foreign_members: <span class="prelude-val">None</span>,
+});
+
+<span class="kw">let </span>geojson_string = geojson.to_string();</code></pre></div>
+<h4 id="feature-properties"><a href="#feature-properties">Feature properties</a></h4>
+<p>The <code>geojson</code> crate is built on top of <a href="../serde_json/index.html"><code>serde_json</code></a>. Consequently,
+some fields like <a href="struct.Feature.html#structfield.properties"><code>feature.properties</code></a> hold <a href="../serde_json/value/index.html">serde_json
+values</a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>geojson::{JsonObject, JsonValue};
+
+<span class="kw">let </span><span class="kw-2">mut </span>properties = JsonObject::new();
+<span class="kw">let </span>key = <span class="string">&quot;name&quot;</span>.to_string();
+properties.insert(key, JsonValue::from(<span class="string">&quot;Firestone Grill&quot;</span>));</code></pre></div>
+<h3 id="parsing"><a href="#parsing">Parsing</a></h3>
+<p>GeoJSON’s <a href="https://tools.ietf.org/html/rfc7946">spec</a> is quite simple, but
+it has several subtleties that must be taken into account when parsing it:</p>
+<ul>
+<li>The <code>geometry</code> field of a <a href="struct.Feature.html" title="Feature"><code>Feature</code></a> is an <a href="https://doc.rust-lang.org/1.68.0/core/option/enum.Option.html" title="Option"><code>Option</code></a> — it can be blank.</li>
+<li><a href="enum.Value.html#variant.GeometryCollection"><code>GeometryCollection</code></a>s contain other <a href="struct.Geometry.html" title="Geometry"><code>Geometry</code></a> objects, and can nest.</li>
+<li>We strive to produce strictly valid output, but we are more permissive about what we accept
+as input.</li>
+</ul>
+<p>Here’s a minimal example which will parse and process a GeoJSON string.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>geojson::{GeoJson, Geometry, Value};
+
+<span class="doccomment">/// Process top-level GeoJSON Object
+</span><span class="kw">fn </span>process_geojson(gj: <span class="kw-2">&amp;</span>GeoJson) {
+    <span class="kw">match </span><span class="kw-2">*</span>gj {
+        GeoJson::FeatureCollection(<span class="kw-2">ref </span>ctn) =&gt; {
+            <span class="kw">for </span>feature <span class="kw">in </span><span class="kw-2">&amp;</span>ctn.features {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>geom) = feature.geometry {
+                    match_geometry(geom)
+                }
+            }
+        }
+        GeoJson::Feature(<span class="kw-2">ref </span>feature) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>geom) = feature.geometry {
+                match_geometry(geom)
+            }
+        }
+        GeoJson::Geometry(<span class="kw-2">ref </span>geometry) =&gt; match_geometry(geometry),
+    }
+}
+
+<span class="doccomment">/// Process GeoJSON geometries
+</span><span class="kw">fn </span>match_geometry(geom: <span class="kw-2">&amp;</span>Geometry) {
+    <span class="kw">match </span>geom.value {
+        Value::Polygon(<span class="kw">_</span>) =&gt; <span class="macro">println!</span>(<span class="string">&quot;Matched a Polygon&quot;</span>),
+        Value::MultiPolygon(<span class="kw">_</span>) =&gt; <span class="macro">println!</span>(<span class="string">&quot;Matched a MultiPolygon&quot;</span>),
+        Value::GeometryCollection(<span class="kw-2">ref </span>gc) =&gt; {
+            <span class="macro">println!</span>(<span class="string">&quot;Matched a GeometryCollection&quot;</span>);
+            <span class="comment">// !!! GeometryCollections contain other Geometry types, and can
+            // nest — we deal with this by recursively processing each geometry
+            </span><span class="kw">for </span>geometry <span class="kw">in </span>gc {
+                match_geometry(geometry)
+            }
+        }
+        <span class="comment">// Point, LineString, and their Multi– counterparts
+        </span><span class="kw">_ </span>=&gt; <span class="macro">println!</span>(<span class="string">&quot;Matched some other geometry&quot;</span>),
+    }
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>geojson_str = <span class="string">r#&quot;
+    {
+      &quot;type&quot;: &quot;GeometryCollection&quot;,
+      &quot;geometries&quot;: [
+        {&quot;type&quot;: &quot;Point&quot;, &quot;coordinates&quot;: [0,1]},
+        {&quot;type&quot;: &quot;MultiPoint&quot;, &quot;coordinates&quot;: [[-1,0],[1,0]]},
+        {&quot;type&quot;: &quot;LineString&quot;, &quot;coordinates&quot;: [[-1,-1],[1,-1]]},
+        {&quot;type&quot;: &quot;MultiLineString&quot;, &quot;coordinates&quot;: [
+          [[-2,-2],[2,-2]],
+          [[-3,-3],[3,-3]]
+        ]},
+        {&quot;type&quot;: &quot;Polygon&quot;, &quot;coordinates&quot;: [
+          [[-5,-5],[5,-5],[0,5],[-5,-5]],
+          [[-4,-4],[4,-4],[0,4],[-4,-4]]
+        ]},
+        { &quot;type&quot;: &quot;MultiPolygon&quot;, &quot;coordinates&quot;: [[
+          [[-7,-7],[7,-7],[0,7],[-7,-7]],
+          [[-6,-6],[6,-6],[0,6],[-6,-6]]
+        ],[
+          [[-9,-9],[9,-9],[0,9],[-9,-9]],
+          [[-8,-8],[8,-8],[0,8],[-8,-8]]]
+        ]},
+        {&quot;type&quot;: &quot;GeometryCollection&quot;, &quot;geometries&quot;: [
+          {&quot;type&quot;: &quot;Polygon&quot;, &quot;coordinates&quot;: [
+            [[-5.5,-5.5],[5,-5],[0,5],[-5,-5]],
+            [[-4,-4],[4,-4],[0,4],[-4.5,-4.5]]
+          ]}
+        ]}
+      ]
+    }
+    &quot;#</span>;
+    <span class="kw">let </span>geojson = geojson_str.parse::&lt;GeoJson&gt;().unwrap();
+    process_geojson(<span class="kw-2">&amp;</span>geojson);
+}</code></pre></div>
+<h3 id="use-geojson-with-other-crates-by-converting-to-geo-types"><a href="#use-geojson-with-other-crates-by-converting-to-geo-types">Use geojson with other crates by converting to geo-types</a></h3>
+<p><a href="../geo_types/index.html#structs"><code>geo-types</code></a> are a common geometry format used across many
+geospatial processing crates. To enable geo-types integration, enable the <code>geo-types</code> feature
+in your Cargo.toml.</p>
+<div class="example-wrap"><pre class="language-text"><code>[dependencies]
+geojson = { version = &quot;*&quot;, features = [&quot;geo-types&quot;] }
+</code></pre></div><h4 id="from-geo-types-to-geojson"><a href="#from-geo-types-to-geojson">From geo-types to geojson</a></h4>
+<p><a href="https://doc.rust-lang.org/1.68.0/core/convert/trait.From.html" title="From"><code>From</code></a> is implemented on the <a href="enum.Value.html" title="Value"><code>Value</code></a> enum variants to allow conversion <em>from</em> <a href="../geo_types/index.html#structs"><code>geo-types</code>
+Geometries</a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// requires enabling the `geo-types` feature
+</span><span class="kw">let </span>geo_point: geo_types::Point&lt;f64&gt; = geo_types::Point::new(<span class="number">2.</span>, <span class="number">9.</span>);
+<span class="kw">let </span>geo_geometry: geo_types::Geometry&lt;f64&gt; = geo_types::Geometry::from(geo_point);
+
+<span class="macro">assert_eq!</span>(
+    geojson::Value::from(<span class="kw-2">&amp;</span>geo_point),
+    geojson::Value::Point(<span class="macro">vec!</span>[<span class="number">2.</span>, <span class="number">9.</span>]),
+);
+<span class="macro">assert_eq!</span>(
+    geojson::Value::from(<span class="kw-2">&amp;</span>geo_geometry),
+    geojson::Value::Point(<span class="macro">vec!</span>[<span class="number">2.</span>, <span class="number">9.</span>]),
+);</code></pre></div>
+<p>If you wish to produce a <a href="struct.FeatureCollection.html" title="FeatureCollection"><code>FeatureCollection</code></a> from a homogenous collection of <code>geo-types</code>, a
+<code>From</code> impl is provided for <code>geo_types::GeometryCollection</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// requires enabling the `geo-types` feature
+</span><span class="kw">use </span>geojson::FeatureCollection;
+<span class="kw">use </span>geo_types::{polygon, point, Geometry, GeometryCollection};
+<span class="kw">use </span>std::iter::FromIterator;
+
+<span class="kw">let </span>poly: Geometry&lt;f64&gt; = <span class="macro">polygon!</span>[
+    (x: -<span class="number">111.</span>, y: <span class="number">45.</span>),
+    (x: -<span class="number">111.</span>, y: <span class="number">41.</span>),
+    (x: -<span class="number">104.</span>, y: <span class="number">41.</span>),
+    (x: -<span class="number">104.</span>, y: <span class="number">45.</span>),
+].into();
+
+<span class="kw">let </span>point: Geometry&lt;f64&gt; = <span class="macro">point!</span>(x: <span class="number">1.0</span>, y: <span class="number">2.0</span>).into();
+
+<span class="kw">let </span>geometry_collection = GeometryCollection::from_iter(<span class="macro">vec!</span>[poly, point]);
+<span class="kw">let </span>feature_collection = FeatureCollection::from(<span class="kw-2">&amp;</span>geometry_collection);
+
+<span class="macro">assert_eq!</span>(<span class="number">2</span>, feature_collection.features.len());</code></pre></div>
+<h4 id="from-geojson-to-geo-types"><a href="#from-geojson-to-geo-types">From geojson to geo-types</a></h4>
+<p>The optional <code>geo-types</code> feature implements the <a href="../std/convert/trait.TryFrom.html"><code>TryFrom</code></a>
+trait, providing <strong>fallible</strong> conversions <em>to</em> <a href="../geo_types/index.html#structs">geo-types Geometries</a>
+from <a href="enum.Value.html">GeoJSON <code>Value</code></a> enums.</p>
+<p><strong>In most cases it is assumed that you want to convert GeoJSON into <code>geo</code> primitive types in
+order to process, transform, or measure them:</strong></p>
+<ul>
+<li><code>match</code> on <code>geojson</code>, iterating over its <code>features</code> field, yielding <code>Option&lt;Feature&gt;</code>.</li>
+<li>process each <code>Feature</code>, accessing its <code>Value</code> field, yielding <code>Option&lt;Value&gt;</code>.</li>
+</ul>
+<p>Each <a href="enum.Value.html"><code>Value</code></a> represents a primitive type, such as a coordinate, point,
+linestring, polygon, or its multi- equivalent, <strong>and each of these has an equivalent <code>geo</code>
+primitive type</strong>, which you can convert to using the <code>std::convert::TryFrom</code> trait.</p>
+<h5 id="geojson-to-geo_typesgeometrycollection"><a href="#geojson-to-geo_typesgeometrycollection">GeoJSON to geo_types::GeometryCollection</a></h5>
+<p>Unifying these features, the <a href="fn.quick_collection.html"><code>quick_collection</code></a> function accepts a <a href="enum.GeoJson.html"><code>GeoJson</code></a> enum
+and processes it, producing a <a href="../geo_types/struct.GeometryCollection.html"><code>GeometryCollection</code></a>
+whose members can be transformed, measured, rotated, etc using the algorithms and functions in
+the <a href="https://docs.rs/geo"><code>geo</code></a> crate:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// requires enabling the `geo-types` feature
+</span><span class="kw">use </span>geo_types::GeometryCollection;
+<span class="kw">use </span>geojson::{quick_collection, GeoJson};
+<span class="kw">let </span>geojson_str = <span class="string">r#&quot;
+{
+  &quot;type&quot;: &quot;FeatureCollection&quot;,
+  &quot;features&quot;: [
+    {
+      &quot;type&quot;: &quot;Feature&quot;,
+      &quot;properties&quot;: {},
+      &quot;geometry&quot;: {
+        &quot;type&quot;: &quot;Point&quot;,
+        &quot;coordinates&quot;: [
+          -0.13583511114120483,
+          51.5218870403801
+        ]
+      }
+    }
+  ]
+}
+&quot;#</span>;
+<span class="kw">let </span>geojson = geojson_str.parse::&lt;GeoJson&gt;().unwrap();
+<span class="comment">// Turn the GeoJSON string into a geo_types GeometryCollection
+</span><span class="kw">let </span><span class="kw-2">mut </span>collection: GeometryCollection&lt;f64&gt; = quick_collection(<span class="kw-2">&amp;</span>geojson).unwrap();</code></pre></div>
+<h5 id="convert-geojson-to-geo_typesgeometryf64"><a href="#convert-geojson-to-geo_typesgeometryf64">Convert <code>GeoJson</code> to <code>geo_types::Geometry&lt;f64&gt;</code></a></h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// requires enabling the `geo-types` feature
+</span><span class="kw">use </span>geo_types::Geometry;
+<span class="kw">use </span>geojson::GeoJson;
+<span class="kw">use </span>std::convert::TryInto;
+<span class="kw">use </span>std::str::FromStr;
+
+<span class="kw">let </span>geojson_str = <span class="string">r#&quot;
+{
+ &quot;type&quot;: &quot;Feature&quot;,
+ &quot;properties&quot;: {},
+ &quot;geometry&quot;: {
+   &quot;type&quot;: &quot;Point&quot;,
+   &quot;coordinates&quot;: [
+     -0.13583511114120483,
+     51.5218870403801
+   ]
+ }
+}
+&quot;#</span>;
+<span class="kw">let </span>geojson = GeoJson::from_str(geojson_str).unwrap();
+<span class="comment">// Turn the GeoJSON string into a geo_types Geometry
+</span><span class="kw">let </span>geom: geo_types::Geometry&lt;f64&gt; = geojson.try_into().unwrap();</code></pre></div>
+<h4 id="caveats"><a href="#caveats">Caveats</a></h4>
+<ul>
+<li>Round-tripping with intermediate processing using the <code>geo</code> types may not produce identical output,
+as e.g. outer <code>Polygon</code> rings are automatically closed.</li>
+<li><code>geojson</code> attempts to output valid geometries. In particular, it may re-orient <code>Polygon</code> rings when serialising.</li>
+</ul>
+<p>The <a href="https://github.com/urschrei/geojson_example"><code>geojson_example</code></a> and
+<a href="https://github.com/urschrei/polylabel_cmd/blob/master/src/main.rs"><code>polylabel_cmd</code></a> crates contain example
+implementations which may be useful if you wish to perform this kind of processing yourself and require
+more granular control over performance and / or memory allocation.</p>
+<h3 id="using-your-own-types-with-serde"><a href="#using-your-own-types-with-serde">Using your own types with serde</a></h3>
+<p>If your use case is simple enough, you can read and write GeoJSON directly to and from your own
+types using serde.</p>
+<p>Specifically, the requirements are:</p>
+<ol>
+<li>Your type has a <code>geometry</code> field.
+<ol>
+<li>If your <code>geometry</code> field is a <a href="../geo_types/geometry/index.html"><code>geo-types</code> Geometry</a>, you must use
+the provided <code>serialize_with</code>/<code>deserialize_with</code> helpers.</li>
+<li>Otherwise, your <code>geometry</code> field must be a <a href="struct.Geometry.html" title="crate::Geometry"><code>crate::Geometry</code></a>.</li>
+</ol>
+</li>
+<li>Other than <code>geometry</code>, you may only use a Feature’s <code>properties</code> - all other fields, like
+foreign members, will be lost.</li>
+</ol>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(serde::Serialize, serde::Deserialize)]
+</span><span class="kw">struct </span>MyStruct {
+    <span class="comment">// Serialize as geojson, rather than using the type&#39;s default serialization
+    </span><span class="attr">#[serde(serialize_with = <span class="string">&quot;serialize_geometry&quot;</span>, deserialize_with = <span class="string">&quot;deserialize_geometry&quot;</span>)]
+    </span>geometry: geo_types::Point&lt;f64&gt;,
+    name: String,
+    count: u64,
+}</code></pre></div>
+<p>See more in the <a href="ser/index.html">serialization</a> and <a href="de/index.html">deserialization</a> modules.</p>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2><div class="item-table"><div class="item-row"><div class="item-left import-item" id="reexport.Error"><code>pub use crate::errors::<a class="enum" href="errors/enum.Error.html" title="enum geojson::errors::Error">Error</a>;</code></div></div><div class="item-row"><div class="item-left import-item" id="reexport.Result"><code>pub use crate::errors::<a class="type" href="errors/type.Result.html" title="type geojson::errors::Result">Result</a>;</code></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="de/index.html" title="geojson::de mod">de</a></div><div class="item-right docblock-short">Build your struct from GeoJSON using <a href="../serde/index.html" title="serde"><code>serde</code></a></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="errors/index.html" title="geojson::errors mod">errors</a></div><div class="item-right docblock-short">Module for all GeoJSON-related errors</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="feature/index.html" title="geojson::feature mod">feature</a></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ser/index.html" title="geojson::ser mod">ser</a></div><div class="item-right docblock-short">Write your struct to GeoJSON using <a href="../serde/index.html" title="serde"><code>serde</code></a></div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Feature.html" title="geojson::Feature struct">Feature</a></div><div class="item-right docblock-short">Feature Objects</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FeatureCollection.html" title="geojson::FeatureCollection struct">FeatureCollection</a></div><div class="item-right docblock-short">Feature Collection Objects</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FeatureReader.html" title="geojson::FeatureReader struct">FeatureReader</a></div><div class="item-right docblock-short">Enumerates individual Features from a GeoJSON FeatureCollection</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FeatureWriter.html" title="geojson::FeatureWriter struct">FeatureWriter</a></div><div class="item-right docblock-short">Write Features to a FeatureCollection</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Geometry.html" title="geojson::Geometry struct">Geometry</a></div><div class="item-right docblock-short">Geometry Objects</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.GeoJson.html" title="geojson::GeoJson enum">GeoJson</a></div><div class="item-right docblock-short">GeoJSON Objects</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Value.html" title="geojson::Value enum">Value</a></div><div class="item-right docblock-short">The underlying value for a <code>Geometry</code>.</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.quick_collection.html" title="geojson::quick_collection fn">quick_collection</a></div><div class="item-right docblock-short">A shortcut for producing <code>geo_types</code> <a href="../geo_types/struct.GeometryCollection.html">GeometryCollection</a> objects
+from arbitrary valid GeoJSON input.</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Bbox.html" title="geojson::Bbox type">Bbox</a></div><div class="item-right docblock-short">Bounding Boxes</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.JsonObject.html" title="geojson::JsonObject type">JsonObject</a></div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.JsonValue.html" title="geojson::JsonValue type">JsonValue</a></div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.LineStringType.html" title="geojson::LineStringType type">LineStringType</a></div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.PointType.html" title="geojson::PointType type">PointType</a></div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.PolygonType.html" title="geojson::PolygonType type">PolygonType</a></div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Position.html" title="geojson::Position type">Position</a></div><div class="item-right docblock-short">Positions</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="geojson" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0 (2c8cc3432 2023-03-06)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
