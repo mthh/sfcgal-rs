@@ -46,10 +46,12 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let _result_geojson = GeoJson::FeatureCollection(FeatureCollection {
+    let result_geojson = GeoJson::FeatureCollection(FeatureCollection {
         foreign_members: None,
         bbox: None,
         features: new_features,
     })
     .to_string();
+
+    println!("{}", result_geojson);
 }
