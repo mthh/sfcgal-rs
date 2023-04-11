@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.6.0] - 2023-03-29
 ### Added
 - Update to SFCGAL 1.4.1 and expose the new following functions from the C API:
   * `sfcgal_geometry_alpha_shapes` and `sfcgal_geometry_optimal_alpha_shapes`.
