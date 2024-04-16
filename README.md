@@ -5,7 +5,7 @@
 
 [Documentation](https://mthh.github.io/sfcgal-rs/sfcgal/)
 
-Rust bindings providing a high-level API to [`SFCGAL`](http://oslandia.github.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
+Rust bindings providing a high-level API to [`SFCGAL`](https://sfcgal.gitlab.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
 
 Some key features of the underlying library:
@@ -14,7 +14,7 @@ Some key features of the underlying library:
 - Intersection, difference and union.
 - Straight skeleton, tesselation, Minkovski sum, alpha shapes and convex hull.
 
-Required version of SFCGAL is currently 1.4.1 (latest version - 27/01/2022).
+Required version of SFCGAL is currently 1.5.x (latest version - 2023-10-30).
 
 ## Usage
 
