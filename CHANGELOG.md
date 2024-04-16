@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2024-04-16
+### Added
+- Update to SFCGAL 1.5.0 and expose the new following functions from the C API:
+  * `sfcgal_geometry_extrude_polygon_straight_skeleton` and `sfcgal_geometry_extrude_straight_skeleton`.
+
+### Changed
+- Change code of `GeomType::Triangle` to 17 (to follow upstream changes).
+
 ## [0.6.0] - 2023-03-29
 ### Added
 - Update to SFCGAL 1.4.1 and expose the new following functions from the C API:
