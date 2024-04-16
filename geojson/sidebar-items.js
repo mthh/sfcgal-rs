@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GeoJson","Value"],"fn":["quick_collection"],"mod":["de","errors","feature","ser"],"struct":["Feature","FeatureCollection","FeatureReader","FeatureWriter","Geometry"],"type":["Bbox","JsonObject","JsonValue","LineStringType","PointType","PolygonType","Position"]};

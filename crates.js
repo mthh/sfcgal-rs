@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["anyhow","approx","enum_primitive_derive","geo_types","geojson","itoa","libc","libm","log","num_traits","proc_macro2","quote","ryu","serde","serde_derive","serde_json","sfcgal","sfcgal_sys","syn","thiserror","thiserror_impl","unicode_ident"];

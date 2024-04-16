@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CoordSeq","GeomType"],"fn":["version"],"struct":["SFCGeometry"],"trait":["FromGeoJSON","ToCoordinates","ToGeoJSON","ToSFCGAL","TryInto"],"type":["Point2d","Point3d","Result"]};
