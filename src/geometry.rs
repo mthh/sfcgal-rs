@@ -14,6 +14,7 @@ use sfcgal_sys::{
     sfcgal_geometry_convexhull_3d, sfcgal_geometry_covers, sfcgal_geometry_covers_3d,
     sfcgal_geometry_delete, sfcgal_geometry_difference, sfcgal_geometry_difference_3d,
     sfcgal_geometry_distance, sfcgal_geometry_distance_3d, sfcgal_geometry_extrude,
+    sfcgal_geometry_extrude_polygon_straight_skeleton, sfcgal_geometry_extrude_straight_skeleton,
     sfcgal_geometry_intersection, sfcgal_geometry_intersection_3d, sfcgal_geometry_intersects,
     sfcgal_geometry_intersects_3d, sfcgal_geometry_is_3d, sfcgal_geometry_is_empty,
     sfcgal_geometry_is_measured, sfcgal_geometry_is_planar, sfcgal_geometry_is_valid,
@@ -21,7 +22,6 @@ use sfcgal_sys::{
     sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon,
     sfcgal_geometry_optimal_alpha_shapes, sfcgal_geometry_orientation,
     sfcgal_geometry_straight_skeleton, sfcgal_geometry_straight_skeleton_distance_in_m,
-    sfcgal_geometry_extrude_straight_skeleton, sfcgal_geometry_extrude_polygon_straight_skeleton,
     sfcgal_geometry_t, sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
     sfcgal_geometry_type_id, sfcgal_geometry_union, sfcgal_geometry_union_3d,
     sfcgal_geometry_volume, sfcgal_io_read_wkt, sfcgal_multi_linestring_create,
@@ -354,15 +354,26 @@ impl SFCGeometry {
     /// Returns the extrude straight skeleton of the given Polygon.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
     pub fn extrude_straight_skeleton(&self, height: f64) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_extrude_straight_skeleton(self.c_geom.as_ptr(), height) };
+        let result =
+            unsafe { sfcgal_geometry_extrude_straight_skeleton(self.c_geom.as_ptr(), height) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the union of the polygon z-extrusion (with respect to building_height)
     /// and the extrude straight skeleton (with respect to roof_height) of the given Polygon.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
-    pub fn extrude_polygon_straight_skeleton(&self, building_height: f64, roof_height: f64) -> Result<SFCGeometry> {
-        let result = unsafe { sfcgal_geometry_extrude_polygon_straight_skeleton(self.c_geom.as_ptr(), building_height, roof_height) };
+    pub fn extrude_polygon_straight_skeleton(
+        &self,
+        building_height: f64,
+        roof_height: f64,
+    ) -> Result<SFCGeometry> {
+        let result = unsafe {
+            sfcgal_geometry_extrude_polygon_straight_skeleton(
+                self.c_geom.as_ptr(),
+                building_height,
+                roof_height,
+            )
+        };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
@@ -818,7 +829,10 @@ mod tests {
     #[test]
     fn extrude_polygon_straight_skeleton() {
         // Test adapted from https://gitlab.com/sfcgal/SFCGAL/-/blob/master/test/unit/SFCGAL/algorithm/StraightSkeletonTest.cpp#L354
-        let geom = SFCGeometry::new("POLYGON (( 0 0, 5 0, 5 5, 4 5, 4 4, 0 4, 0 0 ), (1 1, 1 2, 2 2, 2 1, 1 1))").unwrap();
+        let geom = SFCGeometry::new(
+            "POLYGON (( 0 0, 5 0, 5 5, 4 5, 4 4, 0 4, 0 0 ), (1 1, 1 2, 2 2, 2 1, 1 1))",
+        )
+        .unwrap();
         let result = geom.extrude_polygon_straight_skeleton(9., 2.).unwrap();
         let wkt = result.to_wkt_decim(1).unwrap();
         assert_eq!(

@@ -54,8 +54,8 @@ impl TryInto<geo_types::Geometry<f64>> for CoordSeq<Point2d> {
     fn try_into(self) -> Result<geo_types::Geometry<f64>> {
         match self {
                 CoordSeq::Point(pt) => Ok(geo_types::Point(pt.into()).into()),
-                CoordSeq::Multipoint(pts) => Ok(geo_types::MultiPoint::from_iter(pts.into_iter()).into()),
-                CoordSeq::Linestring(pts) => Ok(geo_types::LineString::from_iter(pts.into_iter()).into()),
+                CoordSeq::Multipoint(pts) => Ok(geo_types::MultiPoint::from_iter(pts).into()),
+                CoordSeq::Linestring(pts) => Ok(geo_types::LineString::from_iter(pts).into()),
                 CoordSeq::Multilinestring(lines) => {
                     Ok(geo_types::MultiLineString(
                         lines.into_iter()
