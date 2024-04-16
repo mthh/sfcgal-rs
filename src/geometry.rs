@@ -21,6 +21,7 @@ use sfcgal_sys::{
     sfcgal_geometry_minkowski_sum, sfcgal_geometry_offset_polygon,
     sfcgal_geometry_optimal_alpha_shapes, sfcgal_geometry_orientation,
     sfcgal_geometry_straight_skeleton, sfcgal_geometry_straight_skeleton_distance_in_m,
+    sfcgal_geometry_extrude_straight_skeleton, sfcgal_geometry_extrude_polygon_straight_skeleton,
     sfcgal_geometry_t, sfcgal_geometry_tesselate, sfcgal_geometry_triangulate_2dz,
     sfcgal_geometry_type_id, sfcgal_geometry_union, sfcgal_geometry_union_3d,
     sfcgal_geometry_volume, sfcgal_io_read_wkt, sfcgal_multi_linestring_create,
@@ -44,7 +45,7 @@ pub enum GeomType {
     Geometrycollection = 7,
     Polyhedralsurface = 15,
     Triangulatedsurface = 16,
-    Triangle = 100,
+    Triangle = 17,
     Solid = 101,
     Multisolid = 102,
 }
@@ -140,7 +141,7 @@ impl SFCGeometry {
     }
 
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL exact integer fractions as coordinate values.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
     pub fn to_wkt(&self) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
         let mut length: usize = 0;
@@ -152,7 +153,7 @@ impl SFCGeometry {
 
     /// Returns a WKT representation of the given `SFCGeometry` using floating point coordinate values with
     /// the desired number of decimals.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
         let mut length: usize = 0;
@@ -336,29 +337,44 @@ impl SFCGeometry {
     }
 
     /// Returns the straight skeleton of the given `SFCGeometry`.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_straight_skeleton(self.c_geom.as_ptr()) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the straight skeleton of the given `SFCGeometry` with the distance to the border as M coordinate.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_straight_skeleton_distance_in_m(self.c_geom.as_ptr()) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Returns the extrude straight skeleton of the given Polygon.
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
+    pub fn extrude_straight_skeleton(&self, height: f64) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_extrude_straight_skeleton(self.c_geom.as_ptr(), height) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    /// Returns the union of the polygon z-extrusion (with respect to building_height)
+    /// and the extrude straight skeleton (with respect to roof_height) of the given Polygon.
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
+    pub fn extrude_polygon_straight_skeleton(&self, building_height: f64, roof_height: f64) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_extrude_polygon_straight_skeleton(self.c_geom.as_ptr(), building_height, roof_height) };
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
     /// Returns the approximate medial axis for the given `SFCGeometry` Polygon.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga16a9b4b1211843f8444284b1fefebc46))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga16a9b4b1211843f8444284b1fefebc46))
     pub fn approximate_medial_axis(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_approximate_medial_axis(self.c_geom.as_ptr()) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
     /// Returns the offset polygon of the given `SFCGeometry`.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9766f54ebede43a9b71fccf1524a1054))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9766f54ebede43a9b71fccf1524a1054))
     pub fn offset_polygon(&self, radius: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_offset_polygon(self.c_geom.as_ptr(), radius) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
@@ -372,7 +388,7 @@ impl SFCGeometry {
     }
 
     /// Returns a tesselation of the given `SFCGeometry`.
-    /// ([C API reference](http://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
+    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
     pub fn tesselate(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_tesselate(self.c_geom.as_ptr()) };
         unsafe { SFCGeometry::new_from_raw(result, true) }
@@ -752,7 +768,7 @@ mod tests {
         let wkt = result.to_wkt_decim(1).unwrap();
         assert_eq!(
             wkt,
-            "MULTILINESTRING((-0.0 -0.0,0.5 0.5),(1.0 -0.0,0.5 0.5),(1.0 1.0,0.5 0.5),(-0.0 1.0,0.5 0.5))",
+            "MULTILINESTRING((0.0 0.0,0.5 0.5),(1.0 0.0,0.5 0.5),(1.0 1.0,0.5 0.5),(0.0 1.0,0.5 0.5))",
         );
     }
 
@@ -764,10 +780,100 @@ mod tests {
         assert_eq!(
             wkt,
             "MULTILINESTRING M(\
-             (-0.0 -0.0 0.0,0.5 0.5 0.5),\
-             (1.0 -0.0 0.0,0.5 0.5 0.5),\
+             (0.0 0.0 0.0,0.5 0.5 0.5),\
+             (1.0 0.0 0.0,0.5 0.5 0.5),\
              (1.0 1.0 0.0,0.5 0.5 0.5),\
-             (-0.0 1.0 0.0,0.5 0.5 0.5))",
+             (0.0 1.0 0.0,0.5 0.5 0.5))",
+        );
+    }
+
+    #[test]
+    fn extrude_straight_skeleton() {
+        // Test adapted from https://gitlab.com/sfcgal/SFCGAL/-/blob/master/test/unit/SFCGAL/algorithm/StraightSkeletonTest.cpp#L275
+        let geom = SFCGeometry::new("POLYGON ((0 0, 5 0, 5 5, 4 5, 4 4, 0 4, 0 0))").unwrap();
+        let result = geom.extrude_straight_skeleton(2.).unwrap();
+        let wkt = result.to_wkt_decim(2).unwrap();
+        assert_eq!(
+            wkt,
+            "POLYHEDRALSURFACE Z(((4.00 5.00 0.00,5.00 5.00 0.00,4.00 4.00 0.00,4.00 \
+              5.00 0.00)),((0.00 4.00 0.00,4.00 4.00 0.00,0.00 0.00 0.00,0.00 4.00 \
+              0.00)),((4.00 4.00 0.00,5.00 0.00 0.00,0.00 0.00 0.00,4.00 4.00 \
+              0.00)),((5.00 5.00 0.00,5.00 0.00 0.00,4.00 4.00 0.00,5.00 5.00 \
+              0.00)),((0.00 4.00 0.00,0.00 0.00 0.00,2.00 2.00 2.00,0.00 4.00 \
+              0.00)),((0.00 0.00 0.00,5.00 0.00 0.00,3.00 2.00 2.00,0.00 0.00 \
+              0.00)),((2.00 2.00 2.00,0.00 0.00 0.00,3.00 2.00 2.00,2.00 2.00 \
+              2.00)),((4.50 3.50 0.50,5.00 5.00 0.00,4.50 4.50 0.50,4.50 3.50 \
+              0.50)),((3.00 2.00 2.00,5.00 0.00 0.00,4.50 3.50 0.50,3.00 2.00 \
+              2.00)),((4.50 3.50 0.50,5.00 0.00 0.00,5.00 5.00 0.00,4.50 3.50 \
+              0.50)),((5.00 5.00 0.00,4.00 5.00 0.00,4.50 4.50 0.50,5.00 5.00 \
+              0.00)),((4.50 4.50 0.50,4.00 4.00 0.00,4.50 3.50 0.50,4.50 4.50 \
+              0.50)),((4.50 4.50 0.50,4.00 5.00 0.00,4.00 4.00 0.00,4.50 4.50 \
+              0.50)),((4.00 4.00 0.00,0.00 4.00 0.00,2.00 2.00 2.00,4.00 4.00 \
+              0.00)),((4.50 3.50 0.50,4.00 4.00 0.00,3.00 2.00 2.00,4.50 3.50 \
+              0.50)),((3.00 2.00 2.00,4.00 4.00 0.00,2.00 2.00 2.00,3.00 2.00 \
+              2.00)))"
+        );
+    }
+
+    #[test]
+    fn extrude_polygon_straight_skeleton() {
+        // Test adapted from https://gitlab.com/sfcgal/SFCGAL/-/blob/master/test/unit/SFCGAL/algorithm/StraightSkeletonTest.cpp#L354
+        let geom = SFCGeometry::new("POLYGON (( 0 0, 5 0, 5 5, 4 5, 4 4, 0 4, 0 0 ), (1 1, 1 2, 2 2, 2 1, 1 1))").unwrap();
+        let result = geom.extrude_polygon_straight_skeleton(9., 2.).unwrap();
+        let wkt = result.to_wkt_decim(1).unwrap();
+        assert_eq!(
+            wkt,
+            "POLYHEDRALSURFACE Z(((0.0 0.0 0.0,0.0 4.0 0.0,4.0 4.0 \
+             0.0,4.0 5.0 0.0,5.0 5.0 0.0,5.0 0.0 0.0,0.0 0.0 0.0),\
+             (1.0 1.0 0.0,2.0 1.0 0.0,2.0 2.0 0.0,1.0 2.0 0.0,1.0 1.0 0.0)),\
+             ((0.0 0.0 0.0,0.0 0.0 9.0,0.0 4.0 9.0,0.0 4.0 0.0,0.0 0.0 0.0)),\
+             ((0.0 4.0 0.0,0.0 4.0 9.0,4.0 4.0 9.0,4.0 4.0 0.0,0.0 4.0 0.0)),\
+             ((4.0 4.0 0.0,4.0 4.0 9.0,4.0 5.0 9.0,4.0 5.0 0.0,4.0 4.0 0.0)),\
+             ((4.0 5.0 0.0,4.0 5.0 9.0,5.0 5.0 9.0,5.0 5.0 0.0,4.0 5.0 0.0)),\
+             ((5.0 5.0 0.0,5.0 5.0 9.0,5.0 0.0 9.0,5.0 0.0 0.0,5.0 5.0 0.0)),\
+             ((5.0 0.0 0.0,5.0 0.0 9.0,0.0 0.0 9.0,0.0 0.0 0.0,5.0 0.0 0.0)),\
+             ((1.0 1.0 0.0,1.0 1.0 9.0,2.0 1.0 9.0,2.0 1.0 0.0,1.0 1.0 0.0)),\
+             ((2.0 1.0 0.0,2.0 1.0 9.0,2.0 2.0 9.0,2.0 2.0 0.0,2.0 1.0 0.0)),\
+             ((2.0 2.0 0.0,2.0 2.0 9.0,1.0 2.0 9.0,1.0 2.0 0.0,2.0 2.0 0.0)),\
+             ((1.0 2.0 0.0,1.0 2.0 9.0,1.0 1.0 9.0,1.0 1.0 0.0,1.0 2.0 0.0)),\
+             ((4.0 5.0 9.0,5.0 5.0 9.0,4.0 4.0 9.0,4.0 5.0 9.0)),\
+             ((2.0 1.0 9.0,5.0 0.0 9.0,0.0 0.0 9.0,2.0 1.0 9.0)),\
+             ((5.0 5.0 9.0,5.0 0.0 9.0,4.0 4.0 9.0,5.0 5.0 9.0)),\
+             ((2.0 1.0 9.0,0.0 0.0 9.0,1.0 1.0 9.0,2.0 1.0 9.0)),\
+             ((1.0 2.0 9.0,1.0 1.0 9.0,0.0 0.0 9.0,1.0 2.0 9.0)),\
+             ((0.0 4.0 9.0,2.0 2.0 9.0,1.0 2.0 9.0,0.0 4.0 9.0)),\
+             ((0.0 4.0 9.0,1.0 2.0 9.0,0.0 0.0 9.0,0.0 4.0 9.0)),\
+             ((4.0 4.0 9.0,5.0 0.0 9.0,2.0 2.0 9.0,4.0 4.0 9.0)),\
+             ((4.0 4.0 9.0,2.0 2.0 9.0,0.0 4.0 9.0,4.0 4.0 9.0)),\
+             ((2.0 2.0 9.0,5.0 0.0 9.0,2.0 1.0 9.0,2.0 2.0 9.0)),\
+             ((0.5 2.5 9.5,0.0 0.0 9.0,0.5 0.5 9.5,0.5 2.5 9.5)),\
+             ((1.0 3.0 10.0,0.0 4.0 9.0,0.5 2.5 9.5,1.0 3.0 10.0)),\
+             ((0.5 2.5 9.5,0.0 4.0 9.0,0.0 0.0 9.0,0.5 2.5 9.5)),\
+             ((2.5 0.5 9.5,5.0 0.0 9.0,3.5 1.5 10.5,2.5 0.5 9.5)),\
+             ((0.0 0.0 9.0,5.0 0.0 9.0,2.5 0.5 9.5,0.0 0.0 9.0)),\
+             ((0.5 0.5 9.5,0.0 0.0 9.0,2.5 0.5 9.5,0.5 0.5 9.5)),\
+             ((4.5 3.5 9.5,5.0 5.0 9.0,4.5 4.5 9.5,4.5 3.5 9.5)),\
+             ((3.5 2.5 10.5,3.5 1.5 10.5,4.5 3.5 9.5,3.5 2.5 10.5)),\
+             ((4.5 3.5 9.5,5.0 0.0 9.0,5.0 5.0 9.0,4.5 3.5 9.5)),\
+             ((3.5 1.5 10.5,5.0 0.0 9.0,4.5 3.5 9.5,3.5 1.5 10.5)),\
+             ((5.0 5.0 9.0,4.0 5.0 9.0,4.5 4.5 9.5,5.0 5.0 9.0)),\
+             ((4.5 4.5 9.5,4.0 4.0 9.0,4.5 3.5 9.5,4.5 4.5 9.5)),\
+             ((4.5 4.5 9.5,4.0 5.0 9.0,4.0 4.0 9.0,4.5 4.5 9.5)),\
+             ((3.0 3.0 10.0,0.0 4.0 9.0,1.0 3.0 10.0,3.0 3.0 10.0)),\
+             ((3.5 2.5 10.5,4.5 3.5 9.5,3.0 3.0 10.0,3.5 2.5 10.5)),\
+             ((3.0 3.0 10.0,4.0 4.0 9.0,0.0 4.0 9.0,3.0 3.0 10.0)),\
+             ((4.5 3.5 9.5,4.0 4.0 9.0,3.0 3.0 10.0,4.5 3.5 9.5)),\
+             ((2.0 1.0 9.0,1.0 1.0 9.0,0.5 0.5 9.5,2.0 1.0 9.0)),\
+             ((2.5 0.5 9.5,2.0 1.0 9.0,0.5 0.5 9.5,2.5 0.5 9.5)),\
+             ((1.0 1.0 9.0,1.0 2.0 9.0,0.5 2.5 9.5,1.0 1.0 9.0)),\
+             ((0.5 0.5 9.5,1.0 1.0 9.0,0.5 2.5 9.5,0.5 0.5 9.5)),\
+             ((1.0 3.0 10.0,2.0 2.0 9.0,3.0 3.0 10.0,1.0 3.0 10.0)),\
+             ((0.5 2.5 9.5,1.0 2.0 9.0,1.0 3.0 10.0,0.5 2.5 9.5)),\
+             ((1.0 3.0 10.0,1.0 2.0 9.0,2.0 2.0 9.0,1.0 3.0 10.0)),\
+             ((2.0 2.0 9.0,2.0 1.0 9.0,2.5 0.5 9.5,2.0 2.0 9.0)),\
+             ((3.5 2.5 10.5,3.0 3.0 10.0,3.5 1.5 10.5,3.5 2.5 10.5)),\
+             ((3.5 1.5 10.5,2.0 2.0 9.0,2.5 0.5 9.5,3.5 1.5 10.5)),\
+             ((3.0 3.0 10.0,2.0 2.0 9.0,3.5 1.5 10.5,3.0 3.0 10.0)))"
         );
     }
 
@@ -810,11 +916,11 @@ mod tests {
 
     #[test]
     fn line_substring() {
-        let g = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+        let g = SFCGeometry::new("LINESTRING Z(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
         let result = g.line_substring(-0.2, 0.2).unwrap();
         assert_eq!(
             result.to_wkt_decim(1).unwrap(),
-            "LINESTRING(2.8 1.8 1.8,8.2 1.2 1.9)"
+            "LINESTRING Z(2.8 1.8 1.8,8.2 1.2 1.9)"
         );
         // With "start" or "end" point not in [-1; 1]
         assert_eq!(
@@ -941,11 +1047,11 @@ mod tests {
     #[test]
     fn create_collection_heterogenous() {
         let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
-        let b = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+        let b = SFCGeometry::new("LINESTRING Z(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
         let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
-            "GEOMETRYCOLLECTION(POINT(1.0 1.0),LINESTRING(10.0 1.0 2.0,1.0 2.0 1.7))",
+            "GEOMETRYCOLLECTION(POINT(1.0 1.0),LINESTRING Z(10.0 1.0 2.0,1.0 2.0 1.7))",
         );
     }
 
@@ -967,7 +1073,7 @@ mod tests {
         let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
-            "MULTILINESTRING((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",
+            "MULTILINESTRING Z((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",
         );
     }
 
@@ -994,7 +1100,7 @@ mod tests {
         let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
         assert_eq!(
             g.to_wkt_decim(1).unwrap(),
-            "MULTISOLID(\
+            "MULTISOLID Z(\
              ((\
              ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
              ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
