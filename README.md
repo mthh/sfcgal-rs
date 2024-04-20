@@ -2,8 +2,8 @@
 
 [![Build and run tests](https://github.com/mthh/sfcgal-rs/actions/workflows/test.yml/badge.svg)](https://github.com/mthh/sfcgal-rs/actions/workflows/test.yml)
 [![Crates.io](https://img.shields.io/crates/v/sfcgal.svg)](https://crates.io/crates/sfcgal)
+[![Documentationg](https://img.shields.io/badge/documentation-0.7.0-green)](https://mthh.github.io/sfcgal-rs/sfcgal/)
 
-[Documentation](https://mthh.github.io/sfcgal-rs/sfcgal/)
 
 Rust bindings providing a high-level API to [`SFCGAL`](https://sfcgal.gitlab.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
 Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
@@ -14,7 +14,9 @@ Some key features of the underlying library:
 - Intersection, difference and union.
 - Straight skeleton, tesselation, Minkovski sum, alpha shapes and convex hull.
 
-Required version of SFCGAL is currently 1.5.x (latest version - 2023-10-30).
+> [!IMPORTANT]
+> Note that the required version of SFCGAL is currently 1.5.x (latest version - 2023-10-30).  
+> If you want to use SFCCAL 1.4.x, you can use the 0.6.x version of this crate.
 
 ## Usage
 
