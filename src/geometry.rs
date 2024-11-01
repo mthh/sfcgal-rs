@@ -28,7 +28,6 @@ use sfcgal_sys::{
     sfcgal_geometry_type_id, sfcgal_geometry_union, sfcgal_geometry_union_3d,
     sfcgal_geometry_volume, sfcgal_io_read_wkt, sfcgal_multi_linestring_create,
     sfcgal_multi_point_create, sfcgal_multi_polygon_create, sfcgal_prepared_geometry_t, srid_t,
-    BufferType,
 };
 use sfcgal_sys::{
     /* sfcgal_solid_set_exterior_shell, */
@@ -77,6 +76,12 @@ use crate::{
     },
     Result, ToSFCGAL,
 };
+#[repr(C)]
+pub enum BufferType {
+    Round,
+    CylSphere,
+    Flat,
+}
 
 /// SFCGAL Geometry types.
 ///
@@ -1184,20 +1189,6 @@ impl SFCGeometry {
         unsafe { sfcgal_geometry_has_validity_flag(self.c_geom.as_ptr()) }
     }
 
-    //TODO: implement?
-    /*pub fn geometry_as_vtk(&self) -> Result<SFCGeometry> {
-
-            let result = unsafe {
-
-                    sfcgal_geometry_as_vtk(self.c_geom.as_ptr())
-            };
-
-            unsafe {
-
-                    SFCGeometry::new_from_raw(result, true)
-            }
-    }*/
-
     /// Build the visibility polygon of the segment [pointA ; pointB] on a Polygon
     pub fn geometry_visibility_segment(
         &self,
@@ -1532,19 +1523,6 @@ impl SFCGeometry {
             _ => bail!("Geometry must be a Solid"),
         }
     }
-    // TODO: implement here?
-    /*pub fn io_read_ewkt(&self) -> Result<SFCGeometry> {
-
-            let result = unsafe {
-
-                    sfcgal_io_read_ewkt(self.c_geom.as_ptr())
-            };
-
-            unsafe {
-
-                    SFCGeometry::new_from_raw(result, true)
-            }
-    }*/
 
     /// Creates an empty Polygon
     pub fn polygon_create() -> Result<SFCGeometry> {
@@ -1587,34 +1565,6 @@ impl SFCGeometry {
 
         unsafe { SFCGeometry::new_from_raw(convert_mutability, true) }
     }
-
-    //TODO: implement?
-    /*pub fn io_read_binary_prepared(&self) -> Result<SFCGeometry> {
-
-            let result = unsafe {
-
-                    sfcgal_io_read_binary_prepared(self.c_geom.as_ptr())
-            };
-
-            unsafe {
-
-                    SFCGeometry::new_from_raw(result, true)
-            }
-    }*/
-
-    // TODO: implement strategy
-    /*pub fn io_write_binary_prepared(&self) -> Result<SFCGeometry> {
-
-            let result = unsafe {
-
-                    sfcgal_io_write_binary_prepared(self.c_geom.as_ptr())
-            };
-
-            unsafe {
-
-                    SFCGeometry::new_from_raw(result, true)
-            }
-    }*/
 
     /// Creates an empty MultiSolid
     pub fn multi_solid_create() -> Result<SFCGeometry> {
@@ -1731,6 +1681,13 @@ fn version() -> String {
 #[cfg(test)]
 
 mod tests {
+
+    use std::{env, f64::consts::PI};
+
+    use geo_types::Point;
+    use num_traits::abs;
+
+    use crate::{Point2d, Point3d, ToCoordinates};
 
     use super::*;
 
@@ -2437,6 +2394,95 @@ mod tests {
         );
     }
 
+    fn points_are_close2d(p1: (f64, f64), p2: (f64, f64)) -> bool {
+        let tolerance = 1e-10;
+        abs(p1.0 - p2.0) < tolerance && abs(p1.1 - p2.1) < tolerance
+    }
+    fn points_are_close3d(p1: (f64, f64, f64), p2: (f64, f64, f64)) -> bool {
+        let tolerance = 1e-10;
+        abs(p1.0 - p2.0) < tolerance && abs(p1.1 - p2.1) < tolerance && abs(p1.2 - p2.2) < tolerance
+    }
+
     #[test]
-    fn test_translation_3d() {}
+    fn test_polygon_translation_2d() {
+        let line = CoordSeq::<Point2d>::Linestring(vec![(0., 0.), (1.0, 1.0)])
+            .to_sfcgal()
+            .unwrap();
+
+        let line = line.geometry_translate_2d(2., 3.).unwrap();
+
+        let coords: CoordSeq<Point2d> = line.to_coordinates().unwrap();
+        match coords {
+            CoordSeq::Linestring(vec) => {
+                assert!(points_are_close2d(vec[0], (2.0, 3.0)));
+                assert!(points_are_close2d(vec[1], (3.0, 4.0)));
+            }
+            _ => panic!("Bad coordinates variant"),
+        }
+    }
+    #[test]
+    fn test_polygon_translation_3d() {
+        let poly = CoordSeq::<Point3d>::Polygon(vec![vec![
+            (0., 0., 0.),
+            (1., 0., 0.),
+            (1., 1., 0.),
+            (0., 1., 0.),
+            (0., 0., 0.),
+        ]])
+        .to_sfcgal()
+        .unwrap();
+
+        let poly = poly.geometry_translate_3d(1.0, 2.0, 3.0).unwrap();
+
+        let coords: CoordSeq<Point3d> = poly.to_coordinates().unwrap();
+
+        match coords {
+            CoordSeq::Polygon(vec) => {
+                let poly_test = &vec[0];
+
+                assert!(points_are_close3d(poly_test[0], (1., 2., 3.)));
+                assert!(points_are_close3d(poly_test[2], (2., 3., 3.)));
+            }
+            _ => panic!("Bad coordinate variant"),
+        }
+    }
+
+    #[test]
+    fn test_rotate_point() {
+        let point = CoordSeq::Point((1., 0., 0.)).to_sfcgal().unwrap();
+
+        let point = point.geometry_rotate_z(5. * PI / 2.).unwrap();
+
+        let coords: CoordSeq<Point3d> = point.to_coordinates().unwrap();
+
+        match coords {
+            CoordSeq::Point(pt) => {
+                assert!(points_are_close3d(pt, (0., 1., 0.)))
+            }
+            _ => panic!("Bad coordinate variant"),
+        }
+    }
+
+    #[test]
+    fn test_obj_export() {
+        // ----------------------------------------
+        // Open with Blender or any other 3d soft
+        // to visually check
+        // ----------------------------------------
+        let temp_dir = env::temp_dir();
+
+        let final_path = format!("{}/sfcgal_test.obj", temp_dir.to_str().unwrap());
+
+        println!("Writing to {:?}", temp_dir);
+
+        let input = "MULTISOLID Z (((((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),((0 0 1,1 0 1,1 1 1,0 1 1,0 0 1)),((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),((1 1 0,0 1 0,0 1 1,1 1 1,1 1 0)),((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)))),((((2 4 6,2 5 6,3 5 6,3 4 6,2 4 6)),((2 4 7,3 4 7,3 5 7,2 5 7,2 4 7)),((2 4 6,3 4 6,3 4 7,2 4 7,2 4 6)),((3 5 6,2 5 6,2 5 7,3 5 7,3 5 6)),((3 4 6,3 5 6,3 5 7,3 4 7,3 4 6)),((2 4 6,2 4 7,2 5 7,2 5 6,2 4 6)))))";
+
+        let shape = SFCGeometry::new(input).unwrap();
+
+        assert!(shape.to_obj_file(final_path.as_str()).is_ok());
+    }
+    #[test]
+    fn show_full_version() {
+        println!("{:?}", full_version());
+    }
 }
