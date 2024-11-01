@@ -7,9 +7,16 @@ on:
 name: Build and run tests
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly
     steps:
       - uses: actions/checkout@v3
+
       - run: |
           sudo apt-get install -y libboost1.74-all-dev libmpfr-dev libgmp-dev cmake wget unzip clang libstdc++-11-dev
           wget https://github.com/CGAL/cgal/releases/download/v5.6.1/CGAL-5.6.1-library.tar.xz
@@ -18,4 +25,30 @@ jobs:
           unzip SFCGAL-v1.5.0.zip
           cd CGAL-5.6.1 && cmake . && sudo make install && cd ..
           cd $(ls -d */ | grep SFC) && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make && sudo make install && cd ..
-      - run: cargo test --all-features
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: rustfmt, clippy
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings

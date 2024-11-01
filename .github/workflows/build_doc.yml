@@ -1,8 +1,7 @@
 on:
   push:
     tags:
-      - '*'
-  pull_request:
+      - "v*.*.*"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -10,7 +9,7 @@ env:
 name: Build documentation on new release
 jobs:
   doc:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - run: |

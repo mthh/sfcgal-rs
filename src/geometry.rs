@@ -622,7 +622,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
-    /// Tests the coverage of geom1 and geom2
+    ///
     pub fn covers(&self, other: &SFCGeometry) -> Result<bool> {
         precondition_match_validity!(self);
         precondition_match_validity_other!(other);
@@ -631,7 +631,7 @@ impl SFCGeometry {
         check_predicate(rv)
     }
 
-    /// Tests the 3D coverage of geom1 and geom2
+    ///
     pub fn covers_3d(&self, other: &SFCGeometry) -> Result<bool> {
         precondition_match_validity!(self);
         precondition_match_validity_other!(other);
