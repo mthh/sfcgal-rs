@@ -718,60 +718,71 @@ impl SFCGeometry {
         }
     }
 
+    /// Creates an empty point
     pub fn point_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Creates a point from two X and Y coordinates
     pub fn point_create_from_xy(x: f64, y: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xy(x, y) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Creates a point from three X, Y and M coordinates
     pub fn point_create_from_xym(x: f64, y: f64, m: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xym(x, y, m) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+    /// Creates a point from three X, Y and Z coordinates
     pub fn point_create_from_xyz(x: f64, y: f64, z: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xyz(x, y, z) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Create a point from x, y, z, m components.
     pub fn point_create_from_xyzm(&self, x: f64, y: f64, z: f64, m: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xyzm(x, y, z, m) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
-    /// Create a point from x, y, z, m components.
 
+    /// Returns the X coordinate of the given Point
     pub fn point_x(&self) -> Result<f64> {
         match self._type()? {
             GeomType::Point => unsafe { Ok(sfcgal_point_x(self.c_geom.as_ptr())) },
             _ => bail!("Geometry is not a Point"),
         }
     }
+
+    /// Returns the Y coordinate of the given Point
     pub fn point_y(&self) -> Result<f64> {
         match self._type()? {
             GeomType::Point => unsafe { Ok(sfcgal_point_y(self.c_geom.as_ptr())) },
             _ => bail!("Geometry is not a Point"),
         }
     }
+    /// Returns the Z coordinate of the given Point
     pub fn point_z(&self) -> Result<f64> {
         match self._type()? {
             GeomType::Point => unsafe { Ok(sfcgal_point_z(self.c_geom.as_ptr())) },
             _ => bail!("Geometry is not a Point"),
         }
     }
+
+    /// Returns the M coordinate of the given Point
     pub fn point_m(&self) -> Result<f64> {
         let result = unsafe { sfcgal_point_m(self.c_geom.as_ptr()) };
 
         check_nan_value(result)
     }
 
+    /// Sets one vertex of a Triangle
     pub fn triangle_set_vertex(&self, index: i32, vertex: &SFCGeometry) -> Result<()> {
         match self._type()? {
             GeomType::Triangle => {
@@ -794,6 +805,8 @@ impl SFCGeometry {
             _ => bail!("Geometry is not a Triangle"),
         }
     }
+
+    /// Sets one vertex of a Triangle from two coordinates
     pub fn triangle_set_vertex_from_xy(&self, index: i32, x: f64, y: f64) -> Result<()> {
         match self._type()? {
             GeomType::Triangle => {
@@ -817,6 +830,8 @@ impl SFCGeometry {
             _ => bail!("Geometry is not a Triangle"),
         }
     }
+
+    /// Sets one vertex of a Triangle from three coordinates
     pub fn triangle_set_vertex_from_xyz(&self, index: i32, x: f64, y: f64, z: f64) -> Result<()> {
         match self._type()? {
             GeomType::Triangle => {
@@ -841,6 +856,8 @@ impl SFCGeometry {
             _ => bail!("Geometry is not a Triangle"),
         }
     }
+
+    /// Returns the straight skeleton partition for the given Polygon
     pub fn geometry_straight_skeleton_partition(
         &self,
         auto_orientation: bool,
@@ -852,6 +869,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Returns the visibility polygon of a Point inside a Polygon
     pub fn geometry_visibility_point(&self, point: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe {
             sfcgal_geometry_visibility_point(self.c_geom.as_ptr(), point.c_geom.as_ptr())
@@ -860,21 +878,27 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Rotates a geometry around the origin (0,0,0) by a given angle
     pub fn geometry_rotate(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate(self.c_geom.as_ptr(), angle) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Rotates a geometry around the X axis by a given angle
     pub fn geometry_rotate_x(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate_x(self.c_geom.as_ptr(), angle) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+    /// Rotates a geometry around the Y axis by a given angle
     pub fn geometry_rotate_y(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate_y(self.c_geom.as_ptr(), angle) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Rotates a geometry around the Z axis by a given angle
     pub fn geometry_rotate_z(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate_z(self.c_geom.as_ptr(), angle) };
 
@@ -894,6 +918,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Rotates a 3D geometry around a specified axis by a given angle
     pub fn geometry_rotate_3d(
         &self,
         angle: f64,
@@ -914,6 +939,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Rotates a 3D geometry around a specified axis and center point by a given
     pub fn geometry_rotate_3d_around_center(
         &self,
         angle: f64,
@@ -940,23 +966,28 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Force a Right Handed Rule on the given Geometry
     pub fn geometry_force_rhr(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_force_rhr(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Force a Left Handed Rule on the given Geometry
     pub fn geometry_force_lhr(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_force_lhr(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Scale a geometry by a given factor
     pub fn geometry_scale(&self, scale: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_scale(self.c_geom.as_ptr(), scale) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Scale a geometry by different factors for each dimension
     pub fn geometry_scale_3d(
         &self,
         scale_x: f64,
@@ -969,6 +1000,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Scale a geometry by different factors for each dimension around a center
     pub fn geometry_scale_3d_around_center(
         &self,
         factor_x: f64,
@@ -992,6 +1024,8 @@ impl SFCGeometry {
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Round coordinates of the given Geometry
     pub fn geometry_round(&self, value: i32) -> Result<SFCGeometry> {
         let explicit_conversion: ::std::os::raw::c_int = value;
 
@@ -999,6 +1033,8 @@ impl SFCGeometry {
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Computes a 3D buffer around a geometry
     pub fn geometry_buffer3d(
         &self,
         radius: f64,
@@ -1025,6 +1061,7 @@ impl SFCGeometry {
         }
     }
 
+    /// Creates a OBJ file of the given geometry
     pub fn geometry_as_obj_file(&self, filename: &str) -> Result<()> {
         unsafe {
             let c_string = CString::new(filename)?;
@@ -1037,9 +1074,7 @@ impl SFCGeometry {
         Ok(())
     }
 
-    pub fn geometry_has_validity_flag(&self) -> i32 {
-        unsafe { sfcgal_geometry_has_validity_flag(self.c_geom.as_ptr()) }
-    }
+    /// Creates a OBJ string of the given geometry. In memory.
     pub fn geometry_as_obj(&self) -> Result<SFCGeometry> {
         // FIXME:
         /*let result = unsafe {
@@ -1055,6 +1090,11 @@ impl SFCGeometry {
         todo!()
     }
 
+    /// Gets the validity flag of the geometry
+    pub fn geometry_has_validity_flag(&self) -> i32 {
+        unsafe { sfcgal_geometry_has_validity_flag(self.c_geom.as_ptr()) }
+    }
+
     //TODO: implement?
     /*pub fn geometry_as_vtk(&self) -> Result<SFCGeometry> {
 
@@ -1068,6 +1108,8 @@ impl SFCGeometry {
                     SFCGeometry::new_from_raw(result, true)
             }
     }*/
+
+    /// Build the visibility polygon of the segment [pointA ; pointB] on a Polygon
     pub fn geometry_visibility_segment(
         &self,
         point_a: &SFCGeometry,
@@ -1084,17 +1126,21 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Convert a PolyhedralSurface to a Solid
     pub fn geometry_make_solid(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_make_solid(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Translate a geometry by a 2D vector
     pub fn geometry_translate_2d(&self, dx: f64, dy: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_translate_2d(self.c_geom.as_ptr(), dx, dy) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Translate a geometry by a 3D vector
     pub fn geometry_translate_3d(
         &self,
         translation_x: f64,
@@ -1127,19 +1173,24 @@ impl SFCGeometry {
             }
     }*/
 
+    /// Sets the validity flag of the geometry.
     pub fn geometry_force_valid(&self, validity: i32) {
         unsafe { sfcgal_geometry_force_valid(self.c_geom.as_ptr(), validity) };
     }
 
+    /// Set the geometry validation mode
     pub fn set_geometry_validation(enabled: i32) {
         unsafe { sfcgal_set_geometry_validation(enabled) };
     }
 
+    /// Creates an empty Triangle
     pub fn triangle_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_triangle_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns one the Triangle's vertex as a Point
     pub fn triangle_vertex(&self, index: i32) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_triangle_vertex(self.c_geom.as_ptr(), index) };
 
@@ -1148,6 +1199,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(convert_mutability, true) }
     }
 
+    /// Creates a Triangle from three given Point
     pub fn triangle_create_from_points(
         point_a: &SFCGeometry,
         point_b: &SFCGeometry,
@@ -1164,12 +1216,14 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Creates an empty TriangulatedSurface
     pub fn triangulated_surface_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_triangulated_surface_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Returns the ith Triangle of a given TriangulatedSurface
     pub fn triangulated_surface_triangle_n(&self, index: usize) -> Result<SFCGeometry> {
         match self._type()? {
             GeomType::Triangulatedsurface => {
@@ -1184,6 +1238,7 @@ impl SFCGeometry {
         }
     }
 
+    /// Adds a Triangle to a given TriangulatedSurface
     pub fn triangulated_surface_add_triangle(&self, triangle: &SFCGeometry) -> Result<()> {
         match self._type()? {
             GeomType::Triangulatedsurface => match triangle._type()? {
@@ -1205,34 +1260,45 @@ impl SFCGeometry {
         }
     }
 
+    /// Returns the number of triangles of a given TriangulatedSurface
     pub fn triangulated_surface_num_triangles(&self) -> usize {
         unsafe { sfcgal_triangulated_surface_num_triangles(self.c_geom.as_ptr()) }
     }
 
+    /// Returns the optimal convex partition of a geometry (polygon without hole)
     pub fn optimal_convex_partition_2(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_optimal_convex_partition_2(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the approximal convex partition of a geometry (polygon without hole)
     pub fn approx_convex_partition_2(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_approx_convex_partition_2(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the greene approximal convex partition of a geometry (polygon without hole)
     pub fn greene_approx_convex_partition_2(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_greene_approx_convex_partition_2(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the y monotone partition of a geometry (polygon without hole)
     pub fn y_monotone_partition_2(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_y_monotone_partition_2(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the number of points of the given LineString
     pub fn linestring_num_points(&self) -> usize {
         unsafe { sfcgal_linestring_num_points(self.c_geom.as_ptr()) }
     }
 
+    /// Adds a point to a LineString
     pub fn linestring_add_point(&self, point: &SFCGeometry) -> Result<()> {
         match (self._type()?, point._type()?) {
             (GeomType::Linestring, GeomType::Point) => {
@@ -1245,6 +1311,8 @@ impl SFCGeometry {
             }
         }
     }
+
+    /// Returns the ith point of a given LineString
     pub fn linestring_point_n(&self, index: usize) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_linestring_point_n(self.c_geom.as_ptr(), index) };
 
@@ -1253,28 +1321,33 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(convert_mutability, true) }
     }
 
+    /// Creates an empty LineString
     pub fn linestring_create(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_linestring_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Creates an empty PolyhedralSurface
     pub fn polyhedral_surface_create(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polyhedral_surface_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the number of polygons of a given PolyhedralSurface
     pub fn polyhedral_surface_num_polygons(&self) -> usize {
         unsafe { sfcgal_polyhedral_surface_num_polygons(self.c_geom.as_ptr()) }
     }
 
     /// Adds a Polygon to a given PolyhedralSurface
-
     pub fn polyhedral_surface_add_polygon(&self, other: &SFCGeometry) {
         unsafe {
             sfcgal_polyhedral_surface_add_polygon(self.c_geom.as_ptr(), other.c_geom.as_ptr())
         };
     }
+
+    /// Returns the ith polygon of a given PolyhedralSurface
     pub fn polyhedral_surface_polygon_n(&self, idx: usize) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polyhedral_surface_polygon_n(self.c_geom.as_ptr(), idx) };
 
@@ -1283,6 +1356,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(convert_mutability, true) }
     }
 
+    /// Sets the error handlers. These callbacks are called on warning or error
     pub fn set_error_handlers(
         warning_handler: sfcgal_error_handler_t,
         error_handler: sfcgal_error_handler_t,
@@ -1290,6 +1364,7 @@ impl SFCGeometry {
         unsafe { sfcgal_set_error_handlers(warning_handler, error_handler) }
     }
 
+    /// Sets the error handlers. These callbacks are called on warning or error
     pub fn set_alloc_handlers(
         alloc_handler: sfcgal_alloc_handler_t,
         free_handler: sfcgal_free_handler_t,
@@ -1322,21 +1397,26 @@ impl SFCGeometry {
             }
     }*/
 
+    /// Creates an empty Solid
     pub fn solid_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_solid_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Returns the number of shells of a given Solid
     pub fn solid_num_shells(&self) -> usize {
         unsafe { sfcgal_solid_num_shells(self.c_geom.as_ptr()) }
     }
 
+    /// Creates a Solid from an exterior shell
     pub fn solid_create_from_exterior_shell(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_solid_create_from_exterior_shell(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the ith shell of a given Solid
     pub fn solid_shell_n(&self, index: usize) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_solid_shell_n(self.c_geom.as_ptr(), index) };
 
@@ -1344,6 +1424,8 @@ impl SFCGeometry {
 
         unsafe { SFCGeometry::new_from_raw(convert_mutability, true) }
     }
+
+    /// Adds a shell to a given Solid
     pub fn solid_add_interior_shell(&self, shell: &SFCGeometry) -> Result<()> {
         match self._type()? {
             GeomType::Solid => match self._type()? {
@@ -1375,14 +1457,19 @@ impl SFCGeometry {
             }
     }*/
 
+    /// Creates an empty Polygon
     pub fn polygon_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polygon_create() };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
+
+    /// Returns the number of interior rings of a given Polygon
     pub fn polygon_num_interior_rings(&self) -> usize {
         unsafe { sfcgal_polygon_num_interior_rings(self.c_geom.as_ptr()) }
     }
+
+    /// Returns the exterior ring of a given Polygon
     pub fn polygon_exterior_ring(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polygon_exterior_ring(self.c_geom.as_ptr()) };
 
@@ -1391,16 +1478,19 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(convert_mutability, true) }
     }
 
+    /// Creates an empty Polygon from an extrior ring
     pub fn polygon_create_from_exterior_ring(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polygon_create_from_exterior_ring(self.c_geom.as_ptr()) };
 
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    /// Adds an interior ring to a given Polygon
     pub fn polygon_add_interior_ring(&self, ring: &SFCGeometry) {
         unsafe { sfcgal_polygon_add_interior_ring(self.c_geom.as_ptr(), ring.c_geom.as_ptr()) };
     }
 
+    /// Returns the ith interior ring of a given Polygon
     pub fn polygon_interior_ring_n(&self, index: usize) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polygon_interior_ring_n(self.c_geom.as_ptr(), index) };
 
@@ -1437,6 +1527,7 @@ impl SFCGeometry {
             }
     }*/
 
+    /// Creates an empty MultiSolid
     pub fn multi_solid_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_multi_solid_create() };
 
