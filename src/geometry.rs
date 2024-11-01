@@ -289,13 +289,11 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
-    ///
     pub fn covers(&self, other: &SFCGeometry) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_covers(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         check_predicate(rv)
     }
 
-    ///
     pub fn covers_3d(&self, other: &SFCGeometry) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_covers_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
         check_predicate(rv)
