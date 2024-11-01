@@ -4,7 +4,7 @@ extern crate geojson;
 extern crate sfcgal;
 extern crate test;
 
-use sfcgal::{FromGeoJSON, SFCGeometry, ToCoordinates, ToGeoJSON, ToSFCGAL, TryInto};
+use sfcgal::{FromGeoJSON, SFCGeometry, ToCoordinates, ToGeoJSON, TryInto};
 use std::convert::TryFrom;
 use std::io::Read;
 use test::Bencher;

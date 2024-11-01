@@ -1666,13 +1666,13 @@ fn make_multi_geom(
     unsafe { SFCGeometry::new_from_raw(out_multi, true) }
 }
 
-fn full_version() -> String {
+pub fn _sfcgal_get_full_version() -> String {
     let result = unsafe { sfcgal_full_version() };
 
     _string(result)
 }
 
-fn version() -> String {
+pub fn _sfcgal_get_version() -> String {
     let result = unsafe { sfcgal_version() };
 
     _string(result)
@@ -1684,7 +1684,6 @@ mod tests {
 
     use std::{env, f64::consts::PI};
 
-    use geo_types::Point;
     use num_traits::abs;
 
     use crate::{Point2d, Point3d, ToCoordinates};
@@ -1712,7 +1711,7 @@ mod tests {
 
         let geom1 = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
 
-        assert_eq!(geom.intersects(&geom1).unwrap(), true);
+        assert!(geom.intersects(&geom1).unwrap());
     }
 
     #[test]
@@ -1784,9 +1783,9 @@ mod tests {
 
         let pt2 = SFCGeometry::new("POINTM(1.0 1.0 2.0)").unwrap();
 
-        assert_eq!(pt1.is_measured().unwrap(), false);
+        assert!(!pt1.is_measured().unwrap());
 
-        assert_eq!(pt2.is_measured().unwrap(), true);
+        assert!(pt2.is_measured().unwrap());
     }
 
     #[test]
@@ -1835,7 +1834,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(surface.volume().is_err(), true);
+        assert!(surface.volume().is_err());
     }
 
     #[test]
@@ -1843,11 +1842,11 @@ mod tests {
     fn predicates() {
         let pt = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
 
-        assert_eq!(pt.is_valid().unwrap(), true);
+        assert!(pt.is_valid().unwrap());
 
-        assert_eq!(pt.is_3d().unwrap(), false);
+        assert!(!pt.is_3d().unwrap());
 
-        assert_eq!(pt.is_empty().unwrap(), false);
+        assert!(!pt.is_empty().unwrap());
 
         assert_eq!(
             pt.is_planar().err().unwrap().to_string(),
@@ -1856,11 +1855,11 @@ mod tests {
 
         let linestring_3d = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
-        assert_eq!(linestring_3d.is_valid().unwrap(), true);
+        assert!(linestring_3d.is_valid().unwrap());
 
-        assert_eq!(linestring_3d.is_3d().unwrap(), true);
+        assert!(linestring_3d.is_3d().unwrap());
 
-        assert_eq!(linestring_3d.is_empty().unwrap(), false);
+        assert!(!linestring_3d.is_empty().unwrap());
 
         assert_eq!(
             linestring_3d.is_planar().err().unwrap().to_string(),
@@ -1869,11 +1868,11 @@ mod tests {
 
         let empty_geom = SFCGeometry::new("LINESTRING EMPTY").unwrap();
 
-        assert_eq!(empty_geom.is_valid().unwrap(), true);
+        assert!(empty_geom.is_valid().unwrap());
 
-        assert_eq!(empty_geom.is_3d().unwrap(), false);
+        assert!(!empty_geom.is_3d().unwrap());
 
-        assert_eq!(empty_geom.is_empty().unwrap(), true);
+        assert!(empty_geom.is_empty().unwrap());
 
         assert_eq!(
             linestring_3d.is_planar().err().unwrap().to_string(),
@@ -1882,17 +1881,17 @@ mod tests {
 
         let polyg = SFCGeometry::new("POLYGON((1 1, 3 1, 4 4, 1 3, 1 1))").unwrap();
 
-        assert_eq!(polyg.is_valid().unwrap(), true);
+        assert!(polyg.is_valid().unwrap());
 
-        assert_eq!(polyg.is_3d().unwrap(), false);
+        assert!(!polyg.is_3d().unwrap());
 
-        assert_eq!(polyg.is_empty().unwrap(), false);
+        assert!(!polyg.is_empty().unwrap());
 
-        assert_eq!(polyg.is_planar().unwrap(), true);
+        assert!(polyg.is_planar().unwrap());
 
-        assert_eq!(pt.intersects(&polyg).unwrap(), true);
+        assert!(pt.intersects(&polyg).unwrap());
 
-        assert_eq!(pt.intersects_3d(&linestring_3d).unwrap(), false);
+        assert!(!pt.intersects_3d(&linestring_3d).unwrap());
     }
 
     #[test]
@@ -1900,7 +1899,7 @@ mod tests {
     fn validity_detail_on_valid_geom() {
         let line = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
-        assert_eq!(line.is_valid().unwrap(), true);
+        assert!(line.is_valid().unwrap());
 
         assert_eq!(line.validity_detail().unwrap(), None);
     }
@@ -1919,7 +1918,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(surface.is_valid().unwrap(), false);
+        assert!(!surface.is_valid().unwrap());
 
         assert_eq!(surface.validity_detail().unwrap(), Some(String::from("inconsistent orientation of PolyhedralSurface detected at edge 3 (4-7) of polygon 5")),);
     }
@@ -1929,7 +1928,7 @@ mod tests {
     fn validity_detail_on_invalid_geom_2() {
         let surface = SFCGeometry::new("POLYGON((1 2,1 2,1 2,1 2))").unwrap();
 
-        assert_eq!(surface.is_valid().unwrap(), false);
+        assert!(!surface.is_valid().unwrap());
 
         assert_eq!(
             surface.validity_detail().unwrap(),
@@ -1942,7 +1941,7 @@ mod tests {
     fn validity_detail_on_invalid_geom_3() {
         let surface = SFCGeometry::new("LINESTRING(1 2, 1 2, 1 2)").unwrap();
 
-        assert_eq!(surface.is_valid().unwrap(), false);
+        assert!(!surface.is_valid().unwrap());
 
         assert_eq!(
             surface.validity_detail().unwrap(),
@@ -2183,7 +2182,7 @@ mod tests {
 
         let diff = cube1.difference_3d(&cube2).unwrap();
 
-        assert_eq!(diff.is_valid().unwrap(), true);
+        assert!(diff.is_valid().unwrap());
 
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);
     }
@@ -2215,7 +2214,7 @@ mod tests {
 
         let diff = cube1.intersection_3d(&cube2).unwrap();
 
-        assert_eq!(diff.is_valid().unwrap(), true);
+        assert!(diff.is_valid().unwrap());
 
         assert_ulps_eq!(diff.volume().unwrap(), 0.5);
     }
@@ -2290,7 +2289,7 @@ mod tests {
 
         let res = pol1.alpha_shapes(10.0, false);
 
-        assert_eq!(res.is_err(), true);
+        assert!(res.is_err());
     }
 
     #[test]
@@ -2483,6 +2482,6 @@ mod tests {
     }
     #[test]
     fn show_full_version() {
-        println!("{:?}", full_version());
+        println!("{:?}", _sfcgal_get_full_version());
     }
 }
