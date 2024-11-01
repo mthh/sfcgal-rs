@@ -23,7 +23,7 @@ fn main() {
     };
     let new_features = features
         .iter()
-        .filter_map(|ref feature| {
+        .filter_map(|feature| {
             if let Some(geom) = &feature.geometry {
                 if let Value::Polygon(..) = geom.value {
                     let polygon_sfc = SFCGeometry::from_geojson::<Pt3d>(&geom.value).unwrap();
@@ -42,7 +42,7 @@ fn main() {
                     });
                 }
             }
-            return None;
+            None
         })
         .collect::<Vec<_>>();
 
