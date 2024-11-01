@@ -73,7 +73,7 @@ use crate::{
     errors::get_last_error,
     utils::{
         _c_string_with_size, _string, check_computed_value, check_nan_value,
-        check_null_prepared_geom, check_predicate,
+        check_null_prepared_geom, check_predicate, get_raw_bytes,
     },
     Result, ToSFCGAL,
 };
@@ -165,7 +165,6 @@ impl std::fmt::Debug for SFCGeometry {
 
 impl SFCGeometry {
     /// Create a geometry by parsing a [WKT](https://en.wikipedia.org/wiki/Well-known_text) string.
-
     pub fn new(wkt: &str) -> Result<SFCGeometry> {
         initialize();
 
@@ -174,6 +173,14 @@ impl SFCGeometry {
         let obj = unsafe { sfcgal_io_read_wkt(c_str.as_ptr(), wkt.len()) };
 
         unsafe { SFCGeometry::new_from_raw(obj, true) }
+    }
+
+    pub(crate) fn _init() {
+        // Right now it is a no-op
+        // Don't bother
+        unsafe {
+            sfcgal_init();
+        }
     }
 
     pub(crate) unsafe fn new_from_raw(
@@ -190,7 +197,6 @@ impl SFCGeometry {
             })?,
         })
     }
-
     pub fn new_from_coordinates<T>(coords: &CoordSeq<T>) -> Result<SFCGeometry>
     where
         T: ToSFCGALGeom + CoordType,
@@ -200,7 +206,6 @@ impl SFCGeometry {
 
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL
     /// exact integer fractions as coordinate values. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
-
     pub fn to_wkt(&self) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -212,11 +217,9 @@ impl SFCGeometry {
             Ok(_c_string_with_size(ptr.assume_init(), length))
         }
     }
-
     /// Returns a WKT representation of the given `SFCGeometry` using
     /// floating point coordinate values with the desired number of
     /// decimals. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
-
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -234,8 +237,157 @@ impl SFCGeometry {
         }
     }
 
-    /// Test if the given `SFCGeometry` is empty or not.
+    /// Creates a Wkb string of the given geometry. In memory version.
+    pub fn to_wkb_in_memory(&self) -> Result<Vec<u8>> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_geometry_as_wkb(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
+    }
+
+    /// # Safety
+    /// Returns an EWKT representation of the given PreparedGeometry
+    pub unsafe fn to_ewkt_in_memory(
+        prepared: *const sfcgal_prepared_geometry_t,
+        num_decimals: i32,
+    ) -> Result<Vec<u8>> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_prepared_geometry_as_ewkt(prepared, num_decimals, ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
+    }
+    /// Creates a Hexwkb string of the given geometry. In memory version.
+    pub fn to_hexwkb_in_memory(&self) -> Result<Vec<u8>> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_geometry_as_hexwkb(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
+    }
+
+    /// Read the binary prepared geometry
+    pub fn io_read_binary_prepared(data: &[u8]) -> Result<*mut sfcgal_prepared_geometry_t> {
+        unsafe {
+            let ptr = data.as_ptr() as *const i8;
+            let length = data.len();
+
+            let result = sfcgal_io_read_binary_prepared(ptr, length);
+
+            check_null_prepared_geom(result)?;
+
+            Ok(result)
+        }
+    }
+
+    /// Read the binary prepared geometry
+    pub fn io_read_wkb(data: &[u8]) -> Result<*mut sfcgal_prepared_geometry_t> {
+        unsafe {
+            let ptr = data.as_ptr() as *const i8;
+            let length = data.len();
+
+            let result = sfcgal_io_read_wkb(ptr, length);
+
+            check_null_prepared_geom(result)?;
+
+            Ok(result)
+        }
+    }
+
+    /// Read the binary prepared geometry
+    pub fn io_read_ewkt(data: &[u8]) -> Result<*mut sfcgal_prepared_geometry_t> {
+        unsafe {
+            let ptr = data.as_ptr() as *const i8;
+            let length = data.len();
+
+            let result = sfcgal_io_read_ewkt(ptr, length);
+
+            check_null_prepared_geom(result)?;
+
+            Ok(result)
+        }
+    }
+
+    /// # Safety
+    /// Read the binary prepared geometry in memory
+    pub unsafe fn io_write_binary_prepared(
+        prepared_geometry: *mut sfcgal_prepared_geometry_t,
+    ) -> Result<Vec<u8>> {
+        unsafe {
+            let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+            let mut length: usize = 0;
+
+            sfcgal_io_write_binary_prepared(prepared_geometry, ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
+    }
+
+    /// Creates a OBJ file of the given geometry
+    pub fn to_obj_file(&self, filename: &str) -> Result<()> {
+        unsafe {
+            let c_string = CString::new(filename)?;
+
+            let raw: *mut c_char = c_string.into_raw();
+
+            sfcgal_geometry_as_obj_file(self.c_geom.as_ptr(), raw);
+        };
+
+        Ok(())
+    }
+    /// Creates a OBJ string of the given geometry. In memory version.
+    pub fn to_obj_in_memory(&self) -> Result<Vec<u8>> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_geometry_as_obj(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
+    }
+
+    /// Creates a VTK file of the given geometry
+    pub fn to_vtk_file(&self, filename: &str) -> Result<()> {
+        unsafe {
+            let c_string = CString::new(filename)?;
+
+            let raw: *mut c_char = c_string.into_raw();
+
+            sfcgal_geometry_as_vtk_file(self.c_geom.as_ptr(), raw);
+        };
+
+        Ok(())
+    }
+    /// Creates a VTK string of the given geometry. In memory version.
+    pub fn to_vtk_in_memory(&self) -> Result<Vec<u8>> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_geometry_as_vtk(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
+    }
+
+    /// Test if the given `SFCGeometry` is empty or not.
     pub fn is_empty(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_empty(self.c_geom.as_ptr()) };
 
@@ -243,7 +395,6 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is valid or not.
-
     pub fn is_valid(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_valid(self.c_geom.as_ptr()) };
 
@@ -251,14 +402,12 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is measured (has an 'm' coordinates)
-
     pub fn is_measured(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_measured(self.c_geom.as_ptr()) };
 
         check_predicate(rv)
     }
     /// Test if the given `SFCGeometry` is planar or not.
-
     pub fn is_planar(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_planar(self.c_geom.as_ptr()) };
 
@@ -266,14 +415,12 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is a 3d geometry or not.
-
     pub fn is_3d(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_3d(self.c_geom.as_ptr()) };
 
         check_predicate(rv)
     }
     /// Returns reason for the invalidity or None in case of validity.
-
     pub fn validity_detail(&self) -> Result<Option<String>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -293,7 +440,6 @@ impl SFCGeometry {
     }
 
     /// Returns the SFCGAL type of the given `SFCGeometry`.
-
     pub fn _type(&self) -> Result<GeomType> {
         let type_geom = unsafe { sfcgal_geometry_type_id(self.c_geom.as_ptr()) };
 
@@ -302,7 +448,6 @@ impl SFCGeometry {
     }
 
     /// Computes the distance to an other `SFCGeometry`.
-
     pub fn distance(&self, other: &SFCGeometry) -> Result<f64> {
         let distance =
             unsafe { sfcgal_geometry_distance(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -311,7 +456,6 @@ impl SFCGeometry {
     }
 
     /// Computes the 3d distance to an other `SFCGeometry`.
-
     pub fn distance_3d(&self, other: &SFCGeometry) -> Result<f64> {
         let distance =
             unsafe { sfcgal_geometry_distance_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -320,7 +464,6 @@ impl SFCGeometry {
     }
 
     /// Computes the area of the given `SFCGeometry`.
-
     pub fn area(&self) -> Result<f64> {
         let area = unsafe { sfcgal_geometry_area(self.c_geom.as_ptr()) };
 
@@ -328,7 +471,6 @@ impl SFCGeometry {
     }
 
     /// Computes the 3d area of the given `SFCGeometry`.
-
     pub fn area_3d(&self) -> Result<f64> {
         let area = unsafe { sfcgal_geometry_area_3d(self.c_geom.as_ptr()) };
 
@@ -336,7 +478,6 @@ impl SFCGeometry {
     }
 
     /// Computes the volume of the given `SFCGeometry` (must be a volume).
-
     pub fn volume(&self) -> Result<f64> {
         let volume = unsafe { sfcgal_geometry_volume(self.c_geom.as_ptr()) };
 
@@ -345,7 +486,6 @@ impl SFCGeometry {
 
     /// Computes the orientation of the given `SFCGeometry` (must be a
     /// Polygon)
-
     pub fn orientation(&self) -> Result<Orientation> {
         let orientation = unsafe { sfcgal_geometry_orientation(self.c_geom.as_ptr()) };
 
@@ -354,7 +494,6 @@ impl SFCGeometry {
     }
 
     /// Test the intersection with an other `SFCGeometry`.
-
     pub fn intersects(&self, other: &SFCGeometry) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_intersects(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
 
@@ -362,7 +501,6 @@ impl SFCGeometry {
     }
 
     /// Test the 3d intersection with an other `SFCGeometry`.
-
     pub fn intersects_3d(&self, other: &SFCGeometry) -> Result<bool> {
         let rv =
             unsafe { sfcgal_geometry_intersects_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -372,7 +510,6 @@ impl SFCGeometry {
 
     /// Returns the intersection of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn intersection(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_intersection(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -382,7 +519,6 @@ impl SFCGeometry {
 
     /// Returns the 3d intersection of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn intersection_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_intersection_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -391,7 +527,6 @@ impl SFCGeometry {
     }
 
     /// Tests the coverage of geom1 and geom2
-
     pub fn covers(&self, other: &SFCGeometry) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_covers(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
 
@@ -399,7 +534,6 @@ impl SFCGeometry {
     }
 
     /// Tests the 3D coverage of geom1 and geom2
-
     pub fn covers_3d(&self, other: &SFCGeometry) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_covers_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
 
@@ -408,7 +542,6 @@ impl SFCGeometry {
 
     /// Returns the difference of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn difference(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_difference(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -418,7 +551,6 @@ impl SFCGeometry {
 
     /// Returns the 3d difference of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn difference_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_difference_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -428,7 +560,6 @@ impl SFCGeometry {
 
     /// Returns the union of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn union(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_union(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
 
@@ -437,7 +568,6 @@ impl SFCGeometry {
 
     /// Returns the 3d union of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn union_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_union_3d(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -447,7 +577,6 @@ impl SFCGeometry {
 
     /// Returns the minkowski sum of the given `SFCGeometry` and an other
     /// `SFCGEOMETRY`. ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga02d35888dac40eee2eb2a2b133979c8d))
-
     pub fn minkowski_sum(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_minkowski_sum(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
@@ -457,7 +586,6 @@ impl SFCGeometry {
 
     /// Returns the straight skeleton of the given `SFCGeometry`.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
-
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_straight_skeleton(self.c_geom.as_ptr()) };
 
@@ -466,7 +594,6 @@ impl SFCGeometry {
 
     /// Returns the straight skeleton of the given `SFCGeometry` with the
     /// distance to the border as M coordinate. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
-
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_straight_skeleton_distance_in_m(self.c_geom.as_ptr()) };
@@ -476,7 +603,6 @@ impl SFCGeometry {
 
     /// Returns the extrude straight skeleton of the given Polygon.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
-
     pub fn extrude_straight_skeleton(&self, height: f64) -> Result<SFCGeometry> {
         let result =
             unsafe { sfcgal_geometry_extrude_straight_skeleton(self.c_geom.as_ptr(), height) };
@@ -487,7 +613,6 @@ impl SFCGeometry {
     /// Returns the union of the polygon z-extrusion (with respect to
     /// building_height) and the extrude straight skeleton (with
     /// respect to roof_height) of the given Polygon. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
-
     pub fn extrude_polygon_straight_skeleton(
         &self,
         building_height: f64,
@@ -506,7 +631,6 @@ impl SFCGeometry {
 
     /// Returns the approximate medial axis for the given `SFCGeometry`
     /// Polygon. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga16a9b4b1211843f8444284b1fefebc46))
-
     pub fn approximate_medial_axis(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_approximate_medial_axis(self.c_geom.as_ptr()) };
 
@@ -515,7 +639,6 @@ impl SFCGeometry {
 
     /// Returns the offset polygon of the given `SFCGeometry`.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9766f54ebede43a9b71fccf1524a1054))
-
     pub fn offset_polygon(&self, radius: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_offset_polygon(self.c_geom.as_ptr(), radius) };
 
@@ -524,7 +647,6 @@ impl SFCGeometry {
 
     /// Returns the extrusion of the given `SFCGeometry` (not supported on
     /// Solid and Multisolid). ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga277d01bd9978e13644baa1755f1cd3e0)
-
     pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_extrude(self.c_geom.as_ptr(), ex, ey, ez) };
 
@@ -533,7 +655,6 @@ impl SFCGeometry {
 
     /// Returns a tesselation of the given `SFCGeometry`.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
-
     pub fn tesselate(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_tesselate(self.c_geom.as_ptr()) };
 
@@ -542,7 +663,6 @@ impl SFCGeometry {
 
     /// Returns a triangulation of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gae382792f387654a9adb2e2c38735e08d))
-
     pub fn triangulate_2dz(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_triangulate_2dz(self.c_geom.as_ptr()) };
 
@@ -551,7 +671,6 @@ impl SFCGeometry {
 
     /// Returns the convex hull of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9027b5654cbacf6c2106d70b129d3a23))
-
     pub fn convexhull(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull(self.c_geom.as_ptr()) };
 
@@ -560,7 +679,6 @@ impl SFCGeometry {
 
     /// Returns the 3d convex hull of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gacf01a9097f2059afaad871658b4b5a6f))
-
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_convexhull_3d(self.c_geom.as_ptr()) };
 
@@ -569,7 +687,6 @@ impl SFCGeometry {
 
     /// Returns the substring of the given `SFCGeometry` LineString between
     /// fractional distances. ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9184685ade86d02191ffaf0337ed3c1d))
-
     pub fn line_substring(&self, start: f64, end: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_line_sub_string(self.c_geom.as_ptr(), start, end) };
 
@@ -578,7 +695,6 @@ impl SFCGeometry {
 
     /// Returns the alpha shape of the given `SFCGeometry` Point set.
     /// ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#gadb33896047f57656dec64dff1984fba5))
-
     pub fn alpha_shapes(&self, alpha: f64, allow_holes: bool) -> Result<SFCGeometry> {
         if !self.is_valid().unwrap() {
             return Err(format_err!(
@@ -600,7 +716,6 @@ impl SFCGeometry {
     }
 
     /// Return the optimal alpha shape of the given `SFCGeometry` Point set.
-
     pub fn optimal_alpha_shapes(
         &self,
         allow_holes: bool,
@@ -626,7 +741,6 @@ impl SFCGeometry {
     ///     "MULTIPOINT((1.0 1.0),(2.0 2.0))",
     /// );
     /// ```
-
     pub fn create_collection(geoms: &mut [SFCGeometry]) -> Result<SFCGeometry> {
         if geoms.is_empty() {
             let res_geom = unsafe { sfcgal_geometry_collection_create() };
@@ -688,7 +802,6 @@ impl SFCGeometry {
     ///     "POINT(2.0 2.0)",
     /// );
     /// ```
-
     pub fn get_collection_members(self) -> Result<Vec<SFCGeometry>> {
         let _type = self._type()?;
 
@@ -755,7 +868,12 @@ impl SFCGeometry {
     /// Returns the X coordinate of the given Point
     pub fn point_x(&self) -> Result<f64> {
         match self._type()? {
-            GeomType::Point => unsafe { Ok(sfcgal_point_x(self.c_geom.as_ptr())) },
+            GeomType::Point => {
+                if self.is_empty()? {
+                    bail!("Point is empty");
+                }
+                unsafe { Ok(sfcgal_point_x(self.c_geom.as_ptr())) }
+            }
             _ => bail!("Geometry is not a Point"),
         }
     }
@@ -1059,35 +1177,6 @@ impl SFCGeometry {
             }
             _ => bail!("Geometry must be a Point or a Linestring"),
         }
-    }
-
-    /// Creates a OBJ file of the given geometry
-    pub fn geometry_as_obj_file(&self, filename: &str) -> Result<()> {
-        unsafe {
-            let c_string = CString::new(filename)?;
-
-            let raw: *mut c_char = c_string.into_raw();
-
-            sfcgal_geometry_as_obj_file(self.c_geom.as_ptr(), raw);
-        };
-
-        Ok(())
-    }
-
-    /// Creates a OBJ string of the given geometry. In memory.
-    pub fn geometry_as_obj(&self) -> Result<SFCGeometry> {
-        // FIXME:
-        /*let result = unsafe {
-
-                sfcgal_geometry_as_obj(self.c_geom.as_ptr())
-        };
-
-        unsafe {
-
-                SFCGeometry::new_from_raw(result, true)
-        }*/
-
-        todo!()
     }
 
     /// Gets the validity flag of the geometry
@@ -1540,7 +1629,6 @@ impl SFCGeometry {
 
     /// # Safety
     /// Sets SRID associated with a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_set_srid(
         prepared_geometry: *mut sfcgal_prepared_geometry_t,
         srid: srid_t,
@@ -1550,14 +1638,12 @@ impl SFCGeometry {
 
     /// # Safety
     /// Deletes a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_delete(prepared_geometry: *mut sfcgal_prepared_geometry_t) {
         sfcgal_prepared_geometry_delete(prepared_geometry);
     }
 
     /// # Safety
     /// Creates a PreparedGeometry from a Geometry and an SRID
-
     pub fn prepared_geometry_create_from_geometry(
         &self,
         srid: srid_t,
@@ -1572,20 +1658,17 @@ impl SFCGeometry {
 
     /// # Safety
     /// Sets the Geometry associated with the given PreparedGeometry
-
     pub unsafe fn prepared_geometry_set_geometry(&self, prepared: *mut sfcgal_prepared_geometry_t) {
         sfcgal_prepared_geometry_set_geometry(prepared, self.c_geom.as_ptr());
     }
 
     /// # Safety
     /// Returns SRID associated with a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_srid(prepared: *mut sfcgal_prepared_geometry_t) -> u32 {
         sfcgal_prepared_geometry_srid(prepared)
     }
 
     /// Creates an empty PreparedGeometry
-
     pub fn prepared_geometry_create() -> Result<*mut sfcgal_prepared_geometry_t> {
         let result = unsafe { sfcgal_prepared_geometry_create() };
 
@@ -1596,7 +1679,6 @@ impl SFCGeometry {
 
     /// # Safety
     /// Returns the Geometry associated with a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_geometry(
         prepared_geometry: *mut sfcgal_prepared_geometry_t,
     ) -> Result<SFCGeometry> {
@@ -2354,4 +2436,7 @@ mod tests {
              )",
         );
     }
+
+    #[test]
+    fn test_translation_3d() {}
 }

@@ -71,3 +71,11 @@ pub(crate) fn _c_string_with_size(raw_ptr: *const c_char, size: usize) -> String
 
     res
 }
+
+// Get the raw u8 bytes
+// The users can proceed to use it however they want.
+pub(crate) fn get_raw_bytes(raw_ptr: *const c_char, size: usize) -> Vec<u8> {
+    let slice: &[u8] = unsafe { std::slice::from_raw_parts(raw_ptr as *const u8, size) };
+
+    slice.to_vec()
+}

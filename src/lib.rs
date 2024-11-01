@@ -40,7 +40,6 @@
 //! # }
 //! # fn main() { fun().unwrap(); }
 //! ```
-
 #[macro_use]
 extern crate anyhow;
 
@@ -59,66 +58,48 @@ mod geometry;
 mod setup_helper;
 mod utils;
 
-pub use conversion::{
-        CoordSeq,
-        FromGeoJSON,
-        ToGeoJSON,
-        TryInto
-};
+pub use conversion::{CoordSeq, FromGeoJSON, ToGeoJSON, TryInto};
 pub use errors::Result;
-pub use geometry::{
-        GeomType,
-        SFCGeometry
-};
+pub use geometry::{GeomType, SFCGeometry};
 
 /// Type alias for manipulating 2d coordinates, represented as (x, y).
-
 pub type Point2d = (f64, f64);
 
 /// Type alias for manipulating 3d coordinates, represented as (x, y, z).
-
 pub type Point3d = (f64, f64, f64);
 
 /// Convert object to a [`SFCGeometry`] (implemented on [`CoordSeq`] and [geo-types](https://docs.rs/geo-types/) geometries)
 ///
 /// [`SFCGeometry`]: struct.SFCGeometry.html
 /// [`CoordSeq`]: enum.CoordSeq.html
-
 pub trait ToSFCGAL {
-        fn to_sfcgal(&self) -> Result<SFCGeometry>;
+    fn to_sfcgal(&self) -> Result<SFCGeometry>;
 }
 
 /// Convert object to a [`CoordSeq`] holding coordinates and informations about
 /// geometry type.
 ///
 /// [`CoordSeq`]: enum.CoordSeq.html
-
 pub trait ToCoordinates {
-        fn to_coordinates<T>(&self) -> Result<CoordSeq<T>>
-        where
-                T: conversion::CoordType + conversion::FromSFCGALGeom;
+    fn to_coordinates<T>(&self) -> Result<CoordSeq<T>>
+    where
+        T: conversion::CoordType + conversion::FromSFCGALGeom;
 }
 
 /// Display SFCGAL version information.
-
 pub fn version() -> String {
-
-        utils::_string(unsafe {
-
-                sfcgal_version()
-        })
+    utils::_string(unsafe { sfcgal_version() })
 }
 
 #[cfg(test)]
 
 mod tests {
 
-        use super::version;
+    use super::version;
 
-        #[test]
+    #[test]
 
-        fn display_version() {
-
-                assert!(version().contains("1.5."));
-        }
+    fn display_version() {
+        assert!(version().contains("1.5."));
+    }
 }
