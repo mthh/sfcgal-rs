@@ -3149,7 +3149,7 @@ mod tests {
                 // With "start" or "end" point not in [-1; 1]
                 assert_eq!(
                         g.line_substring(-2., 0.2).err().unwrap().to_string(),
-                        "Obtained null pointer when creating geometry: SFCGAL::algorithm::lineSubstring: start value out of range."
+                        "Index not in the expected range"
                 );
         }
 
