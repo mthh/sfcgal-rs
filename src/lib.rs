@@ -100,6 +100,6 @@ mod tests {
     #[test]
 
     fn display_version() {
-        assert!(version().contains("1.5."));
+        assert!(version().contains("2.0."));
     }
 }
