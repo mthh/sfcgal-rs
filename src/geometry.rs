@@ -887,7 +887,7 @@ impl SFCGeometry {
                 }
         }
 
-        ///
+        /// Test if the geometry covers an other `SFCGeometry`.
 
         pub fn covers(&self, other: &SFCGeometry) -> Result<bool> {
 
@@ -903,7 +903,7 @@ impl SFCGeometry {
                 check_predicate(rv)
         }
 
-        ///
+        /// Test if the geometry covers an other `SFCGeometry` in 3D.
 
         pub fn covers_3d(&self, other: &SFCGeometry) -> Result<bool> {
 
@@ -1758,7 +1758,7 @@ impl SFCGeometry {
 
         /// Rotates a 3D geometry around a specified axis and center point by a
         /// given
-
+        #[allow(clippy::too_many_arguments)]
         pub fn geometry_rotate_3d_around_center(&self, angle: f64, axis_x_angle: f64, axis_y_angle: f64, axis_z_angle: f64, center_x: f64, center_y: f64, center_z: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
