@@ -95,7 +95,7 @@ where
 /// ``` rust
 /// use sfcgal::{SFCGeometry, CoordSeq, Point3d, ToCoordinates};
 ///
-/// let line_3d = SFCGeometry::new("LINESTRING(3.5 5.6 1.0,4.8 10.5 1.0)").unwrap();
+/// let line_3d = SFCGeometry::new("LINESTRING (3.5 5.6 1.0,4.8 10.5 1.0)").unwrap();
 /// let coordinates = line_3d.to_coordinates::<Point3d>().unwrap();
 /// // assert_eq!(coordinates, CoordSeq::Linestring(vec![(3.5, 5.6, 1.0), (4.8, 10.5, 1.0)]));
 /// ```
@@ -480,7 +480,7 @@ mod tests {
 
     #[test]
     fn point_2d_sfcgal_to_coordinates_to_sfcgal() {
-        let input_wkt = "POINT(0.1 0.9)";
+        let input_wkt = "POINT (0.1 0.9)";
         let pt_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point2d> = pt_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Point(ref coords) = coords {
@@ -495,7 +495,7 @@ mod tests {
 
     #[test]
     fn point_3d_sfcgal_to_coordinates_to_sfcgal() {
-        let input_wkt = "POINT Z(0.1 0.9 1.0)";
+        let input_wkt = "POINT Z (0.1 0.9 1.0)";
         let pt_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = pt_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Point(ref coords) = coords {
@@ -511,7 +511,7 @@ mod tests {
 
     #[test]
     fn multipoint_2d_sfcgal_to_coordinates_to_sfcgal() {
-        let input_wkt = "MULTIPOINT((3.5 5.6),(4.8 10.5))";
+        let input_wkt = "MULTIPOINT ((3.5 5.6),(4.8 10.5))";
         let multipt_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point2d> = multipt_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Multipoint(ref coords) = coords {
@@ -528,7 +528,7 @@ mod tests {
 
     #[test]
     fn multipoint_3d_sfcgal_to_coordinates_to_sfcgal() {
-        let input_wkt = "MULTIPOINT Z((3.5 5.6 1.0),(4.8 10.5 1.0))";
+        let input_wkt = "MULTIPOINT Z ((3.5 5.6 1.0),(4.8 10.5 1.0))";
         let multipt_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = multipt_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Multipoint(ref coords) = coords {
@@ -547,7 +547,7 @@ mod tests {
 
     #[test]
     fn linestring_2d_sfcgal_to_coordinates() {
-        let input_wkt = "LINESTRING(3.5 5.6,4.8 10.5)";
+        let input_wkt = "LINESTRING (3.5 5.6,4.8 10.5)";
         let linestring_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point2d> = linestring_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Linestring(ref coords) = coords {
@@ -564,7 +564,7 @@ mod tests {
 
     #[test]
     fn linestring_3d_sfcgal_to_coordinates() {
-        let input_wkt = "LINESTRING Z(3.5 5.6 1.0,4.8 10.5 1.0)";
+        let input_wkt = "LINESTRING Z (3.5 5.6 1.0,4.8 10.5 1.0)";
         let linestring_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = linestring_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Linestring(ref coords) = coords {
@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn multilinestring_2d_sfcgal_to_coordinates() {
-        let input_wkt = "MULTILINESTRING((3.5 5.6,4.8 10.5),(8.9 12.9,2.1 3.5),(1.1 4.8,6.2 7.5))";
+        let input_wkt = "MULTILINESTRING ((3.5 5.6,4.8 10.5),(8.9 12.9,2.1 3.5),(1.1 4.8,6.2 7.5))";
         let mls_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point2d> = mls_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Multilinestring(ref coords) = coords {
@@ -602,7 +602,7 @@ mod tests {
 
     #[test]
     fn multilinestring_3d_sfcgal_to_coordinates() {
-        let input_wkt = "MULTILINESTRING Z((3.5 5.6 1.0,4.8 10.5 1.0),(8.9 12.9 4.0,2.1 3.5 4.0),(1.1 4.8 4.0,6.2 7.5 4.0))";
+        let input_wkt = "MULTILINESTRING Z ((3.5 5.6 1.0,4.8 10.5 1.0),(8.9 12.9 4.0,2.1 3.5 4.0),(1.1 4.8 4.0,6.2 7.5 4.0))";
         let multilinestring_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = multilinestring_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Multilinestring(ref coords) = coords {
@@ -624,7 +624,7 @@ mod tests {
 
     #[test]
     fn triangle_2d_sfcgal_to_coordinates_to_sfcgal() {
-        let input_wkt = "TRIANGLE((0.0 1.0,1.0 0.0,1.0 1.0,0.0 1.0))";
+        let input_wkt = "TRIANGLE ((0.0 1.0,1.0 0.0,1.0 1.0,0.0 1.0))";
         let triangle_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point2d> = triangle_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Triangle(ref pts) = coords {
@@ -643,7 +643,7 @@ mod tests {
 
     #[test]
     fn solid_3d_sfcgal_to_coordinates() {
-        let input_wkt = "SOLID Z((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
+        let input_wkt = "SOLID Z ((((0 0 0,0 0 1,0 1 1,0 1 0,0 0 0)),\
                          ((0 0 0,0 1 0,1 1 0,1 0 0,0 0 0)),\
                          ((0 0 0,1 0 0,1 0 1,0 0 1,0 0 0)),\
                          ((1 0 0,1 1 0,1 1 1,1 0 1,1 0 0)),\
@@ -666,7 +666,7 @@ mod tests {
 
     #[test]
     fn solid_with_interior_shell_3d_sfcgal_to_coordinates() {
-        let input_wkt = "SOLID Z((\
+        let input_wkt = "SOLID Z ((\
                          ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
                          ((1.0 0.0 0.0,1.0 1.0 0.0,1.0 1.0 1.0,1.0 0.0 1.0,1.0 0.0 0.0)),\
                          ((0.0 1.0 0.0,0.0 1.0 1.0,1.0 1.0 1.0,1.0 1.0 0.0,0.0 1.0 0.0)),\
@@ -701,7 +701,7 @@ mod tests {
     #[test]
     fn geometrycollection_3d_sfcgal_to_coordinates() {
         let input_wkt =
-            "GEOMETRYCOLLECTION Z(POINT Z(4.0 6.0 1.0),LINESTRING Z(4.0 6.0 1.0,7.0 10.0 1.0))";
+            "GEOMETRYCOLLECTION Z (POINT Z (4.0 6.0 1.0),LINESTRING Z (4.0 6.0 1.0,7.0 10.0 1.0))";
         let gc_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let coords: CoordSeq<Point3d> = gc_sfcgal.to_coordinates().unwrap();
         if let CoordSeq::Geometrycollection(ref seq_coords) = coords {
@@ -762,28 +762,28 @@ mod tests {
         let multipolygon_sfcgal = CoordSeq::Multipolygon(coords_multipolygon)
             .to_sfcgal()
             .unwrap();
-        assert_eq!("POINT(1.1 1.1)", pt_sfcgal.to_wkt_decim(1).unwrap());
+        assert_eq!("POINT (1.1 1.1)", pt_sfcgal.to_wkt_decim(1).unwrap());
         assert_eq!(
-            "MULTIPOINT((1.1 1.1),(2.2 2.2))",
+            "MULTIPOINT ((1.1 1.1),(2.2 2.2))",
             multipt_sfcgal.to_wkt_decim(1).unwrap()
         );
         assert_eq!(
-            "LINESTRING(1.1 1.1,2.2 2.2)",
+            "LINESTRING (1.1 1.1,2.2 2.2)",
             line_sfcgal.to_wkt_decim(1).unwrap()
         );
         assert_eq!(
-            "MULTILINESTRING((1.1 1.1,2.2 2.2),\
+            "MULTILINESTRING ((1.1 1.1,2.2 2.2),\
              (3.1 3.1,5.2 5.2,5.2 5.2),\
              (1.1 1.1,2.2 2.2,5.2 5.2))",
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
-            "POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0),\
+            "POLYGON ((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0),\
              (0.1 0.1,0.1 0.9,0.9 0.9,0.9 0.1,0.1 0.1))",
             polygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
-            "MULTIPOLYGON(((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0),\
+            "MULTIPOLYGON (((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0),\
              (0.1 0.1,0.1 0.9,0.9 0.9,0.9 0.1,0.1 0.1)),\
              ((2.0 2.0,6.0 2.0,6.0 6.0,2.0 6.0,2.0 2.0)))",
             multipolygon_sfcgal.to_wkt_decim(1).unwrap(),
@@ -855,27 +855,27 @@ mod tests {
         let multipolygon_sfcgal = CoordSeq::Multipolygon(coords_multipolygon)
             .to_sfcgal()
             .unwrap();
-        assert_eq!("POINT Z(1.1 1.1 1.1)", pt_sfcgal.to_wkt_decim(1).unwrap());
+        assert_eq!("POINT Z (1.1 1.1 1.1)", pt_sfcgal.to_wkt_decim(1).unwrap());
         assert_eq!(
-            "MULTIPOINT Z((1.1 1.1 5.0),(2.2 2.2 5.0))",
+            "MULTIPOINT Z ((1.1 1.1 5.0),(2.2 2.2 5.0))",
             multipt_sfcgal.to_wkt_decim(1).unwrap()
         );
         assert_eq!(
-            "LINESTRING Z(1.1 1.1 5.0,2.2 2.2 5.0)",
+            "LINESTRING Z (1.1 1.1 5.0,2.2 2.2 5.0)",
             line_sfcgal.to_wkt_decim(1).unwrap()
         );
         assert_eq!(
-            "MULTILINESTRING Z((1.1 1.1 3.0,2.2 2.2 3.0),(3.1 3.1 3.0,5.2 5.2 3.0,5.2 5.2 3.0),\
+            "MULTILINESTRING Z ((1.1 1.1 3.0,2.2 2.2 3.0),(3.1 3.1 3.0,5.2 5.2 3.0,5.2 5.2 3.0),\
              (1.1 1.1 3.0,2.2 2.2 3.0,5.2 5.2 3.0))",
             multiline_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
-            "POLYGON Z((0.0 0.0 3.0,1.0 0.0 3.0,1.0 1.0 3.0,0.0 1.0 3.0,0.0 0.0 3.0),\
+            "POLYGON Z ((0.0 0.0 3.0,1.0 0.0 3.0,1.0 1.0 3.0,0.0 1.0 3.0,0.0 0.0 3.0),\
              (0.1 0.1 3.0,0.1 0.9 3.0,0.9 0.9 3.0,0.9 0.1 3.0,0.1 0.1 3.0))",
             polygon_sfcgal.to_wkt_decim(1).unwrap(),
         );
         assert_eq!(
-            "MULTIPOLYGON Z(((0.0 0.0 3.0,1.0 0.0 3.0,1.0 1.0 3.0,0.0 1.0 3.0,0.0 0.0 3.0),\
+            "MULTIPOLYGON Z (((0.0 0.0 3.0,1.0 0.0 3.0,1.0 1.0 3.0,0.0 1.0 3.0,0.0 0.0 3.0),\
              (0.1 0.1 3.0,0.1 0.9 3.0,0.9 0.9 3.0,0.9 0.1 3.0,0.1 0.1 3.0)),\
              ((2.0 2.0 3.0,6.0 2.0 3.0,6.0 6.0 3.0,2.0 6.0 3.0,2.0 2.0 3.0)))",
             multipolygon_sfcgal.to_wkt_decim(1).unwrap(),

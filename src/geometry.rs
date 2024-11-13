@@ -1299,12 +1299,12 @@ impl SFCGeometry {
         /// mutable slice of `SFCGeometry`'s (this is a destructive
         /// operation) ``` rust
         /// use sfcgal::SFCGeometry;
-        /// let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
-        /// let b = SFCGeometry::new("POINT(2.0 2.0)").unwrap();
+        /// let a = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
+        /// let b = SFCGeometry::new("POINT (2.0 2.0)").unwrap();
         /// let g = SFCGeometry::create_collection(&mut[a, b]).unwrap();
         /// assert_eq!(
         ///     g.to_wkt_decim(1).unwrap(),
-        ///     "MULTIPOINT((1.0 1.0),(2.0 2.0))",
+        ///     "MULTIPOINT ((1.0 1.0),(2.0 2.0))",
         /// );
         /// ```
 
@@ -1384,15 +1384,15 @@ impl SFCGeometry {
         /// MultiSolid, GeometryCollection }). The original geometry
         /// stay untouched. ``` rust
         /// use sfcgal::SFCGeometry;
-        /// let g = SFCGeometry::new("MULTIPOINT((1.0 1.0),(2.0
+        /// let g = SFCGeometry::new("MULTIPOINT ((1.0 1.0),(2.0
         /// 2.0))").unwrap(); let members =
         /// g.get_collection_members().unwrap(); assert_eq!(
         ///     members[0].to_wkt_decim(1).unwrap(),
-        ///     "POINT(1.0 1.0)",
+        ///     "POINT (1.0 1.0)",
         /// );
         /// assert_eq!(
         ///     members[1].to_wkt_decim(1).unwrap(),
-        ///     "POINT(2.0 2.0)",
+        ///     "POINT (2.0 2.0)",
         /// );
         /// ```
 
@@ -2690,7 +2690,7 @@ mod tests {
 
         fn creation_point_from_wkt() {
 
-                let geom = SFCGeometry::new("POINT(1.0 1.0)");
+                let geom = SFCGeometry::new("POINT (1.0 1.0)");
 
                 assert!(geom.is_ok());
         }
@@ -2707,7 +2707,7 @@ mod tests {
 
                 assert!(geom.is_valid().unwrap());
 
-                let geom1 = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+                let geom1 = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
 
                 assert!(geom.intersects(&geom1).unwrap());
         }
@@ -2716,7 +2716,7 @@ mod tests {
 
         fn writing_to_wkt() {
 
-                let geom = SFCGeometry::new("POINT(1.0 1.0)");
+                let geom = SFCGeometry::new("POINT (1.0 1.0)");
 
                 assert!(geom.is_ok());
 
@@ -2724,14 +2724,14 @@ mod tests {
 
                 assert!(wkt.is_ok());
 
-                assert_eq!(wkt.unwrap(), String::from("POINT(1/1 1/1)"));
+                assert_eq!(wkt.unwrap(), String::from("POINT (1/1 1/1)"));
         }
 
         #[test]
 
         fn writing_to_wkt_with_decimals() {
 
-                let geom = SFCGeometry::new("POINT(1.0 1.0)");
+                let geom = SFCGeometry::new("POINT (1.0 1.0)");
 
                 assert!(geom.is_ok());
 
@@ -2739,14 +2739,14 @@ mod tests {
 
                 assert!(wkt.is_ok());
 
-                assert_eq!(wkt.unwrap(), String::from("POINT(1.0 1.0)"));
+                assert_eq!(wkt.unwrap(), String::from("POINT (1.0 1.0)"));
         }
 
         #[test]
 
         fn creation_failed_with_error_message() {
 
-                let geom = SFCGeometry::new("POINT(1, 1)");
+                let geom = SFCGeometry::new("POINT (1, 1)");
 
                 assert!(geom.is_err());
 
@@ -2757,9 +2757,9 @@ mod tests {
 
         fn distance_to_other() {
 
-                let pt1 = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+                let pt1 = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
 
-                let pt2 = SFCGeometry::new("POINT(10.0 1.0)").unwrap();
+                let pt2 = SFCGeometry::new("POINT (10.0 1.0)").unwrap();
 
                 let distance = pt1.distance(&pt2).unwrap();
 
@@ -2770,9 +2770,9 @@ mod tests {
 
         fn distance_3d_to_other() {
 
-                let pt1 = SFCGeometry::new("POINT(1.0 1.0 2.0)").unwrap();
+                let pt1 = SFCGeometry::new("POINT (1.0 1.0 2.0)").unwrap();
 
-                let pt2 = SFCGeometry::new("POINT(10.0 1.0 2.0)").unwrap();
+                let pt2 = SFCGeometry::new("POINT (10.0 1.0 2.0)").unwrap();
 
                 let distance = pt1.distance_3d(&pt2).unwrap();
 
@@ -2783,7 +2783,7 @@ mod tests {
 
         fn measured_geometry() {
 
-                let pt1 = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+                let pt1 = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
 
                 let pt2 = SFCGeometry::new("POINTM(1.0 1.0 2.0)").unwrap();
 
@@ -2849,7 +2849,7 @@ mod tests {
 
         fn predicates() {
 
-                let pt = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+                let pt = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
 
                 assert!(pt.is_valid().unwrap());
 
@@ -2859,7 +2859,7 @@ mod tests {
 
                 assert_eq!(pt.is_planar().err().unwrap().to_string(), "SFCGAL error: is_planar() only applies to polygons",);
 
-                let linestring_3d = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+                let linestring_3d = SFCGeometry::new("LINESTRING (10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
                 assert!(linestring_3d.is_valid().unwrap());
 
@@ -2879,7 +2879,7 @@ mod tests {
 
                 assert_eq!(linestring_3d.is_planar().err().unwrap().to_string(), "SFCGAL error: is_planar() only applies to polygons",);
 
-                let polyg = SFCGeometry::new("POLYGON((1 1, 3 1, 4 4, 1 3, 1 1))").unwrap();
+                let polyg = SFCGeometry::new("POLYGON ((1 1, 3 1, 4 4, 1 3, 1 1))").unwrap();
 
                 assert!(polyg.is_valid().unwrap());
 
@@ -2898,7 +2898,7 @@ mod tests {
 
         fn validity_detail_on_valid_geom() {
 
-                let line = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+                let line = SFCGeometry::new("LINESTRING (10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
                 assert!(line.is_valid().unwrap());
 
@@ -2929,7 +2929,7 @@ mod tests {
 
         fn validity_detail_on_invalid_geom_2() {
 
-                let surface = SFCGeometry::new("POLYGON((1 2,1 2,1 2,1 2))").unwrap();
+                let surface = SFCGeometry::new("POLYGON ((1 2,1 2,1 2,1 2))").unwrap();
 
                 assert!(!surface.is_valid().unwrap());
 
@@ -2940,7 +2940,7 @@ mod tests {
 
         fn validity_detail_on_invalid_geom_3() {
 
-                let surface = SFCGeometry::new("LINESTRING(1 2, 1 2, 1 2)").unwrap();
+                let surface = SFCGeometry::new("LINESTRING (1 2, 1 2, 1 2)").unwrap();
 
                 assert!(!surface.is_valid().unwrap());
 
@@ -2951,20 +2951,20 @@ mod tests {
 
         fn straight_skeleton() {
 
-                let geom = SFCGeometry::new("POLYGON((0 0,1 0,1 1,0 1,0 0))").unwrap();
+                let geom = SFCGeometry::new("POLYGON ((0 0,1 0,1 1,0 1,0 0))").unwrap();
 
                 let result = geom.straight_skeleton().unwrap();
 
                 let wkt = result.to_wkt_decim(1).unwrap();
 
-                assert_eq!(wkt, "MULTILINESTRING((0.0 0.0,0.5 0.5),(1.0 0.0,0.5 0.5),(1.0 1.0,0.5 0.5),(0.0 1.0,0.5 0.5))",);
+                assert_eq!(wkt, "MULTILINESTRING ((0.0 0.0,0.5 0.5),(1.0 0.0,0.5 0.5),(1.0 1.0,0.5 0.5),(0.0 1.0,0.5 0.5))",);
         }
 
         #[test]
 
         fn straight_skeleton_distance_in_m() {
 
-                let geom = SFCGeometry::new("POLYGON((0 0,1 0,1 1,0 1,0 0))").unwrap();
+                let geom = SFCGeometry::new("POLYGON ((0 0,1 0,1 1,0 1,0 0))").unwrap();
 
                 let result = geom.straight_skeleton_distance_in_m().unwrap();
 
@@ -2972,7 +2972,7 @@ mod tests {
 
                 assert_eq!(
                         wkt,
-                        "MULTILINESTRING M(\
+                        "MULTILINESTRING M (\
              (0.0 0.0 0.0,0.5 0.5 0.5),\
              (1.0 0.0 0.0,0.5 0.5 0.5),\
              (1.0 1.0 0.0,0.5 0.5 0.5),\
@@ -2993,7 +2993,7 @@ mod tests {
 
                 assert_eq!(
                         wkt,
-                        "POLYHEDRALSURFACE Z(((4.00 5.00 0.00,5.00 5.00 0.00,4.00 4.00 0.00,4.00 \
+                        "POLYHEDRALSURFACE Z (((4.00 5.00 0.00,5.00 5.00 0.00,4.00 4.00 0.00,4.00 \
               5.00 0.00)),((0.00 4.00 0.00,4.00 4.00 0.00,0.00 0.00 0.00,0.00 4.00 \
               0.00)),((4.00 4.00 0.00,5.00 0.00 0.00,0.00 0.00 0.00,4.00 4.00 \
               0.00)),((5.00 5.00 0.00,5.00 0.00 0.00,4.00 4.00 0.00,5.00 5.00 \
@@ -3026,7 +3026,7 @@ mod tests {
 
                 assert_eq!(
                         wkt,
-                        "POLYHEDRALSURFACE Z(((0.0 0.0 0.0,0.0 4.0 0.0,4.0 4.0 \
+                        "POLYHEDRALSURFACE Z (((0.0 0.0 0.0,0.0 4.0 0.0,4.0 4.0 \
              0.0,4.0 5.0 0.0,5.0 5.0 0.0,5.0 0.0 0.0,0.0 0.0 0.0),\
              (1.0 1.0 0.0,2.0 1.0 0.0,2.0 2.0 0.0,1.0 2.0 0.0,1.0 1.0 0.0)),\
              ((0.0 0.0 0.0,0.0 0.0 9.0,0.0 4.0 9.0,0.0 4.0 0.0,0.0 0.0 0.0)),\
@@ -3084,20 +3084,20 @@ mod tests {
 
         fn tesselate() {
 
-                let geom = SFCGeometry::new("POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
+                let geom = SFCGeometry::new("POLYGON ((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
 
                 let result = geom.tesselate().unwrap();
 
                 let output_wkt = result.to_wkt_decim(1).unwrap();
 
-                assert_eq!(output_wkt, "TIN(((0.0 1.0,1.0 0.0,1.0 1.0,0.0 1.0)),((0.0 1.0,0.0 0.0,1.0 0.0,0.0 1.0)))",);
+                assert_eq!(output_wkt, "TIN (((0.0 1.0,1.0 0.0,1.0 1.0,0.0 1.0)),((0.0 1.0,0.0 0.0,1.0 0.0,0.0 1.0)))",);
         }
 
         #[test]
 
         fn offset_polygon() {
 
-                let geom = SFCGeometry::new("POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
+                let geom = SFCGeometry::new("POLYGON ((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
 
                 let buff = geom.offset_polygon(1.).unwrap();
 
@@ -3110,7 +3110,7 @@ mod tests {
 
         fn extrude_polygon() {
 
-                let geom = SFCGeometry::new("POLYGON((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
+                let geom = SFCGeometry::new("POLYGON ((0.0 0.0,1.0 0.0,1.0 1.0,0.0 1.0,0.0 0.0))").unwrap();
 
                 let extr = geom.extrude(0., 0., 1.).unwrap();
 
@@ -3125,7 +3125,7 @@ mod tests {
 
         fn tesselate_invariant_geom() {
 
-                let input_wkt = String::from("POINT(1.0 1.0)");
+                let input_wkt = String::from("POINT (1.0 1.0)");
 
                 let pt = SFCGeometry::new(&input_wkt).unwrap();
 
@@ -3140,11 +3140,11 @@ mod tests {
 
         fn line_substring() {
 
-                let g = SFCGeometry::new("LINESTRING Z(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+                let g = SFCGeometry::new("LINESTRING Z (10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
                 let result = g.line_substring(-0.2, 0.2).unwrap();
 
-                assert_eq!(result.to_wkt_decim(1).unwrap(), "LINESTRING Z(2.8 1.8 1.8,8.2 1.2 1.9)");
+                assert_eq!(result.to_wkt_decim(1).unwrap(), "LINESTRING Z (2.8 1.8 1.8,8.2 1.2 1.9)");
 
                 // With "start" or "end" point not in [-1; 1]
                 assert_eq!(
@@ -3223,7 +3223,7 @@ mod tests {
 
         fn alpha_shapes_on_point() {
 
-                let multipoint = SFCGeometry::new("POINT(1 3)").unwrap();
+                let multipoint = SFCGeometry::new("POINT (1 3)").unwrap();
 
                 let res = multipoint.alpha_shapes(20.0, false).unwrap();
 
@@ -3234,51 +3234,51 @@ mod tests {
 
         fn alpha_shapes_on_multipoint() {
 
-                let multipoint = SFCGeometry::new("MULTIPOINT((1 2),(2 2),(3 0),(1 3))").unwrap();
+                let multipoint = SFCGeometry::new("MULTIPOINT ((1 2),(2 2),(3 0),(1 3))").unwrap();
 
                 let res = multipoint.alpha_shapes(20.0, false).unwrap();
 
-                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON((1.0 2.0,1.0 3.0,2.0 2.0,3.0 0.0,1.0 2.0))");
+                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON ((1.0 2.0,1.0 3.0,2.0 2.0,3.0 0.0,1.0 2.0))");
         }
 
         #[test]
 
         fn alpha_shapes_on_linestring() {
 
-                let multipoint = SFCGeometry::new("LINESTRING(1 2,2 2,3 0,1 3)").unwrap();
+                let multipoint = SFCGeometry::new("LINESTRING (1 2,2 2,3 0,1 3)").unwrap();
 
                 let res = multipoint.alpha_shapes(20.0, false).unwrap();
 
-                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON((1.0 2.0,1.0 3.0,2.0 2.0,3.0 0.0,1.0 2.0))");
+                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON ((1.0 2.0,1.0 3.0,2.0 2.0,3.0 0.0,1.0 2.0))");
         }
 
         #[test]
 
         fn alpha_shapes_on_multilinestring() {
 
-                let multipoint = SFCGeometry::new("MULTILINESTRING((1 2,2 2,3 0,1 3), (2 6,3 5,4 2))").unwrap();
+                let multipoint = SFCGeometry::new("MULTILINESTRING ((1 2,2 2,3 0,1 3), (2 6,3 5,4 2))").unwrap();
 
                 let res = multipoint.alpha_shapes(20.0, false).unwrap();
 
-                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON((1.0 2.0,1.0 3.0,2.0 6.0,3.0 5.0,4.0 2.0,3.0 0.0,1.0 2.0))");
+                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON ((1.0 2.0,1.0 3.0,2.0 6.0,3.0 5.0,4.0 2.0,3.0 0.0,1.0 2.0))");
         }
 
         #[test]
 
         fn alpha_shapes_on_polygon() {
 
-                let pol1 = SFCGeometry::new("POLYGON((0 0, 0 4, 4 4, 4 0, 0 0))").unwrap();
+                let pol1 = SFCGeometry::new("POLYGON ((0 0, 0 4, 4 4, 4 0, 0 0))").unwrap();
 
                 let res = pol1.alpha_shapes(10.0, false).unwrap();
 
-                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON((0.0 0.0,0.0 4.0,4.0 4.0,4.0 0.0,0.0 0.0))");
+                assert_eq!(res.to_wkt_decim(1).unwrap(), "POLYGON ((0.0 0.0,0.0 4.0,4.0 4.0,4.0 0.0,0.0 0.0))");
         }
 
         #[test]
 
         fn alpha_shapes_on_invalid() {
 
-                let pol1 = SFCGeometry::new("LINESTRING(1 2, 1 2, 1 2, 1 2)").unwrap();
+                let pol1 = SFCGeometry::new("LINESTRING (1 2, 1 2, 1 2, 1 2)").unwrap();
 
                 let res = pol1.alpha_shapes(10.0, false);
 
@@ -3298,39 +3298,39 @@ mod tests {
 
         fn create_collection_heterogenous() {
 
-                let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+                let a = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
 
-                let b = SFCGeometry::new("LINESTRING Z(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+                let b = SFCGeometry::new("LINESTRING Z (10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
                 let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
 
-                assert_eq!(g.to_wkt_decim(1).unwrap(), "GEOMETRYCOLLECTION(POINT(1.0 1.0),LINESTRING Z(10.0 1.0 2.0,1.0 2.0 1.7))",);
+                assert_eq!(g.to_wkt_decim(1).unwrap(), "GEOMETRYCOLLECTION (POINT (1.0 1.0),LINESTRING Z (10.0 1.0 2.0,1.0 2.0 1.7))",);
         }
 
         #[test]
 
         fn create_collection_multipoint_from_points() {
 
-                let a = SFCGeometry::new("POINT(1.0 1.0)").unwrap();
+                let a = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
 
-                let b = SFCGeometry::new("POINT(2.0 2.0)").unwrap();
+                let b = SFCGeometry::new("POINT (2.0 2.0)").unwrap();
 
                 let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
 
-                assert_eq!(g.to_wkt_decim(1).unwrap(), "MULTIPOINT((1.0 1.0),(2.0 2.0))",);
+                assert_eq!(g.to_wkt_decim(1).unwrap(), "MULTIPOINT ((1.0 1.0),(2.0 2.0))",);
         }
 
         #[test]
 
         fn create_collection_multilinestring_from_linestrings() {
 
-                let a = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+                let a = SFCGeometry::new("LINESTRING (10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
-                let b = SFCGeometry::new("LINESTRING(10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
+                let b = SFCGeometry::new("LINESTRING (10.0 1.0 2.0, 1.0 2.0 1.7)").unwrap();
 
                 let g = SFCGeometry::create_collection(&mut [a, b]).unwrap();
 
-                assert_eq!(g.to_wkt_decim(1).unwrap(), "MULTILINESTRING Z((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",);
+                assert_eq!(g.to_wkt_decim(1).unwrap(), "MULTILINESTRING Z ((10.0 1.0 2.0,1.0 2.0 1.7),(10.0 1.0 2.0,1.0 2.0 1.7))",);
         }
 
         #[test]
@@ -3361,7 +3361,7 @@ mod tests {
 
                 assert_eq!(
                         g.to_wkt_decim(1).unwrap(),
-                        "MULTISOLID Z(\
+                        "MULTISOLID Z (\
              ((\
              ((0.0 0.0 0.0,0.0 0.0 1.0,0.0 1.0 1.0,0.0 1.0 0.0,0.0 0.0 0.0)),\
              ((0.0 0.0 0.0,0.0 1.0 0.0,1.0 1.0 0.0,1.0 0.0 0.0,0.0 0.0 0.0)),\
