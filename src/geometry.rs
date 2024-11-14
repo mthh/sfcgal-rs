@@ -1617,7 +1617,7 @@ impl SFCGeometry {
 
         /// Returns the straight skeleton partition for the given Polygon
 
-        pub fn geometry_straight_skeleton_partition(&self, auto_orientation: bool) -> Result<SFCGeometry> {
+        pub fn straight_skeleton_partition(&self, auto_orientation: bool) -> Result<SFCGeometry> {
 
                 match self._type()? {
                         GeomType::Polygon | GeomType::Multipolygon | GeomType::Triangle => (),
@@ -1642,7 +1642,7 @@ impl SFCGeometry {
 
         /// Returns the visibility polygon of a Point inside a Polygon
 
-        pub fn geometry_visibility_point(&self, point: &SFCGeometry) -> Result<SFCGeometry> {
+        pub fn visibility_point(&self, point: &SFCGeometry) -> Result<SFCGeometry> {
 
                 precondition_match_type!(self, GeomType::Polygon);
 
@@ -1668,7 +1668,7 @@ impl SFCGeometry {
 
         /// Rotates a geometry around the origin (0,0,0) by a given angle
 
-        pub fn geometry_rotate(&self, angle: f64) -> Result<SFCGeometry> {
+        pub fn rotate(&self, angle: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1683,7 +1683,7 @@ impl SFCGeometry {
 
         /// Rotates a geometry around the X axis by a given angle
 
-        pub fn geometry_rotate_x(&self, angle: f64) -> Result<SFCGeometry> {
+        pub fn rotate_x(&self, angle: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1698,7 +1698,7 @@ impl SFCGeometry {
 
         /// Rotates a geometry around the Y axis by a given angle
 
-        pub fn geometry_rotate_y(&self, angle: f64) -> Result<SFCGeometry> {
+        pub fn rotate_y(&self, angle: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1713,7 +1713,7 @@ impl SFCGeometry {
 
         /// Rotates a geometry around the Z axis by a given angle
 
-        pub fn geometry_rotate_z(&self, angle: f64) -> Result<SFCGeometry> {
+        pub fn rotate_z(&self, angle: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1728,7 +1728,7 @@ impl SFCGeometry {
 
         /// Rotates a geometry around a specified point by a given angle
 
-        pub fn geometry_rotate_2d(&self, angle: f64, origin_x: f64, origin_y: f64) -> Result<SFCGeometry> {
+        pub fn rotate_2d(&self, angle: f64, origin_x: f64, origin_y: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1743,7 +1743,7 @@ impl SFCGeometry {
 
         /// Rotates a 3D geometry around a specified axis by a given angle
 
-        pub fn geometry_rotate_3d(&self, angle: f64, axis_x_angle: f64, axis_y_angle: f64, axis_z_angle: f64) -> Result<SFCGeometry> {
+        pub fn rotate_3d(&self, angle: f64, axis_x_angle: f64, axis_y_angle: f64, axis_z_angle: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1759,7 +1759,7 @@ impl SFCGeometry {
         /// Rotates a 3D geometry around a specified axis and center point by a
         /// given
 
-        pub fn geometry_rotate_3d_around_center(&self, angle: f64, axis_x_angle: f64, axis_y_angle: f64, axis_z_angle: f64, center_x: f64, center_y: f64, center_z: f64) -> Result<SFCGeometry> {
+        pub fn rotate_3d_around_center(&self, angle: f64, axis_x_angle: f64, axis_y_angle: f64, axis_z_angle: f64, center_x: f64, center_y: f64, center_z: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1774,7 +1774,7 @@ impl SFCGeometry {
 
         /// Force a Right Handed Rule on the given Geometry
 
-        pub fn geometry_force_rhr(&self) -> Result<SFCGeometry> {
+        pub fn force_rhr(&self) -> Result<SFCGeometry> {
 
                 precondition_match_validity!(self);
 
@@ -1791,7 +1791,7 @@ impl SFCGeometry {
 
         /// Force a Left Handed Rule on the given Geometry
 
-        pub fn geometry_force_lhr(&self) -> Result<SFCGeometry> {
+        pub fn force_lhr(&self) -> Result<SFCGeometry> {
 
                 precondition_match_validity!(self);
 
@@ -1808,7 +1808,7 @@ impl SFCGeometry {
 
         /// Scale a geometry by a given factor
 
-        pub fn geometry_scale(&self, scale: f64) -> Result<SFCGeometry> {
+        pub fn scale(&self, scale: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1823,7 +1823,7 @@ impl SFCGeometry {
 
         /// Scale a geometry by different factors for each dimension
 
-        pub fn geometry_scale_3d(&self, scale_x: f64, scale_y: f64, scale_z: f64) -> Result<SFCGeometry> {
+        pub fn scale_3d(&self, scale_x: f64, scale_y: f64, scale_z: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1839,7 +1839,7 @@ impl SFCGeometry {
         /// Scale a geometry by different factors for each dimension around a
         /// center
 
-        pub fn geometry_scale_3d_around_center(&self, factor_x: f64, factor_y: f64, factor_z: f64, center_x: f64, center_y: f64, center_z: f64) -> Result<SFCGeometry> {
+        pub fn scale_3d_around_center(&self, factor_x: f64, factor_y: f64, factor_z: f64, center_x: f64, center_y: f64, center_z: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1854,7 +1854,7 @@ impl SFCGeometry {
 
         /// Round coordinates of the given Geometry
 
-        pub fn geometry_round(&self, value: i32) -> Result<SFCGeometry> {
+        pub fn round(&self, value: i32) -> Result<SFCGeometry> {
 
                 precondition_match_validity!(self);
 
@@ -1873,7 +1873,7 @@ impl SFCGeometry {
 
         /// Computes a 3D buffer around a geometry
 
-        pub fn geometry_buffer3d(&self, radius: f64, segments: i32, buffer_type: BufferType) -> Result<SFCGeometry> {
+        pub fn buffer3d(&self, radius: f64, segments: i32, buffer_type: BufferType) -> Result<SFCGeometry> {
 
                 match self._type()? {
                         GeomType::Point | GeomType::Linestring => (),
@@ -1911,7 +1911,7 @@ impl SFCGeometry {
 
         /// Gets the validity flag of the geometry
 
-        pub fn geometry_has_validity_flag(&self) -> i32 {
+        pub fn has_validity_flag(&self) -> i32 {
 
                 unsafe {
 
@@ -1922,7 +1922,7 @@ impl SFCGeometry {
         /// Build the visibility polygon of the segment [pointA ; pointB] on a
         /// Polygon
 
-        pub fn geometry_visibility_segment(&self, point_a: &SFCGeometry, point_b: &SFCGeometry) -> Result<SFCGeometry> {
+        pub fn visibility_segment(&self, point_a: &SFCGeometry, point_b: &SFCGeometry) -> Result<SFCGeometry> {
 
                 precondition_match_validity!(self);
 
@@ -1939,7 +1939,7 @@ impl SFCGeometry {
 
         /// Convert a PolyhedralSurface to a Solid
 
-        pub fn geometry_make_solid(&self) -> Result<SFCGeometry> {
+        pub fn make_solid(&self) -> Result<SFCGeometry> {
 
                 precondition_match_validity!(self);
 
@@ -1956,7 +1956,7 @@ impl SFCGeometry {
 
         /// Translate a geometry by a 2D vector
 
-        pub fn geometry_translate_2d(&self, dx: f64, dy: f64) -> Result<SFCGeometry> {
+        pub fn translate_2d(&self, dx: f64, dy: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1971,7 +1971,7 @@ impl SFCGeometry {
 
         /// Translate a geometry by a 3D vector
 
-        pub fn geometry_translate_3d(&self, translation_x: f64, translation_y: f64, translation_z: f64) -> Result<SFCGeometry> {
+        pub fn translate_3d(&self, translation_x: f64, translation_y: f64, translation_z: f64) -> Result<SFCGeometry> {
 
                 let result = unsafe {
 
@@ -1986,7 +1986,7 @@ impl SFCGeometry {
 
         /// Sets the validity flag of the geometry.
 
-        pub fn geometry_force_valid(&self, validity: i32) {
+        pub fn force_valid(&self, validity: i32) {
 
                 unsafe {
 
@@ -3404,7 +3404,7 @@ mod tests {
                         .to_sfcgal()
                         .unwrap();
 
-                let line = line.geometry_translate_2d(2., 3.).unwrap();
+                let line = line.translate_2d(2., 3.).unwrap();
 
                 let coords: CoordSeq<Point2d> = line.to_coordinates().unwrap();
 
@@ -3433,7 +3433,7 @@ mod tests {
                 .to_sfcgal()
                 .unwrap();
 
-                let poly = poly.geometry_translate_3d(1.0, 2.0, 3.0).unwrap();
+                let poly = poly.translate_3d(1.0, 2.0, 3.0).unwrap();
 
                 let coords: CoordSeq<Point3d> = poly.to_coordinates().unwrap();
 
@@ -3456,7 +3456,7 @@ mod tests {
 
                 let point = CoordSeq::Point((1., 0., 0.)).to_sfcgal().unwrap();
 
-                let point = point.geometry_rotate_z(5. * PI / 2.).unwrap();
+                let point = point.rotate_z(5. * PI / 2.).unwrap();
 
                 let coords: CoordSeq<Point3d> = point.to_coordinates().unwrap();
 
