@@ -78,7 +78,6 @@ use crate::{
 };
 
 #[repr(C)]
-
 pub enum BufferType {
     Round,
     CylSphere,
@@ -204,7 +203,6 @@ macro_rules! precondition_index_in_result_value {
 ///
 /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gadd6d3ea5a71a957581248791624fad58))
 #[repr(C)]
-
 pub struct SFCGeometry {
     pub(crate) c_geom: NonNull<sfcgal_geometry_t>,
     pub(crate) owned: bool,
@@ -1255,6 +1253,7 @@ impl SFCGeometry {
 
     /// Rotates a 3D geometry around a specified axis and center point by a
     /// given
+    #[allow(clippy::too_many_arguments)]
     pub fn rotate_3d_around_center(
         &self,
         angle: f64,
