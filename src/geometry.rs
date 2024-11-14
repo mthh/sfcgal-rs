@@ -191,14 +191,6 @@ macro_rules! precondition_index_in_result_value {
 }
 
 /// Object representing a SFCGAL Geometry.
-///
-/// Most of the operations allowed by SFCGAL C API are wrapped,
-/// except those modifying the geometry in-place (such as adding a new
-/// point to a linestring for example) and those retrieving a specific part
-/// of a geometry (such as getting the 2nd interior ring of some polygon as a
-/// linestring). However, this can easily be done by yourself by converting them
-/// from/to coordinates with the `new_from_coordinates` and `to_coordinates`
-/// methods.
 #[repr(C)]
 pub struct SFCGeometry {
     pub(crate) c_geom: NonNull<sfcgal_geometry_t>,
@@ -912,7 +904,8 @@ impl SFCGeometry {
     /// Create a SFCGeometry collection type (MultiPoint, MultiLineString,
     /// MultiPolygon, MultiSolid or GeometryCollection) given a
     /// mutable slice of `SFCGeometry`'s (this is a destructive
-    /// operation) ``` rust
+    /// operation).
+    /// ```rust
     /// use sfcgal::SFCGeometry;
     /// let a = SFCGeometry::new("POINT (1.0 1.0)").unwrap();
     /// let b = SFCGeometry::new("POINT (2.0 2.0)").unwrap();
@@ -970,7 +963,8 @@ impl SFCGeometry {
     /// Returns Err if the SFCGeometry if not a collection (i.e. if it's
     /// type is not in { MultiPoint, MultiLineString, MultiPolygon,
     /// MultiSolid, GeometryCollection }). The original geometry
-    /// stay untouched. ``` rust
+    /// stay untouched.
+    /// ```rust
     /// use sfcgal::SFCGeometry;
     /// let g = SFCGeometry::new("MULTIPOINT ((1.0 1.0),(2.0
     /// 2.0))").unwrap(); let members =
