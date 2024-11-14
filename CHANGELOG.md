@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2024-11-14
+### Added
+- Update to SFCGAL 2.0.0 and wrap the various new functions from the C API [#7](https://github.com/mthh/sfcgal-rs/pull/7), thanks to @ThomasCartier.
+
 ## [0.7.0] - 2024-04-16
 ### Added
 - Update to SFCGAL 1.5.0 and expose the new following functions from the C API:

@@ -2,7 +2,7 @@
 
 [![Build and run tests](https://github.com/mthh/sfcgal-rs/actions/workflows/test.yml/badge.svg)](https://github.com/mthh/sfcgal-rs/actions/workflows/test.yml)
 [![Crates.io](https://img.shields.io/crates/v/sfcgal.svg)](https://crates.io/crates/sfcgal)
-[![Documentationg](https://img.shields.io/badge/documentation-0.7.0-green)](https://mthh.github.io/sfcgal-rs/sfcgal/)
+[![Documentation](https://img.shields.io/badge/documentation-0.8.0-green)](https://mthh.github.io/sfcgal-rs/sfcgal/)
 
 
 Rust bindings providing a high-level API to [`SFCGAL`](https://sfcgal.gitlab.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
