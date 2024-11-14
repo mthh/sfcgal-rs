@@ -7,7 +7,8 @@
 //! Allows notably reading from / writing to WKT as well as interoperability
 //! with [geojson](https://crates.io/crates/geojson) and [geo-types](https://crates.io/crates/geo) crates.
 //! It also offers an API
-//! to manipulate SFCGAL geometries from/to coordinates (represented as tuples of 2 or 3 positions).
+//! to manipulate SFCGAL geometries from/to coordinates (represented as tuples
+//! of 2 or 3 positions).
 //!
 //! #### Example
 //! ```rust
@@ -39,11 +40,12 @@
 //! # }
 //! # fn main() { fun().unwrap(); }
 //! ```
-
 #[macro_use]
 extern crate anyhow;
+
 #[macro_use]
 extern crate enum_primitive_derive;
+
 #[allow(unused_imports)]
 #[macro_use]
 extern crate approx;
@@ -54,6 +56,7 @@ mod conversion;
 mod errors;
 mod geometry;
 mod utils;
+
 pub use conversion::{CoordSeq, FromGeoJSON, ToGeoJSON, TryInto};
 pub use errors::Result;
 pub use geometry::{GeomType, SFCGeometry};
@@ -72,7 +75,8 @@ pub trait ToSFCGAL {
     fn to_sfcgal(&self) -> Result<SFCGeometry>;
 }
 
-/// Convert object to a [`CoordSeq`] holding coordinates and informations about geometry type.
+/// Convert object to a [`CoordSeq`] holding coordinates and informations about
+/// geometry type.
 ///
 /// [`CoordSeq`]: enum.CoordSeq.html
 pub trait ToCoordinates {
@@ -87,10 +91,14 @@ pub fn version() -> String {
 }
 
 #[cfg(test)]
+
 mod tests {
+
     use super::version;
+
     #[test]
+
     fn display_version() {
-        assert!(version().contains("1.5."));
+        assert!(version().contains("2.0."));
     }
 }
