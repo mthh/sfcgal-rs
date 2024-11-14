@@ -78,7 +78,6 @@ use crate::{
 };
 
 #[repr(C)]
-
 pub enum BufferType {
     Round,
     CylSphere,
@@ -91,7 +90,6 @@ pub enum BufferType {
 /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga1afcf1fad6c2daeca001481b125b84c6))
 #[repr(C)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Primitive)]
-
 pub enum GeomType {
     Point = 1,
     Linestring = 2,
@@ -122,7 +120,6 @@ impl GeomType {
 
 /// Represents the orientation of a `SFCGeometry`.
 #[derive(PartialEq, Eq, Debug, Primitive)]
-
 pub enum Orientation {
     CounterClockWise = -1isize,
     ClockWise = 1isize,
@@ -204,7 +201,6 @@ macro_rules! precondition_index_in_result_value {
 ///
 /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gadd6d3ea5a71a957581248791624fad58))
 #[repr(C)]
-
 pub struct SFCGeometry {
     pub(crate) c_geom: NonNull<sfcgal_geometry_t>,
     pub(crate) owned: bool,
@@ -245,7 +241,6 @@ impl SFCGeometry {
     }*/
 
     /// Create a geometry by parsing a [WKT](https://en.wikipedia.org/wiki/Well-known_text) string.
-
     pub fn new(wkt: &str) -> Result<SFCGeometry> {
         initialize();
 
@@ -288,7 +283,6 @@ impl SFCGeometry {
 
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL
     /// exact integer fractions as coordinate values. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
-
     pub fn to_wkt(&self) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -304,7 +298,6 @@ impl SFCGeometry {
     /// Returns a WKT representation of the given `SFCGeometry` using
     /// floating point coordinate values with the desired number of
     /// decimals. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
-
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -323,7 +316,6 @@ impl SFCGeometry {
     }
 
     /// Creates a Wkb string of the given geometry. In memory version.
-
     pub fn to_wkb_in_memory(&self) -> Result<Vec<u8>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -338,7 +330,6 @@ impl SFCGeometry {
 
     /// # Safety
     /// Returns an EWKT representation of the given PreparedGeometry
-
     pub unsafe fn to_ewkt_in_memory(
         prepared: *const sfcgal_prepared_geometry_t,
         num_decimals: i32,
@@ -355,7 +346,6 @@ impl SFCGeometry {
     }
 
     /// Creates a Hexwkb string of the given geometry. In memory version.
-
     pub fn to_hexwkb_in_memory(&self) -> Result<Vec<u8>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -369,7 +359,6 @@ impl SFCGeometry {
     }
 
     /// Read the binary prepared geometry
-
     pub fn io_read_binary_prepared(data: &[u8]) -> Result<*mut sfcgal_prepared_geometry_t> {
         unsafe {
             let ptr = data.as_ptr() as *const i8;
@@ -385,7 +374,6 @@ impl SFCGeometry {
     }
 
     /// Read the binary prepared geometry
-
     pub fn io_read_wkb(data: &[u8]) -> Result<*mut sfcgal_prepared_geometry_t> {
         unsafe {
             let ptr = data.as_ptr() as *const i8;
@@ -401,7 +389,6 @@ impl SFCGeometry {
     }
 
     /// Read the binary prepared geometry
-
     pub fn io_read_ewkt(data: &[u8]) -> Result<*mut sfcgal_prepared_geometry_t> {
         unsafe {
             let ptr = data.as_ptr() as *const i8;
@@ -418,7 +405,6 @@ impl SFCGeometry {
 
     /// # Safety
     /// Read the binary prepared geometry in memory
-
     pub unsafe fn io_write_binary_prepared(
         prepared_geometry: *mut sfcgal_prepared_geometry_t,
     ) -> Result<Vec<u8>> {
@@ -434,7 +420,6 @@ impl SFCGeometry {
     }
 
     /// Creates a OBJ file of the given geometry
-
     pub fn to_obj_file(&self, filename: &str) -> Result<()> {
         unsafe {
             let c_string = CString::new(filename)?;
@@ -448,7 +433,6 @@ impl SFCGeometry {
     }
 
     /// Creates a OBJ string of the given geometry. In memory version.
-
     pub fn to_obj_in_memory(&self) -> Result<Vec<u8>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -462,7 +446,6 @@ impl SFCGeometry {
     }
 
     /// Creates a VTK file of the given geometry
-
     pub fn to_vtk_file(&self, filename: &str) -> Result<()> {
         unsafe {
             let c_string = CString::new(filename)?;
@@ -476,7 +459,6 @@ impl SFCGeometry {
     }
 
     /// Creates a VTK string of the given geometry. In memory version.
-
     pub fn to_vtk_in_memory(&self) -> Result<Vec<u8>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -490,7 +472,6 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is empty or not.
-
     pub fn is_empty(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_empty(self.c_geom.as_ptr()) };
 
@@ -498,7 +479,6 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is valid or not.
-
     pub fn is_valid(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_valid(self.c_geom.as_ptr()) };
 
@@ -506,7 +486,6 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is measured (has an 'm' coordinates)
-
     pub fn is_measured(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_measured(self.c_geom.as_ptr()) };
 
@@ -514,7 +493,6 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is planar or not.
-
     pub fn is_planar(&self) -> Result<bool> {
         precondition_match_validity!(self);
 
@@ -524,7 +502,6 @@ impl SFCGeometry {
     }
 
     /// Test if the given `SFCGeometry` is a 3d geometry or not.
-
     pub fn is_3d(&self) -> Result<bool> {
         let rv = unsafe { sfcgal_geometry_is_3d(self.c_geom.as_ptr()) };
 
@@ -532,7 +509,6 @@ impl SFCGeometry {
     }
 
     /// Returns reason for the invalidity or None in case of validity.
-
     pub fn validity_detail(&self) -> Result<Option<String>> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -552,7 +528,6 @@ impl SFCGeometry {
     }
 
     /// Returns the SFCGAL type of the given `SFCGeometry`.
-
     pub fn _type(&self) -> Result<GeomType> {
         let type_geom = unsafe { sfcgal_geometry_type_id(self.c_geom.as_ptr()) };
 
@@ -561,7 +536,6 @@ impl SFCGeometry {
     }
 
     /// Computes the distance to an other `SFCGeometry`.
-
     pub fn distance(&self, other: &SFCGeometry) -> Result<f64> {
         precondition_match_validity!(self);
 
@@ -574,7 +548,6 @@ impl SFCGeometry {
     }
 
     /// Computes the 3d distance to an other `SFCGeometry`.
-
     pub fn distance_3d(&self, other: &SFCGeometry) -> Result<f64> {
         precondition_match_validity!(self);
 
@@ -587,7 +560,6 @@ impl SFCGeometry {
     }
 
     /// Computes the area of the given `SFCGeometry`.
-
     pub fn area(&self) -> Result<f64> {
         precondition_match_validity!(self);
 
@@ -597,7 +569,6 @@ impl SFCGeometry {
     }
 
     /// Computes the 3d area of the given `SFCGeometry`.
-
     pub fn area_3d(&self) -> Result<f64> {
         precondition_match_validity!(self);
 
@@ -607,7 +578,6 @@ impl SFCGeometry {
     }
 
     /// Computes the volume of the given `SFCGeometry` (must be a volume).
-
     pub fn volume(&self) -> Result<f64> {
         precondition_match_validity!(self);
 
@@ -618,7 +588,6 @@ impl SFCGeometry {
 
     /// Computes the orientation of the given `SFCGeometry` (must be a
     /// Polygon)
-
     pub fn orientation(&self) -> Result<Orientation> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -631,7 +600,6 @@ impl SFCGeometry {
     }
 
     /// Test the intersection with an other `SFCGeometry`.
-
     pub fn intersects(&self, other: &SFCGeometry) -> Result<bool> {
         precondition_match_validity!(self);
 
@@ -643,7 +611,6 @@ impl SFCGeometry {
     }
 
     /// Test the 3d intersection with an other `SFCGeometry`.
-
     pub fn intersects_3d(&self, other: &SFCGeometry) -> Result<bool> {
         precondition_match_validity!(self);
 
@@ -657,7 +624,6 @@ impl SFCGeometry {
 
     /// Returns the intersection of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn intersection(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -671,7 +637,6 @@ impl SFCGeometry {
 
     /// Returns the 3d intersection of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn intersection_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -684,7 +649,6 @@ impl SFCGeometry {
     }
 
     /// Test if the geometry covers an other `SFCGeometry`.
-
     pub fn covers(&self, other: &SFCGeometry) -> Result<bool> {
         precondition_match_validity!(self);
 
@@ -696,7 +660,6 @@ impl SFCGeometry {
     }
 
     /// Test if the geometry covers an other `SFCGeometry` in 3D.
-
     pub fn covers_3d(&self, other: &SFCGeometry) -> Result<bool> {
         precondition_match_validity!(self);
 
@@ -709,7 +672,6 @@ impl SFCGeometry {
 
     /// Returns the difference of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn difference(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -723,7 +685,6 @@ impl SFCGeometry {
 
     /// Returns the 3d difference of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn difference_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -737,7 +698,6 @@ impl SFCGeometry {
 
     /// Returns the union of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn union(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -750,7 +710,6 @@ impl SFCGeometry {
 
     /// Returns the 3d union of the given `SFCGeometry` to an other
     /// `SFCGeometry`.
-
     pub fn union_3d(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -764,7 +723,6 @@ impl SFCGeometry {
 
     /// Returns the minkowski sum of the given `SFCGeometry` and an other
     /// `SFCGEOMETRY`. ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga02d35888dac40eee2eb2a2b133979c8d))
-
     pub fn minkowski_sum(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -778,7 +736,6 @@ impl SFCGeometry {
 
     /// Returns the straight skeleton of the given `SFCGeometry`.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
-
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -789,7 +746,6 @@ impl SFCGeometry {
 
     /// Returns the straight skeleton of the given `SFCGeometry` with the
     /// distance to the border as M coordinate. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
-
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -801,7 +757,6 @@ impl SFCGeometry {
 
     /// Returns the extrude straight skeleton of the given Polygon.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
-
     pub fn extrude_straight_skeleton(&self, height: f64) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -820,7 +775,6 @@ impl SFCGeometry {
     /// Returns the union of the polygon z-extrusion (with respect to
     /// building_height) and the extrude straight skeleton (with
     /// respect to roof_height) of the given Polygon. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
-
     pub fn extrude_polygon_straight_skeleton(
         &self,
         building_height: f64,
@@ -843,7 +797,6 @@ impl SFCGeometry {
 
     /// Returns the approximate medial axis for the given `SFCGeometry`
     /// Polygon. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga16a9b4b1211843f8444284b1fefebc46))
-
     pub fn approximate_medial_axis(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -854,7 +807,6 @@ impl SFCGeometry {
 
     /// Returns the offset polygon of the given `SFCGeometry`.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9766f54ebede43a9b71fccf1524a1054))
-
     pub fn offset_polygon(&self, radius: f64) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -865,7 +817,6 @@ impl SFCGeometry {
 
     /// Returns the extrusion of the given `SFCGeometry` (not supported on
     /// Solid and Multisolid). ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga277d01bd9978e13644baa1755f1cd3e0)
-
     pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -876,7 +827,6 @@ impl SFCGeometry {
 
     /// Returns a tesselation of the given `SFCGeometry`.
     /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
-
     pub fn tesselate(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -887,7 +837,6 @@ impl SFCGeometry {
 
     /// Returns a triangulation of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gae382792f387654a9adb2e2c38735e08d))
-
     pub fn triangulate_2dz(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -898,7 +847,6 @@ impl SFCGeometry {
 
     /// Returns the convex hull of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9027b5654cbacf6c2106d70b129d3a23))
-
     pub fn convexhull(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -909,7 +857,6 @@ impl SFCGeometry {
 
     /// Returns the 3d convex hull of the given `SFCGeometry`.
     /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gacf01a9097f2059afaad871658b4b5a6f))
-
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -920,7 +867,6 @@ impl SFCGeometry {
 
     /// Returns the substring of the given `SFCGeometry` LineString between
     /// fractional distances. ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9184685ade86d02191ffaf0337ed3c1d))
-
     pub fn line_substring(&self, start: f64, end: f64) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Linestring);
 
@@ -937,7 +883,6 @@ impl SFCGeometry {
 
     /// Returns the alpha shape of the given `SFCGeometry` Point set.
     /// ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#gadb33896047f57656dec64dff1984fba5))
-
     pub fn alpha_shapes(&self, alpha: f64, allow_holes: bool) -> Result<SFCGeometry> {
         if !self.is_valid().unwrap() {
             return Err(format_err!(
@@ -959,7 +904,6 @@ impl SFCGeometry {
     }
 
     /// Return the optimal alpha shape of the given `SFCGeometry` Point set.
-
     pub fn optimal_alpha_shapes(
         &self,
         allow_holes: bool,
@@ -987,7 +931,6 @@ impl SFCGeometry {
     ///     "MULTIPOINT ((1.0 1.0),(2.0 2.0))",
     /// );
     /// ```
-
     pub fn create_collection(geoms: &mut [SFCGeometry]) -> Result<SFCGeometry> {
         if geoms.is_empty() {
             let res_geom = unsafe { sfcgal_geometry_collection_create() };
@@ -1049,7 +992,6 @@ impl SFCGeometry {
     ///     "POINT (2.0 2.0)",
     /// );
     /// ```
-
     pub fn get_collection_members(self) -> Result<Vec<SFCGeometry>> {
         let _type = self._type()?;
 
@@ -1080,7 +1022,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty point
-
     pub fn point_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create() };
 
@@ -1088,7 +1029,6 @@ impl SFCGeometry {
     }
 
     /// Creates a point from two X and Y coordinates
-
     pub fn point_create_from_xy(x: f64, y: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xy(x, y) };
 
@@ -1096,7 +1036,6 @@ impl SFCGeometry {
     }
 
     /// Creates a point from three X, Y and M coordinates
-
     pub fn point_create_from_xym(x: f64, y: f64, m: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xym(x, y, m) };
 
@@ -1104,7 +1043,6 @@ impl SFCGeometry {
     }
 
     /// Creates a point from three X, Y and Z coordinates
-
     pub fn point_create_from_xyz(x: f64, y: f64, z: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xyz(x, y, z) };
 
@@ -1112,7 +1050,6 @@ impl SFCGeometry {
     }
 
     /// Create a point from x, y, z, m components.
-
     pub fn point_create_from_xyzm(&self, x: f64, y: f64, z: f64, m: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_point_create_from_xyzm(x, y, z, m) };
 
@@ -1120,7 +1057,6 @@ impl SFCGeometry {
     }
 
     /// Returns the X coordinate of the given Point
-
     pub fn point_x(&self) -> Result<f64> {
         precondition_match_type!(self, GeomType::Point);
 
@@ -1130,7 +1066,6 @@ impl SFCGeometry {
     }
 
     /// Returns the Y coordinate of the given Point
-
     pub fn point_y(&self) -> Result<f64> {
         precondition_match_type!(self, GeomType::Point);
 
@@ -1140,7 +1075,6 @@ impl SFCGeometry {
     }
 
     /// Returns the Z coordinate of the given Point
-
     pub fn point_z(&self) -> Result<f64> {
         precondition_match_type!(self, GeomType::Point);
 
@@ -1154,7 +1088,6 @@ impl SFCGeometry {
     }
 
     /// Returns the M coordinate of the given Point
-
     pub fn point_m(&self) -> Result<f64> {
         precondition_match_type!(self, GeomType::Point);
 
@@ -1168,7 +1101,6 @@ impl SFCGeometry {
     }
 
     /// Sets one vertex of a Triangle
-
     pub fn triangle_set_vertex(&self, index: i32, vertex: &SFCGeometry) -> Result<()> {
         precondition_match_type!(self, GeomType::Triangle);
 
@@ -1188,7 +1120,6 @@ impl SFCGeometry {
     }
 
     /// Sets one vertex of a Triangle from two coordinates
-
     pub fn triangle_set_vertex_from_xy(&self, index: i32, x: f64, y: f64) -> Result<()> {
         precondition_match_type!(self, GeomType::Triangle);
 
@@ -1204,7 +1135,6 @@ impl SFCGeometry {
     }
 
     /// Sets one vertex of a Triangle from three coordinates
-
     pub fn triangle_set_vertex_from_xyz(&self, index: i32, x: f64, y: f64, z: f64) -> Result<()> {
         precondition_match_type!(self, GeomType::Triangle);
 
@@ -1226,7 +1156,6 @@ impl SFCGeometry {
     }
 
     /// Returns the straight skeleton partition for the given Polygon
-
     pub fn geometry_straight_skeleton_partition(
         &self,
         auto_orientation: bool,
@@ -1248,7 +1177,6 @@ impl SFCGeometry {
     }
 
     /// Returns the visibility polygon of a Point inside a Polygon
-
     pub fn geometry_visibility_point(&self, point: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -1268,7 +1196,6 @@ impl SFCGeometry {
     }
 
     /// Rotates a geometry around the origin (0,0,0) by a given angle
-
     pub fn geometry_rotate(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate(self.c_geom.as_ptr(), angle) };
 
@@ -1276,7 +1203,6 @@ impl SFCGeometry {
     }
 
     /// Rotates a geometry around the X axis by a given angle
-
     pub fn geometry_rotate_x(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate_x(self.c_geom.as_ptr(), angle) };
 
@@ -1284,7 +1210,6 @@ impl SFCGeometry {
     }
 
     /// Rotates a geometry around the Y axis by a given angle
-
     pub fn geometry_rotate_y(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate_y(self.c_geom.as_ptr(), angle) };
 
@@ -1292,7 +1217,6 @@ impl SFCGeometry {
     }
 
     /// Rotates a geometry around the Z axis by a given angle
-
     pub fn geometry_rotate_z(&self, angle: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_rotate_z(self.c_geom.as_ptr(), angle) };
 
@@ -1300,7 +1224,6 @@ impl SFCGeometry {
     }
 
     /// Rotates a geometry around a specified point by a given angle
-
     pub fn geometry_rotate_2d(
         &self,
         angle: f64,
@@ -1314,7 +1237,6 @@ impl SFCGeometry {
     }
 
     /// Rotates a 3D geometry around a specified axis by a given angle
-
     pub fn geometry_rotate_3d(
         &self,
         angle: f64,
@@ -1337,7 +1259,6 @@ impl SFCGeometry {
 
     /// Rotates a 3D geometry around a specified axis and center point by a
     /// given
-
     pub fn geometry_rotate_3d_around_center(
         &self,
         angle: f64,
@@ -1365,7 +1286,6 @@ impl SFCGeometry {
     }
 
     /// Force a Right Handed Rule on the given Geometry
-
     pub fn geometry_force_rhr(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1375,7 +1295,6 @@ impl SFCGeometry {
     }
 
     /// Force a Left Handed Rule on the given Geometry
-
     pub fn geometry_force_lhr(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1385,7 +1304,6 @@ impl SFCGeometry {
     }
 
     /// Scale a geometry by a given factor
-
     pub fn geometry_scale(&self, scale: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_scale(self.c_geom.as_ptr(), scale) };
 
@@ -1393,7 +1311,6 @@ impl SFCGeometry {
     }
 
     /// Scale a geometry by different factors for each dimension
-
     pub fn geometry_scale_3d(
         &self,
         scale_x: f64,
@@ -1408,7 +1325,6 @@ impl SFCGeometry {
 
     /// Scale a geometry by different factors for each dimension around a
     /// center
-
     pub fn geometry_scale_3d_around_center(
         &self,
         factor_x: f64,
@@ -1434,7 +1350,6 @@ impl SFCGeometry {
     }
 
     /// Round coordinates of the given Geometry
-
     pub fn geometry_round(&self, value: i32) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1446,7 +1361,6 @@ impl SFCGeometry {
     }
 
     /// Computes a 3D buffer around a geometry
-
     pub fn geometry_buffer3d(
         &self,
         radius: f64,
@@ -1484,14 +1398,12 @@ impl SFCGeometry {
     }
 
     /// Gets the validity flag of the geometry
-
     pub fn geometry_has_validity_flag(&self) -> i32 {
         unsafe { sfcgal_geometry_has_validity_flag(self.c_geom.as_ptr()) }
     }
 
     /// Build the visibility polygon of the segment [pointA ; pointB] on a
     /// Polygon
-
     pub fn geometry_visibility_segment(
         &self,
         point_a: &SFCGeometry,
@@ -1511,7 +1423,6 @@ impl SFCGeometry {
     }
 
     /// Convert a PolyhedralSurface to a Solid
-
     pub fn geometry_make_solid(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1521,7 +1432,6 @@ impl SFCGeometry {
     }
 
     /// Translate a geometry by a 2D vector
-
     pub fn geometry_translate_2d(&self, dx: f64, dy: f64) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_geometry_translate_2d(self.c_geom.as_ptr(), dx, dy) };
 
@@ -1529,7 +1439,6 @@ impl SFCGeometry {
     }
 
     /// Translate a geometry by a 3D vector
-
     pub fn geometry_translate_3d(
         &self,
         translation_x: f64,
@@ -1549,19 +1458,16 @@ impl SFCGeometry {
     }
 
     /// Sets the validity flag of the geometry.
-
     pub fn geometry_force_valid(&self, validity: i32) {
         unsafe { sfcgal_geometry_force_valid(self.c_geom.as_ptr(), validity) };
     }
 
     /// Set the geometry validation mode
-
     pub fn set_geometry_validation(enabled: i32) {
         unsafe { sfcgal_set_geometry_validation(enabled) };
     }
 
     /// Creates an empty Triangle
-
     pub fn triangle_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_triangle_create() };
 
@@ -1569,7 +1475,6 @@ impl SFCGeometry {
     }
 
     /// Returns one the Triangle's vertex as a Point
-
     pub fn triangle_vertex(&self, index: i32) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Triangle);
 
@@ -1583,7 +1488,6 @@ impl SFCGeometry {
     }
 
     /// Creates a Triangle from three given Point
-
     pub fn triangle_create_from_points(
         point_a: &SFCGeometry,
         point_b: &SFCGeometry,
@@ -1607,7 +1511,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty TriangulatedSurface
-
     pub fn triangulated_surface_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_triangulated_surface_create() };
 
@@ -1615,7 +1518,6 @@ impl SFCGeometry {
     }
 
     /// Returns the ith Triangle of a given TriangulatedSurface
-
     pub fn triangulated_surface_triangle_n(&self, index: usize) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Triangulatedsurface);
 
@@ -1631,7 +1533,6 @@ impl SFCGeometry {
     }
 
     /// Adds a Triangle to a given TriangulatedSurface
-
     pub fn triangulated_surface_add_triangle(&self, triangle: &SFCGeometry) -> Result<()> {
         precondition_match_type!(self, GeomType::Triangulatedsurface);
 
@@ -1645,7 +1546,6 @@ impl SFCGeometry {
     }
 
     /// Returns the number of triangles of a given TriangulatedSurface
-
     pub fn triangulated_surface_num_triangles(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Triangulatedsurface);
 
@@ -1658,7 +1558,6 @@ impl SFCGeometry {
 
     /// Returns the optimal convex partition of a geometry (polygon without
     /// hole)
-
     pub fn optimal_convex_partition_2(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1669,7 +1568,6 @@ impl SFCGeometry {
 
     /// Returns the approximal convex partition of a geometry (polygon
     /// without hole)
-
     pub fn approx_convex_partition_2(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1680,7 +1578,6 @@ impl SFCGeometry {
 
     /// Returns the greene approximal convex partition of a geometry
     /// (polygon without hole)
-
     pub fn greene_approx_convex_partition_2(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1691,7 +1588,6 @@ impl SFCGeometry {
 
     /// Returns the y monotone partition of a geometry (polygon without
     /// hole)
-
     pub fn y_monotone_partition_2(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -1701,7 +1597,6 @@ impl SFCGeometry {
     }
 
     /// Returns the number of points of the given LineString
-
     pub fn linestring_num_points(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Linestring);
 
@@ -1709,7 +1604,6 @@ impl SFCGeometry {
     }
 
     /// Adds a point to a LineString
-
     pub fn linestring_add_point(&self, point: &SFCGeometry) -> Result<()> {
         precondition_match_type!(self, GeomType::Linestring);
 
@@ -1721,7 +1615,6 @@ impl SFCGeometry {
     }
 
     /// Returns the ith point of a given LineString
-
     pub fn linestring_point_n(&self, index: usize) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Point);
 
@@ -1744,7 +1637,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty LineString
-
     pub fn linestring_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_linestring_create() };
 
@@ -1752,7 +1644,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty PolyhedralSurface
-
     pub fn polyhedral_surface_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polyhedral_surface_create() };
 
@@ -1760,7 +1651,6 @@ impl SFCGeometry {
     }
 
     /// Returns the number of polygons of a given PolyhedralSurface
-
     pub fn polyhedral_surface_num_polygons(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Polyhedralsurface);
 
@@ -1768,7 +1658,6 @@ impl SFCGeometry {
     }
 
     /// Adds a Polygon to a given PolyhedralSurface
-
     pub fn polyhedral_surface_add_polygon(&self, other: &SFCGeometry) -> Result<()> {
         precondition_match_type!(self, GeomType::Polyhedralsurface);
 
@@ -1782,7 +1671,6 @@ impl SFCGeometry {
     }
 
     /// Returns the ith polygon of a given PolyhedralSurface
-
     pub fn polyhedral_surface_polygon_n(&self, index: usize) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Polyhedralsurface);
 
@@ -1797,7 +1685,6 @@ impl SFCGeometry {
 
     /// Sets the error handlers. These callbacks are called on warning or
     /// error
-
     pub fn set_error_handlers(
         warning_handler: sfcgal_error_handler_t,
         error_handler: sfcgal_error_handler_t,
@@ -1807,7 +1694,6 @@ impl SFCGeometry {
 
     /// Sets the error handlers. These callbacks are called on warning or
     /// error
-
     pub fn set_alloc_handlers(
         alloc_handler: sfcgal_alloc_handler_t,
         free_handler: sfcgal_free_handler_t,
@@ -1816,7 +1702,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty Solid
-
     pub fn solid_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_solid_create() };
 
@@ -1824,7 +1709,6 @@ impl SFCGeometry {
     }
 
     /// Returns the number of shells of a given Solid
-
     pub fn solid_num_shells(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Solid);
 
@@ -1832,7 +1716,6 @@ impl SFCGeometry {
     }
 
     /// Creates a Solid from an exterior shell
-
     pub fn solid_create_from_exterior_shell(exterior_shell: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_type_other!(exterior_shell, GeomType::Polyhedralsurface);
 
@@ -1844,7 +1727,6 @@ impl SFCGeometry {
     }
 
     /// Returns the ith shell of a given Solid
-
     pub fn solid_shell_n(&self, index: usize) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Solid);
 
@@ -1858,7 +1740,6 @@ impl SFCGeometry {
     }
 
     /// Adds a shell to a given Solid
-
     pub fn solid_add_interior_shell(&self, shell: &SFCGeometry) -> Result<()> {
         precondition_match_type!(self, GeomType::Solid);
 
@@ -1870,7 +1751,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty Polygon
-
     pub fn polygon_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polygon_create() };
 
@@ -1878,7 +1758,6 @@ impl SFCGeometry {
     }
 
     /// Returns the number of interior rings of a given Polygon
-
     pub fn polygon_num_interior_rings(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -1886,7 +1765,6 @@ impl SFCGeometry {
     }
 
     /// Returns the exterior ring of a given Polygon
-
     pub fn polygon_exterior_ring(&self) -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_polygon_exterior_ring(self.c_geom.as_ptr()) };
 
@@ -1896,7 +1774,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty Polygon from an extrior ring
-
     pub fn polygon_create_from_exterior_ring(&self) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Linestring);
 
@@ -1906,7 +1783,6 @@ impl SFCGeometry {
     }
 
     /// Adds an interior ring to a given Polygon
-
     pub fn polygon_add_interior_ring(&self, ring: &SFCGeometry) -> Result<()> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -1918,7 +1794,6 @@ impl SFCGeometry {
     }
 
     /// Returns the ith interior ring of a given Polygon
-
     pub fn polygon_interior_ring_n(&self, index: usize) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -1932,7 +1807,6 @@ impl SFCGeometry {
     }
 
     /// Creates an empty MultiSolid
-
     pub fn multi_solid_create() -> Result<SFCGeometry> {
         let result = unsafe { sfcgal_multi_solid_create() };
 
@@ -1945,7 +1819,6 @@ impl SFCGeometry {
 
     /// # Safety
     /// Sets SRID associated with a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_set_srid(
         prepared_geometry: *mut sfcgal_prepared_geometry_t,
         srid: srid_t,
@@ -1955,14 +1828,12 @@ impl SFCGeometry {
 
     /// # Safety
     /// Deletes a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_delete(prepared_geometry: *mut sfcgal_prepared_geometry_t) {
         sfcgal_prepared_geometry_delete(prepared_geometry);
     }
 
     /// # Safety
     /// Creates a PreparedGeometry from a Geometry and an SRID
-
     pub fn prepared_geometry_create_from_geometry(
         &self,
         srid: srid_t,
@@ -1977,20 +1848,17 @@ impl SFCGeometry {
 
     /// # Safety
     /// Sets the Geometry associated with the given PreparedGeometry
-
     pub unsafe fn prepared_geometry_set_geometry(&self, prepared: *mut sfcgal_prepared_geometry_t) {
         sfcgal_prepared_geometry_set_geometry(prepared, self.c_geom.as_ptr());
     }
 
     /// # Safety
     /// Returns SRID associated with a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_srid(prepared: *mut sfcgal_prepared_geometry_t) -> u32 {
         sfcgal_prepared_geometry_srid(prepared)
     }
 
     /// Creates an empty PreparedGeometry
-
     pub fn prepared_geometry_create() -> Result<*mut sfcgal_prepared_geometry_t> {
         let result = unsafe { sfcgal_prepared_geometry_create() };
 
@@ -2001,7 +1869,6 @@ impl SFCGeometry {
 
     /// # Safety
     /// Returns the Geometry associated with a given PreparedGeometry
-
     pub unsafe fn prepared_geometry_geometry(
         prepared_geometry: *mut sfcgal_prepared_geometry_t,
     ) -> Result<SFCGeometry> {
