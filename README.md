@@ -15,7 +15,8 @@ Some key features of the underlying library:
 - Straight skeleton, tesselation, Minkovski sum, alpha shapes and convex hull.
 
 > [!IMPORTANT]
-> Note that the required version of SFCGAL is currently 1.5.x (latest version - 2023-10-30).  
+> Note that the required version of SFCGAL is currently 2.0.x (latest version - 2024-10-10).  
+> If you want to use SFCCAL 1.5.x, you can use the 0.7.x version of this crate.  
 > If you want to use SFCCAL 1.4.x, you can use the 0.6.x version of this crate.
 
 ## Usage
@@ -94,6 +95,10 @@ See `examples/skeleton_geojson.rs` for an example of working with some other cra
 Needed a SFCGAL feature for a side-project in Rust and I thought it would be a good opportunity to try using [bindgen](https://github.com/rust-lang/rust-bindgen) on SFCGAL C API.  
 In the end a large part of the API is wrapped, so maybe it could be reused or improved by someone now it's published on [crates.io](https://crates.io/crates/sfcgal).
 
+## Other SFCGAL bindings
+
+Those Rust bindings are community-driven. If you are looking for official bindings, you can check the [PySFCGAL](https://gitlab.com/sfcgal/pysfcgal) project
+which is developed by the SFCGAL team.
 
 ## License
 
