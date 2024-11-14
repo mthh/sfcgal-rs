@@ -55,7 +55,6 @@ use sfcgal_sys::sfcgal_version;
 mod conversion;
 mod errors;
 mod geometry;
-mod setup_helper;
 mod utils;
 
 pub use conversion::{CoordSeq, FromGeoJSON, ToGeoJSON, TryInto};
