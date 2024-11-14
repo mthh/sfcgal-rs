@@ -87,7 +87,6 @@ pub enum BufferType {
 /// SFCGAL Geometry types.
 ///
 /// Indicates the type of shape represented by a `SFCGeometry`.
-/// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga1afcf1fad6c2daeca001481b125b84c6))
 #[repr(C)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Primitive)]
 
@@ -200,8 +199,6 @@ macro_rules! precondition_index_in_result_value {
 /// linestring). However, this can easily be done by yourself by converting them
 /// from/to coordinates with the `new_from_coordinates` and `to_coordinates`
 /// methods.
-///
-/// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gadd6d3ea5a71a957581248791624fad58))
 #[repr(C)]
 pub struct SFCGeometry {
     pub(crate) c_geom: NonNull<sfcgal_geometry_t>,
@@ -284,7 +281,7 @@ impl SFCGeometry {
     }
 
     /// Returns a WKT representation of the given `SFCGeometry` using CGAL
-    /// exact integer fractions as coordinate values. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga3bc1954e3c034b60f0faff5e8227c398))
+    /// exact integer fractions as coordinate values.
     pub fn to_wkt(&self) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -299,7 +296,7 @@ impl SFCGeometry {
 
     /// Returns a WKT representation of the given `SFCGeometry` using
     /// floating point coordinate values with the desired number of
-    /// decimals. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaaf23f2c95fd48810beb37d07a9652253))
+    /// decimals.
     pub fn to_wkt_decim(&self, nb_decim: i32) -> Result<String> {
         let mut ptr = MaybeUninit::<*mut c_char>::uninit();
 
@@ -724,7 +721,7 @@ impl SFCGeometry {
     }
 
     /// Returns the minkowski sum of the given `SFCGeometry` and an other
-    /// `SFCGEOMETRY`. ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga02d35888dac40eee2eb2a2b133979c8d))
+    /// `SFCGEOMETRY`.
     pub fn minkowski_sum(&self, other: &SFCGeometry) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -737,7 +734,6 @@ impl SFCGeometry {
     }
 
     /// Returns the straight skeleton of the given `SFCGeometry`.
-    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#gaefaa76b61d66e2ad11d902e6b5a13635))
     pub fn straight_skeleton(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -747,7 +743,7 @@ impl SFCGeometry {
     }
 
     /// Returns the straight skeleton of the given `SFCGeometry` with the
-    /// distance to the border as M coordinate. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga972ea9e378eb2dc99c00b6ad57d05e88))
+    /// distance to the border as M coordinate.
     pub fn straight_skeleton_distance_in_m(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -758,7 +754,6 @@ impl SFCGeometry {
     }
 
     /// Returns the extrude straight skeleton of the given Polygon.
-    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
     pub fn extrude_straight_skeleton(&self, height: f64) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Polygon);
 
@@ -776,7 +771,7 @@ impl SFCGeometry {
 
     /// Returns the union of the polygon z-extrusion (with respect to
     /// building_height) and the extrude straight skeleton (with
-    /// respect to roof_height) of the given Polygon. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga5389fd88daf80a8221a3ca619813a2be))
+    /// respect to roof_height) of the given Polygon.
     pub fn extrude_polygon_straight_skeleton(
         &self,
         building_height: f64,
@@ -798,7 +793,7 @@ impl SFCGeometry {
     }
 
     /// Returns the approximate medial axis for the given `SFCGeometry`
-    /// Polygon. ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga16a9b4b1211843f8444284b1fefebc46))
+    /// Polygon.
     pub fn approximate_medial_axis(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -808,7 +803,6 @@ impl SFCGeometry {
     }
 
     /// Returns the offset polygon of the given `SFCGeometry`.
-    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9766f54ebede43a9b71fccf1524a1054))
     pub fn offset_polygon(&self, radius: f64) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -818,7 +812,7 @@ impl SFCGeometry {
     }
 
     /// Returns the extrusion of the given `SFCGeometry` (not supported on
-    /// Solid and Multisolid). ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga277d01bd9978e13644baa1755f1cd3e0)
+    /// Solid and Multisolid).
     pub fn extrude(&self, ex: f64, ey: f64, ez: f64) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -828,7 +822,6 @@ impl SFCGeometry {
     }
 
     /// Returns a tesselation of the given `SFCGeometry`.
-    /// ([C API reference](https://sfcgal.gitlab.io/SFCGAL/doxygen/group__capi.html#ga570ce6214f305ed35ebbec62d366b588))
     pub fn tesselate(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -838,7 +831,6 @@ impl SFCGeometry {
     }
 
     /// Returns a triangulation of the given `SFCGeometry`.
-    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gae382792f387654a9adb2e2c38735e08d))
     pub fn triangulate_2dz(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -848,7 +840,6 @@ impl SFCGeometry {
     }
 
     /// Returns the convex hull of the given `SFCGeometry`.
-    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#ga9027b5654cbacf6c2106d70b129d3a23))
     pub fn convexhull(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -858,7 +849,6 @@ impl SFCGeometry {
     }
 
     /// Returns the 3d convex hull of the given `SFCGeometry`.
-    /// ([C API reference](https://oslandia.github.io/SFCGAL/doxygen/group__capi.html#gacf01a9097f2059afaad871658b4b5a6f))
     pub fn convexhull_3d(&self) -> Result<SFCGeometry> {
         precondition_match_validity!(self);
 
@@ -868,7 +858,7 @@ impl SFCGeometry {
     }
 
     /// Returns the substring of the given `SFCGeometry` LineString between
-    /// fractional distances. ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#ga9184685ade86d02191ffaf0337ed3c1d))
+    /// fractional distances.
     pub fn line_substring(&self, start: f64, end: f64) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Linestring);
 
@@ -884,7 +874,6 @@ impl SFCGeometry {
     }
 
     /// Returns the alpha shape of the given `SFCGeometry` Point set.
-    /// ([C API reference](https://oslandia.gitlab.io/SFCGAL/doxygen/group__capi.html#gadb33896047f57656dec64dff1984fba5))
     pub fn alpha_shapes(&self, alpha: f64, allow_holes: bool) -> Result<SFCGeometry> {
         if !self.is_valid().unwrap() {
             return Err(format_err!(
