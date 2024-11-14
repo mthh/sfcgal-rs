@@ -414,7 +414,7 @@ mod tests {
 
     #[test]
     fn point_sfcgal_try_into_geo() {
-        let pt_sfcgal = SFCGeometry::new("POINT(0.1 0.9)").unwrap();
+        let pt_sfcgal = SFCGeometry::new("POINT (0.1 0.9)").unwrap();
         let pt: Point<f64> =
             geo_types::Point::try_from(TryInto::try_into(pt_sfcgal).unwrap()).unwrap();
         assert_ulps_eq!(pt.x(), 0.1);
@@ -551,7 +551,7 @@ mod tests {
 
     #[test]
     fn geometrycollection_sfcgal_to_geo_to_sfcgal() {
-        let input_wkt = "GEOMETRYCOLLECTION(POINT(4.0 6.0),LINESTRING(4.0 6.0,7.0 10.0))";
+        let input_wkt = "GEOMETRYCOLLECTION (POINT (4.0 6.0),LINESTRING (4.0 6.0,7.0 10.0))";
         let gc_sfcgal = SFCGeometry::new(input_wkt).unwrap();
         let gc: geo_types::Geometry<f64> = TryInto::try_into(gc_sfcgal).unwrap();
         if let geo_types::Geometry::GeometryCollection(_gc) = &gc {
