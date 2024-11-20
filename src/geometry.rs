@@ -5,7 +5,7 @@ use std::{
     ptr::NonNull,
 };
 
-use num_traits::FromPrimitive;
+use num_traits::{FromPrimitive, ToPrimitive};
 use sfcgal_sys::{
     initialize, sfcgal_alloc_handler_t, sfcgal_error_handler_t, sfcgal_free_handler_t,
     sfcgal_geometry_alpha_shapes, sfcgal_geometry_approximate_medial_axis, sfcgal_geometry_area,
@@ -77,11 +77,13 @@ use crate::{
     Result, ToSFCGAL,
 };
 
+/// Represent the buffer types usable with the `buffer3d` method.
 #[repr(C)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Primitive)]
 pub enum BufferType {
-    Round,
-    CylSphere,
-    Flat,
+    Round = 0,
+    CylSphere = 1,
+    Flat = 2,
 }
 
 /// SFCGAL Geometry types.
@@ -89,7 +91,6 @@ pub enum BufferType {
 /// Indicates the type of shape represented by a `SFCGeometry`.
 #[repr(C)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Primitive)]
-
 pub enum GeomType {
     Point = 1,
     Linestring = 2,
@@ -120,7 +121,6 @@ impl GeomType {
 
 /// Represents the orientation of a `SFCGeometry`.
 #[derive(PartialEq, Eq, Debug, Primitive)]
-
 pub enum Orientation {
     CounterClockWise = -1isize,
     ClockWise = 1isize,
@@ -1355,16 +1355,13 @@ impl SFCGeometry {
             bail!("The algorithm needs at least 3 segments");
         }
 
-        let explicit = {
-            match buffer_type {
-                BufferType::Round => 0_u32,
-                BufferType::CylSphere => 1_u32,
-                BufferType::Flat => 2_u32,
-            }
-        };
-
         unsafe {
-            let result = sfcgal_geometry_buffer3d(self.c_geom.as_ptr(), radius, segments, explicit);
+            let result = sfcgal_geometry_buffer3d(
+                self.c_geom.as_ptr(),
+                radius,
+                segments,
+                buffer_type.to_u32().unwrap(),
+            );
 
             SFCGeometry::new_from_raw(result, true)
         }
