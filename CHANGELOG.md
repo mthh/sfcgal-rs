@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2024-11-20
+### Changed
+- Fixed the visibility of the `BufferType` enum.
+
 ## [0.8.0] - 2024-11-14
 ### Added
 - Update to SFCGAL 2.0.0 and wrap the various new functions from the C API [#7](https://github.com/mthh/sfcgal-rs/pull/7), thanks to @ThomasCartier.
