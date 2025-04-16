@@ -6,7 +6,7 @@
 
 
 Rust bindings providing a high-level API to [`SFCGAL`](https://sfcgal.gitlab.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
-Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-rs) crate exposing low-level bindings.
+Based on the [sfcgal-sys](https://github.com/mthh/sfcgal-sys) crate exposing low-level bindings.
 
 Some key features of the underlying library:
 - Supports ISO 19107 and [OGC Simple Features Access 1.2](http://www.opengeospatial.org/standards/sfa) for 3D operations.
