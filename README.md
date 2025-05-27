@@ -2,7 +2,7 @@
 
 [![Build and run tests](https://github.com/mthh/sfcgal-rs/actions/workflows/test.yml/badge.svg)](https://github.com/mthh/sfcgal-rs/actions/workflows/test.yml)
 [![Crates.io](https://img.shields.io/crates/v/sfcgal.svg)](https://crates.io/crates/sfcgal)
-[![Documentation](https://img.shields.io/badge/documentation-0.8.1-green)](https://mthh.github.io/sfcgal-rs/sfcgal/)
+[![Documentation](https://img.shields.io/badge/documentation-0.8.2-green)](https://mthh.github.io/sfcgal-rs/sfcgal/)
 
 
 Rust bindings providing a high-level API to [`SFCGAL`](https://sfcgal.gitlab.io/SFCGAL/) library and conversion to / from other geometry crates from Rust ecosystem.  
@@ -15,7 +15,7 @@ Some key features of the underlying library:
 - Straight skeleton, tesselation, Minkovski sum, alpha shapes and convex hull.
 
 > [!IMPORTANT]
-> Note that the required version of SFCGAL is currently 2.0.x (latest version - 2024-10-10).  
+> Note that the required version of SFCGAL is currently 2.x.x (latest version on 2025-05-27 is 2.1.0).  
 > If you want to use SFCCAL 1.5.x, you can use the 0.7.x version of this crate.  
 > If you want to use SFCCAL 1.4.x, you can use the 0.6.x version of this crate.
 
@@ -93,7 +93,7 @@ See `examples/skeleton_geojson.rs` for an example of working with some other cra
 ### Motivation
 
 Needed a SFCGAL feature for a side-project in Rust and I thought it would be a good opportunity to try using [bindgen](https://github.com/rust-lang/rust-bindgen) on SFCGAL C API.  
-In the end a large part of the API is wrapped, so maybe it could be reused or improved by someone now it's published on [crates.io](https://crates.io/crates/sfcgal).
+In the end a large part of the API is wrapped, so maybe it could be reused or improved by the community now it's published on [crates.io](https://crates.io/crates/sfcgal).
 
 ## Other SFCGAL bindings
 

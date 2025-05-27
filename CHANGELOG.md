@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.8.2] - 2025-05-27
+### Changed
+- Make `geo-types` and `geojson` optional dependencies [#9](https://github.com/mthh/sfcgal-rs/pull/9), thanks to @TimTheBig.
+- Update `sfcgal-sys` to 0.9.0 to ease installation on other platforms than Linux.
+- Fix typos in documentation and in some error messages.
+
 ## [0.8.1] - 2024-11-20
 ### Changed
 - Fixed the visibility of the `BufferType` enum.
