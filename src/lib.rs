@@ -79,7 +79,7 @@ pub trait ToSFCGAL {
     fn to_sfcgal(&self) -> Result<SFCGeometry>;
 }
 
-/// Convert object to a [`CoordSeq`] holding coordinates and informations about
+/// Convert object to a [`CoordSeq`] holding coordinates and information about
 /// geometry type.
 ///
 /// [`CoordSeq`]: enum.CoordSeq.html
