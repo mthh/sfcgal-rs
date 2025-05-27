@@ -1,8 +1,15 @@
 #[macro_use]
 mod macros;
+
 mod coords;
-mod geojson;
-mod geotypes;
-pub use self::geojson::*;
 pub use coords::*;
+
+#[cfg(feature = "geojson")]
+mod geojson;
+#[cfg(feature = "geojson")]
+pub use self::geojson::*;
+
+#[cfg(feature = "geo-types")]
+mod geotypes;
+#[cfg(feature = "geo-types")]
 pub use geotypes::*;

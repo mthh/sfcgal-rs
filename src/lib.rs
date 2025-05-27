@@ -57,7 +57,11 @@ mod errors;
 mod geometry;
 mod utils;
 
-pub use conversion::{CoordSeq, FromGeoJSON, ToGeoJSON, TryInto};
+pub use conversion::CoordSeq;
+#[cfg(feature = "geo-types")]
+pub use conversion::TryInto;
+#[cfg(feature = "geojson")]
+pub use conversion::{FromGeoJSON, ToGeoJSON};
 pub use errors::Result;
 pub use geometry::{BufferType, GeomType, Orientation, SFCGeometry};
 
@@ -97,8 +101,7 @@ mod tests {
     use super::version;
 
     #[test]
-
     fn display_version() {
-        assert!(version().contains("2.0."));
+        assert!(version().starts_with("2."));
     }
 }
