@@ -15,7 +15,7 @@ pub(crate) fn _string(raw_ptr: *const c_char) -> String {
 pub(crate) fn check_null_geom(g: *const sfcgal_geometry_t) -> Result<()> {
     if g.is_null() {
         return Err(format_err!(
-            "Error - Encoutered a null Geometry : {}",
+            "Error - Encountered a null Geometry : {}",
             get_last_error()
         ));
     }
@@ -26,7 +26,7 @@ pub(crate) fn check_null_geom(g: *const sfcgal_geometry_t) -> Result<()> {
 pub(crate) fn check_null_prepared_geom(g: *mut sfcgal_prepared_geometry_t) -> Result<()> {
     if g.is_null() {
         return Err(format_err!(
-            "Error - Encoutered a null Prepared Geometry : {}",
+            "Error - Encountered a null Prepared Geometry : {}",
             get_last_error()
         ));
     }
