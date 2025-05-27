@@ -58,10 +58,10 @@ mod geometry;
 mod utils;
 
 pub use conversion::CoordSeq;
-#[cfg(feature = "geojson")]
-pub use conversion::{FromGeoJSON, ToGeoJSON};
 #[cfg(feature = "geo-types")]
 pub use conversion::TryInto;
+#[cfg(feature = "geojson")]
+pub use conversion::{FromGeoJSON, ToGeoJSON};
 pub use errors::Result;
 pub use geometry::{BufferType, GeomType, Orientation, SFCGeometry};
 
