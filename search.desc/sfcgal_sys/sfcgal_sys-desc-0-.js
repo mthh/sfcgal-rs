@@ -1,0 +1,1 @@
+searchState.loadedDescShard("sfcgal_sys", 0, "No value.\nNo value.\nNo value.\nSome value of type <code>T</code>.\nSome value of type <code>T</code>.\nSome value of type <code>T</code>.")

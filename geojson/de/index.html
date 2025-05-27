@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Build your struct from GeoJSON using `serde`"><title>geojson::de - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-6c3ea77c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="geojson" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0 (05f9846f8 2025-03-31)" data-channel="1.86.0" data-search-js="search-581efc7a.js" data-settings-js="settings-6dad6058.js" ><script src="../../static.files/storage-3a5871a4.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-4d63596a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button><a class="logo-container" href="../../geojson/index.html"><img src="https://raw.githubusercontent.com/georust/meta/master/logo/logo.png" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../../geojson/index.html"><img src="https://raw.githubusercontent.com/georust/meta/master/logo/logo.png" alt="logo"></a><h2><a href="../../geojson/index.html">geojson</a><span class="version">0.24.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module de</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#reading-and-writing-geojson" title="Reading and Writing GeoJSON">Reading and Writing GeoJSON</a></li></ul><h3><a href="#functions">Module Items</a></h3><ul class="block"><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate geojson</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">geojson</a></div><h1>Module <span>de</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/geojson/de.rs.html#1-834">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Build your struct from GeoJSON using <a href="../../serde/index.html" title="mod serde"><code>serde</code></a></p>
+<p>To build instances of your struct from a GeoJSON String or reader, your type <em>must</em>
+implement or derive <a href="../../serde/de/trait.Deserialize.html" title="trait serde::de::Deserialize"><code>serde::Deserialize</code></a>:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(serde::Deserialize)]
+</span><span class="kw">struct </span>MyStruct {
+    ...
+}</code></pre></div>
+<p>Your type <em>must</em> have a field called <code>geometry</code> and it must be <code>deserialize_with</code> <a href="fn.deserialize_geometry.html" title="fn geojson::de::deserialize_geometry"><code>deserialize_geometry</code></a>:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(serde::Deserialize)]
+</span><span class="kw">struct </span>MyStruct {
+   <span class="attr">#[serde(deserialize_with = <span class="string">"geojson::de::deserialize_geometry"</span>)]
+   </span>geometry: geo_types::Point&lt;f64&gt;,
+   ...
+}</code></pre></div>
+<p>All fields in your struct other than <code>geometry</code> will be deserialized from the <code>properties</code> of the
+GeoJSON Feature.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>geojson::de::deserialize_geometry;
+
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>MyStruct {
+    <span class="comment">// Deserialize from GeoJSON, rather than expecting the type's default serialization
+    </span><span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_geometry"</span>)]
+    </span>geometry: geo_types::Point&lt;f64&gt;,
+    name: String,
+    population: u64
+}
+
+<span class="kw">let </span>input_geojson = <span class="macro">serde_json::json!</span>(
+    {
+        <span class="string">"type"</span>:<span class="string">"FeatureCollection"</span>,
+        <span class="string">"features"</span>: [
+            {
+                <span class="string">"type"</span>: <span class="string">"Feature"</span>,
+                <span class="string">"geometry"</span>: { <span class="string">"coordinates"</span>: [<span class="number">11.1</span>,<span class="number">22.2</span>], <span class="string">"type"</span>: <span class="string">"Point" </span>},
+                <span class="string">"properties"</span>: {
+                    <span class="string">"name"</span>: <span class="string">"Downtown"</span>,
+                    <span class="string">"population"</span>: <span class="number">123
+                </span>}
+            },
+            {
+                <span class="string">"type"</span>: <span class="string">"Feature"</span>,
+                <span class="string">"geometry"</span>: { <span class="string">"coordinates"</span>: [<span class="number">33.3</span>, <span class="number">44.4</span>], <span class="string">"type"</span>: <span class="string">"Point" </span>},
+                <span class="string">"properties"</span>: {
+                    <span class="string">"name"</span>: <span class="string">"Uptown"</span>,
+                    <span class="string">"population"</span>: <span class="number">456
+                </span>}
+            }
+        ]
+    }
+).to_string();
+
+<span class="kw">let </span>my_structs: Vec&lt;MyStruct&gt; = geojson::de::deserialize_feature_collection_str_to_vec(<span class="kw-2">&amp;</span>input_geojson).unwrap();
+<span class="macro">assert_eq!</span>(<span class="string">"Downtown"</span>, my_structs[<span class="number">0</span>].name);
+<span class="macro">assert_eq!</span>(<span class="number">11.1</span>, my_structs[<span class="number">0</span>].geometry.x());
+
+<span class="macro">assert_eq!</span>(<span class="string">"Uptown"</span>, my_structs[<span class="number">1</span>].name);
+<span class="macro">assert_eq!</span>(<span class="number">33.3</span>, my_structs[<span class="number">1</span>].geometry.x());</code></pre></div>
+<h2 id="reading-and-writing-geojson"><a class="doc-anchor" href="#reading-and-writing-geojson">§</a>Reading <em>and</em> Writing GeoJSON</h2>
+<p>This module is only concerned with <em>reading in</em> GeoJSON. If you’d also like to write GeoJSON
+output, you’ll want to combine this with the functionality from the <a href="../ser/index.html" title="mod geojson::ser"><code>crate::ser</code></a> module:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(serde::Serialize, serde::Deserialize)]
+</span><span class="kw">struct </span>MyStruct {
+    <span class="comment">// Serialize as GeoJSON, rather than using the type's default serialization
+    </span><span class="attr">#[serde(serialize_with = <span class="string">"serialize_geometry"</span>, deserialize_with = <span class="string">"deserialize_geometry"</span>)]
+    </span>geometry: geo_types::Point&lt;f64&gt;,
+    ...
+}</code></pre></div>
+</div></details><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.deserialize_feature_collection.html" title="fn geojson::de::deserialize_feature_collection">deserialize_<wbr>feature_<wbr>collection</a></dt><dd>Deserialize a GeoJSON FeatureCollection into your custom structs.</dd><dt><a class="fn" href="fn.deserialize_feature_collection_str_to_vec.html" title="fn geojson::de::deserialize_feature_collection_str_to_vec">deserialize_<wbr>feature_<wbr>collection_<wbr>str_<wbr>to_<wbr>vec</a></dt><dd>Build a <code>Vec</code> of structs from a GeoJson <code>&amp;str</code>.</dd><dt><a class="fn" href="fn.deserialize_feature_collection_to_vec.html" title="fn geojson::de::deserialize_feature_collection_to_vec">deserialize_<wbr>feature_<wbr>collection_<wbr>to_<wbr>vec</a></dt><dd>Build a <code>Vec</code> of structs from a GeoJson reader.</dd><dt><a class="fn" href="fn.deserialize_features_from_feature_collection.html" title="fn geojson::de::deserialize_features_from_feature_collection">deserialize_<wbr>features_<wbr>from_<wbr>feature_<wbr>collection</a></dt><dd>Deserialize a GeoJSON FeatureCollection into <a href="../struct.Feature.html" title="struct geojson::Feature"><code>Feature</code></a> structs.</dd><dt><a class="fn" href="fn.deserialize_geometry.html" title="fn geojson::de::deserialize_geometry">deserialize_<wbr>geometry</a></dt><dd><a href="https://serde.rs/field-attrs.html#deserialize_with"><code>serde::deserialize_with</code></a> helper to deserialize a GeoJSON Geometry into another type, like a
+<a href="../../geo_types/index.html" title="mod geo_types"><code>geo_types</code></a> Geometry.</dd><dt><a class="fn" href="fn.deserialize_optional_geometry.html" title="fn geojson::de::deserialize_optional_geometry">deserialize_<wbr>optional_<wbr>geometry</a></dt><dd><a href="https://serde.rs/field-attrs.html#deserialize_with"><code>serde::deserialize_with</code></a> helper to deserialize an optional GeoJSON Geometry into another type,
+like an optional <a href="../../geo_types/index.html" title="mod geo_types"><code>geo_types</code></a> Geometry.</dd><dt><a class="fn" href="fn.deserialize_single_feature.html" title="fn geojson::de::deserialize_single_feature">deserialize_<wbr>single_<wbr>feature</a></dt><dd>Deserialize a single GeoJSON Feature into your custom struct.</dd><dt><a class="fn" href="fn.from_feature.html" title="fn geojson::de::from_feature">from_<wbr>feature</a></dt><dd>Interpret a <a href="../struct.Feature.html" title="struct geojson::Feature"><code>Feature</code></a> as an instance of type <code>T</code>.</dd></dl></section></div></main></body></html>

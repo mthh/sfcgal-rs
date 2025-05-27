@@ -1,0 +1,2 @@
+window.ALL_CRATES = ["anyhow","approx","enum_primitive_derive","geo_types","geojson","itoa","libc","libm","log","memchr","num_traits","proc_macro2","quote","ryu","serde","serde_derive","serde_json","sfcgal","sfcgal_sys","syn","thiserror","thiserror_impl","unicode_ident"];
+//{"start":21,"fragment_lengths":[8,9,24,12,10,7,7,7,6,9,13,14,8,6,8,15,13,9,13,6,12,17,16]}

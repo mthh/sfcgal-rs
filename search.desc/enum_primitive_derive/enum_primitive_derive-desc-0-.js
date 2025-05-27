@@ -1,0 +1,1 @@
+searchState.loadedDescShard("enum_primitive_derive", 0, "This crate provides a custom derive <code>Primitive</code> that helps …\nProvides implementation of <code>num_traits::ToPrimitive</code> and …")
