@@ -71,10 +71,25 @@ use crate::{
     conversion::{CoordSeq, CoordType, ToSFCGALGeom},
     errors::get_last_error,
     utils::{
-        _c_string_with_size, _string, check_computed_value, check_nan_value,
+        _string, c_string_with_size, check_computed_value, check_nan_value,
         check_null_prepared_geom, check_predicate, get_raw_bytes,
     },
     Result, ToSFCGAL,
+};
+
+// For review
+use sfcgal_sys::{
+    sfcgal_geometry_alpha_wrapping_3d, sfcgal_geometry_as_stl, sfcgal_geometry_as_stl_file,
+    sfcgal_geometry_boundary, sfcgal_geometry_centroid, sfcgal_geometry_centroid,
+    sfcgal_geometry_centroid_3d, sfcgal_geometry_collection_set_geometry_n,
+    sfcgal_geometry_dimension, sfcgal_geometry_drop_m, sfcgal_geometry_drop_z,
+    sfcgal_geometry_envelope, sfcgal_geometry_force_m, sfcgal_geometry_force_z,
+    sfcgal_geometry_get_geometry_n, sfcgal_geometry_get_geometry_n,
+    sfcgal_geometry_is_almost_equals, sfcgal_geometry_is_equals, sfcgal_geometry_is_simple,
+    sfcgal_geometry_length, sfcgal_geometry_length_3d, sfcgal_geometry_num_geometries,
+    sfcgal_geometry_set_geometry_n, sfcgal_geometry_simplify, sfcgal_geometry_swap_xy,
+    sfcgal_geometry_type, sfcgal_polyhedral_surface_set_patch_n,
+    sfcgal_triangulated_surface_set_patch_n,
 };
 
 /// Represent the buffer types usable with the `buffer3d` method.
@@ -282,7 +297,7 @@ impl SFCGeometry {
         unsafe {
             sfcgal_geometry_as_text(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
 
-            Ok(_c_string_with_size(ptr.assume_init(), length))
+            Ok(c_string_with_size(ptr.assume_init(), length))
         }
     }
 
@@ -302,7 +317,7 @@ impl SFCGeometry {
                 &mut length,
             );
 
-            Ok(_c_string_with_size(ptr.assume_init(), length))
+            Ok(c_string_with_size(ptr.assume_init(), length))
         }
     }
 
@@ -1515,6 +1530,7 @@ impl SFCGeometry {
         Ok(())
     }
 
+    #[deprecated = "Use geometry_num_geometries instead."]
     /// Returns the number of triangles of a given TriangulatedSurface
     pub fn triangulated_surface_num_triangles(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Triangulatedsurface);
@@ -1620,6 +1636,7 @@ impl SFCGeometry {
         unsafe { SFCGeometry::new_from_raw(result, true) }
     }
 
+    #[deprecated = "Use geometry_num_geometries instead."]
     /// Returns the number of polygons of a given PolyhedralSurface
     pub fn polyhedral_surface_num_polygons(&self) -> Result<usize> {
         precondition_match_type!(self, GeomType::Polyhedralsurface);
@@ -1640,6 +1657,7 @@ impl SFCGeometry {
         Ok(())
     }
 
+    #[deprecated = "Use geometry_get_geometry_n instead.c"]
     /// Returns the ith polygon of a given PolyhedralSurface
     pub fn polyhedral_surface_polygon_n(&self, index: usize) -> Result<SFCGeometry> {
         precondition_match_type!(self, GeomType::Polyhedralsurface);
@@ -1848,6 +1866,196 @@ impl SFCGeometry {
         let converted = result as *mut c_void;
 
         SFCGeometry::new_from_raw(converted, true)
+    }
+
+    // For review
+    pub fn geometry_envelope(&self) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_envelope(self.c_geom.as_ptr()) };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    pub fn geometry_is_simple(&self) -> Result<bool> {
+        let result = unsafe { sfcgal_geometry_is_simple(self.c_geom.as_ptr()) };
+
+        check_predicate(result)
+    }
+
+    pub fn geometry_alpha_wrapping_3d(
+        &self,
+        relative_alpha: usize,
+        relative_offset: usize,
+    ) -> Result<SFCGeometry> {
+        let result = unsafe {
+            sfcgal_geometry_alpha_wrapping_3d(self.c_geom.as_ptr(), relative_alpha, relative_offset)
+        };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    pub fn geometry_length(&self) -> Result<f64> {
+        let result = unsafe { sfcgal_geometry_length(self.c_geom.as_ptr()) };
+
+        check_nan_value(result)
+    }
+    pub fn geometry_length_3d(&self) -> Result<f64> {
+        let result = unsafe { sfcgal_geometry_length_3d(self.c_geom.as_ptr()) };
+
+        check_nan_value(result)
+    }
+
+    pub fn geometry_centroid(&self) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_centroid(self.c_geom.as_ptr()) };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    pub fn geometry_centroid_3d(&self) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_centroid_3d(self.c_geom.as_ptr()) };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    pub fn geometry_is_equals(&self, other: &SFCGeometry) -> Result<bool> {
+        let result =
+            unsafe { sfcgal_geometry_is_equals(self.c_geom.as_ptr(), other.c_geom.as_ptr()) };
+
+        check_predicate(result)
+    }
+    pub fn geometry_is_almost_equals(&self, other: &SFCGeometry, tolerance: f64) -> Result<bool> {
+        let result = unsafe {
+            sfcgal_geometry_is_almost_equals(self.c_geom.as_ptr(), other.c_geom.as_ptr(), tolerance)
+        };
+
+        check_predicate(result)
+    }
+
+    pub fn geometry_get_geometry_n(&self, index: usize) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_get_geometry_n(self.c_geom.as_ptr(), index) };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+    pub fn geometry_num_geometries(&self) -> usize {
+        unsafe { sfcgal_geometry_num_geometries(self.c_geom.as_ptr()) }
+    }
+    pub fn geometry_set_geometry_n(&self, other: &SFCGeometry, index: usize) -> usize {
+        unsafe {
+            sfcgal_geometry_set_geometry_n(self.c_geom.as_ptr(), other.c_geom.as_ptr(), index)
+        }
+    }
+
+    pub fn geometry_drop_z(&self) -> Result<bool> {
+        let result = unsafe { sfcgal_geometry_drop_z(self.c_geom.as_ptr()) };
+
+        check_predicate(result)
+    }
+
+    pub fn geometry_drop_m(&self) -> Result<bool> {
+        let result = unsafe { sfcgal_geometry_drop_m(self.c_geom.as_ptr()) };
+
+        check_predicate(result)
+    }
+
+    pub fn geometry_dimension(&self) -> i32 {
+        unsafe { sfcgal_geometry_dimension(self.c_geom.as_ptr()) }
+    }
+
+    pub fn geometry_type(&self) -> Result<String> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_geometry_type(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+
+            Ok(c_string_with_size(ptr.assume_init(), length))
+        }
+    }
+
+    pub fn geometry_boundary(&self) -> Result<SFCGeometry> {
+        let result = unsafe { sfcgal_geometry_boundary(self.c_geom.as_ptr()) };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    pub fn geometry_swap_xy(&self) {
+        unsafe { sfcgal_geometry_swap_xy(self.c_geom.as_ptr()) };
+    }
+    pub fn geometry_force_z(&self, z: f64) -> Result<bool> {
+        let result = unsafe { sfcgal_geometry_force_z(self.c_geom.as_ptr(), z) };
+
+        check_predicate(result)
+    }
+
+    pub fn geometry_force_m(&self, m: f64) -> Result<bool> {
+        let result = unsafe { sfcgal_geometry_force_m(self.c_geom.as_ptr(), m) };
+
+        check_predicate(result)
+    }
+
+    pub fn geometry_simplify(
+        &self,
+        threshold: f64,
+        preserve_topology: bool,
+    ) -> Result<SFCGeometry> {
+        let result =
+            unsafe { sfcgal_geometry_simplify(self.c_geom.as_ptr(), threshold, preserve_topology) };
+
+        unsafe { SFCGeometry::new_from_raw(result, true) }
+    }
+
+    pub fn polyhedral_surface_set_patch_n(&self, other: &SFCGeometry, index: usize) {
+        unsafe {
+            sfcgal_polyhedral_surface_set_patch_n(
+                self.c_geom.as_ptr(),
+                other.c_geom.as_ptr(),
+                index,
+            )
+        };
+    }
+    pub fn triangulated_surface_set_patch_n(&self, other: &SFCGeometry, index: usize) {
+        unsafe {
+            sfcgal_triangulated_surface_set_patch_n(
+                self.c_geom.as_ptr(),
+                other.c_geom.as_ptr(),
+                index,
+            )
+        };
+    }
+
+    pub fn geometry_collection_set_geometry_n(&self, other: &SFCGeometry, index: usize) {
+        unsafe {
+            sfcgal_geometry_collection_set_geometry_n(
+                self.c_geom.as_ptr(),
+                other.c_geom.as_ptr(),
+                index,
+            )
+        };
+    }
+
+    pub fn to_stl_file(&self, filename: &str) -> Result<()> {
+        unsafe {
+            let c_string = CString::new(filename)?;
+
+            let raw: *mut c_char = c_string.into_raw();
+
+            sfcgal_geometry_as_stl_file(self.c_geom.as_ptr(), raw);
+        };
+
+        Ok(())
+    }
+
+    /// Creates a STL string of the given geometry. In memory version.
+    pub fn to_stl_in_memory(&self) -> Result<Vec<u8>> {
+        let mut ptr = MaybeUninit::<*mut c_char>::uninit();
+
+        let mut length: usize = 0;
+
+        unsafe {
+            sfcgal_geometry_as_stl(self.c_geom.as_ref(), ptr.as_mut_ptr(), &mut length);
+
+            Ok(get_raw_bytes(ptr.assume_init(), length))
+        }
     }
 }
 fn is_all_same<T>(arr: &[T]) -> bool

@@ -62,7 +62,7 @@ pub(crate) fn check_nan_value(val: f64) -> Result<f64> {
 // (as it seems to not always end with a null byte)
 // from the pointer to uninitialized memory with give
 // to it earlier.
-pub(crate) fn _c_string_with_size(raw_ptr: *const c_char, size: usize) -> String {
+pub(crate) fn c_string_with_size(raw_ptr: *const c_char, size: usize) -> String {
     let slice: &[u8] = unsafe { std::slice::from_raw_parts(raw_ptr as *const u8, size) };
 
     let res = std::str::from_utf8(slice).unwrap().to_string();
